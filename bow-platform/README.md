@@ -1,70 +1,64 @@
-# Getting Started with Create React App
+# 🎶 BOW Platform – Beats of Washington Community Website
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Welcome to the official codebase for the **Beats of Washington (BOW)** platform — a community-driven web application built to connect, organize, and celebrate cultural events across Washington State.
 
-## Available Scripts
+This project is built with **React** and powered by **AWS Amplify**, offering a scalable and secure foundation for features like event management, member engagement, and donations.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Live Demo
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+🌐 [Visit Live Site](https://bow-platform-<your-hash>.amplifyapp.com)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+> Replace the URL above with your actual Amplify domain after publishing.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 📦 Tech Stack
 
-### `npm run build`
+- **Frontend**: React (Create React App)
+- **Cloud Services**: AWS Amplify
+  - Hosting (S3 + CloudFront)
+  - Authentication (Cognito – Google Sign-In)
+  - API & Database (GraphQL + DynamoDB – coming soon)
+  - Storage (S3 for media uploads – coming soon)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🔧 Getting Started
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 1. Clone the Repo
 
-### `npm run eject`
+```bash
+git clone https://github.com/your-username/bow-platform.git
+cd bow-platform
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Install Dependencies
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. Start the App Locally
+```bash
+npm start
+```
+4. Initialize Amplify (first-time setup)
+```bash
+amplify init
+```
+Project Structure
+bow-platform/
+├── amplify/           # AWS Amplify backend
+├── public/            # Static assets
+├── src/               # React components and logic
+├── aws-exports.js     # AWS config (auto-generated)
+├── package.json       # Project metadata
+└── README.md          # You're here!
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+🧠 Contributors
 
-## Learn More
+Gaurav Khandekar
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Meet Shah
