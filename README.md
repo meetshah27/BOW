@@ -48,6 +48,7 @@ npm start
 amplify init
 ```
 Project Structure
+
 bow-platform/
 ├── amplify/           # AWS Amplify backend
 ├── public/            # Static assets
@@ -58,5 +59,7 @@ bow-platform/
 
 
 🧠 Contributors
+
 Gaurav Khandekar
+
 Meet Shah
