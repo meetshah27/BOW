@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-bow-dev-adfb9-authRole",
+      "UnauthRoleArn": "arn:aws:iam::600318192876:role/amplify-bow-dev-adfb9-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::600318192876:role/amplify-bow-dev-adfb9-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-bow-dev-adfb9-deployment",
+      "UnauthRoleName": "amplify-bow-dev-adfb9-unauthRole",
+      "StackName": "amplify-bow-dev-adfb9",
+      "StackId": "arn:aws:cloudformation:us-east-1:600318192876:stack/amplify-bow-dev-adfb9/8c505a40-5703-11f0-a489-0affed541e0f",
+      "AmplifyAppId": "dc6duixho85ge"
+    },
+    "categories": {
+      "hosting": {
+        "S3AndCloudFront": {}
+      }
+    }
+  }
+}
