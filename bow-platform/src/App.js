@@ -16,6 +16,7 @@ import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import LeadershipPage from './pages/LeadershipPage';
 import EventsPage from './pages/EventsPage';
+import EventDetailsPage from './pages/EventDetailsPage';
 import GalleryPage from './pages/GalleryPage';
 import GetInvolvedPage from './pages/GetInvolvedPage';
 import DonationPage from './pages/DonationPage';
@@ -43,6 +44,7 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/leadership" element={<LeadershipPage />} />
                 <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/:id" element={<EventDetailsPage />} />
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/get-involved" element={<GetInvolvedPage />} />
                 <Route path="/donate" element={<DonationPage />} />

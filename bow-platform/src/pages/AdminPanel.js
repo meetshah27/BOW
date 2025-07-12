@@ -20,6 +20,14 @@ import {
   LogOut,
   UserX,
   UserCheck,
+  MessageSquare,
+  Heart,
+  Shield,
+  TrendingUp,
+  Upload,
+  CheckCircle,
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 
 // Admin Sub-components
@@ -27,7 +35,7 @@ const Dashboard = () => {
   const stats = [
     { title: 'Total Members', value: '2,847', change: '+12%', icon: Users },
     { title: 'Active Events', value: '23', change: '+5%', icon: Calendar },
-    { title: 'Monthly Donations', value: '$12,450', change: '+8%', icon: BarChart3 },
+    { title: 'Monthly Donations', value: '$12,450', change: '+8%', icon: CreditCard },
     { title: 'Volunteer Hours', value: '1,234', change: '+15%', icon: Users }
   ];
 
@@ -215,57 +223,69 @@ const EventManagement = () => {
   );
 };
 
-function UsersSection() {
-  const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+const UserManagement = () => {
+  const [users] = useState([
+    { uid: '1', displayName: 'John Doe', email: 'john@example.com', role: 'member', isActive: true },
+    { uid: '2', displayName: 'Jane Smith', email: 'jane@example.com', role: 'volunteer', isActive: true },
+    { uid: '3', displayName: 'Bob Wilson', email: 'bob@example.com', role: 'admin', isActive: true },
+    { uid: '4', displayName: 'Alice Brown', email: 'alice@example.com', role: 'member', isActive: false }
+  ]);
 
-  useEffect(() => {
-    setLoading(true);
-    fetch('http://localhost:3000/users')
-      .then(res => res.json())
-      .then(data => {
-        setUsers(data);
-        setLoading(false);
-      });
-  }, []);
+  const [filter, setFilter] = useState('all');
 
-  const filteredUsers = users.filter(
-    user =>
-      user.displayName?.toLowerCase().includes(search.toLowerCase()) ||
-      user.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    if (filter === 'all') return true;
+    return user.role === filter;
+  });
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Users</h2>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="input-field pl-10 w-64"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        </div>
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">User & Volunteer Management</h2>
+        <button className="btn-primary">
+          <Plus className="w-4 h-4 mr-2" />
+          Add User
+        </button>
       </div>
-      {loading ? (
-        <div>Loading users...</div>
-      ) : (
+
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">All Users</h3>
+            <div className="flex space-x-2">
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="all">All Roles</option>
+                <option value="member">Members</option>
+                <option value="volunteer">Volunteers</option>
+                <option value="admin">Admins</option>
+              </select>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded-xl shadow">
-            <thead>
+          <table className="w-full">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Name</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Email</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Role</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map(user => (
                 <tr key={user.uid} className="border-b last:border-b-0">
                   <td className="px-4 py-2 whitespace-nowrap">{user.displayName || user.email}</td>
@@ -300,10 +320,269 @@ function UsersSection() {
             </tbody>
           </table>
         </div>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+const GalleryManager = () => {
+  const [albums] = useState([
+    { id: 1, name: 'Diwali 2024', count: 45, date: '2024-11-15' },
+    { id: 2, name: 'Youth Fest', count: 32, date: '2024-10-20' },
+    { id: 3, name: 'Community Drum Circle', count: 28, date: '2024-09-15' }
+  ]);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Gallery Manager</h2>
+        <button className="btn-primary">
+          <Upload className="w-4 h-4 mr-2" />
+          Upload Media
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {albums.map(album => (
+          <div key={album.id} className="bg-white rounded-lg shadow p-6">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{album.name}</h3>
+              <div className="flex space-x-2">
+                <button className="text-blue-600 hover:text-blue-900">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button className="text-red-600 hover:text-red-900">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-4">{album.count} items</p>
+            <p className="text-sm text-gray-500">{album.date}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const StoriesManagement = () => {
+  const [stories] = useState([
+    { id: 1, title: 'My Journey with BOW', author: 'Sarah Johnson', status: 'pending', date: '2024-01-15' },
+    { id: 2, title: 'Community Impact', author: 'Mike Chen', status: 'approved', date: '2024-01-10' },
+    { id: 3, title: 'Volunteer Experience', author: 'Maria Rodriguez', status: 'rejected', date: '2024-01-08' }
+  ]);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold text-gray-900">People Stories & Submissions</h2>
+
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Story Submissions</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {stories.map(story => (
+                <tr key={story.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{story.title}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{story.author}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(story.status)}`}>
+                      {story.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{story.date}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button className="text-primary-600 hover:text-primary-900">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        <CheckCircle className="w-4 h-4" />
+                      </button>
+                      <button className="text-red-600 hover:text-red-900">
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DonationsManagement = () => {
+  const [donations, setDonations] = useState([]);
+  const [stats, setStats] = useState({
+    totalDonations: 0,
+    totalAmount: 0,
+    monthlyStats: []
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDonations();
+    fetchStats();
+  }, []);
+
+  const fetchDonations = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/payment/donations?limit=10');
+      if (response.ok) {
+        const data = await response.json();
+        setDonations(data.donations);
+      }
+    } catch (error) {
+      console.error('Error fetching donations:', error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/payment/donations/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching donation stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Donations & Payment Logs</h2>
+        <button className="btn-outline">
+          <Download className="w-4 h-4 mr-2" />
+          Export Report
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Donations</h3>
+          <p className="text-3xl font-bold text-green-600">
+            ${loading ? '...' : (stats.totalAmount / 100).toFixed(2)}
+          </p>
+          <p className="text-sm text-gray-600">
+            {loading ? 'Loading...' : `${stats.totalDonations} successful donations`}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">This Month</h3>
+          <p className="text-3xl font-bold text-blue-600">
+            ${loading ? '...' : (stats.monthlyStats[0]?.amount / 100 || 0).toFixed(2)}
+          </p>
+          <p className="text-sm text-gray-600">
+            {loading ? 'Loading...' : `${stats.monthlyStats[0]?.count || 0} donations this month`}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Donors</h3>
+          <p className="text-3xl font-bold text-purple-600">
+            {loading ? '...' : stats.totalDonations}
+          </p>
+          <p className="text-sm text-gray-600">
+            {loading ? 'Loading...' : 'Total unique donors'}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Donations</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                    Loading donations...
+                  </td>
+                </tr>
+              ) : donations.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                    No donations found
+                  </td>
+                </tr>
+              ) : (
+                donations.map(donation => (
+                  <tr key={donation._id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{donation.donorName}</div>
+                      <div className="text-sm text-gray-500">{donation.donorEmail}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-green-600">
+                        ${(donation.amount / 100).toFixed(2)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {new Date(donation.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        donation.status === 'succeeded' ? 'bg-green-100 text-green-800' : 
+                        donation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {donation.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ContentManagement = () => {
   return (
@@ -354,7 +633,7 @@ const ContentManagement = () => {
 const Analytics = () => {
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-gray-900">Analytics</h2>
+      <h2 className="text-2xl font-bold text-gray-900">Analytics & Reports</h2>
       
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
@@ -392,11 +671,14 @@ const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: BarChart3 },
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Gallery', href: '/admin/gallery', icon: Image },
+    { name: 'Stories', href: '/admin/stories', icon: MessageSquare },
+    { name: 'Donations', href: '/admin/donations', icon: CreditCard },
     { name: 'Content', href: '/admin/content', icon: FileText },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
     { name: 'Settings', href: '/admin/settings', icon: Settings }
   ];
 
@@ -405,17 +687,21 @@ const AdminPanel = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'users':
-        return <UsersSection />;
+        return <UserManagement />;
       case 'events':
         return <EventManagement />;
       case 'gallery':
+        return <GalleryManager />;
+      case 'stories':
+        return <StoriesManagement />;
+      case 'donations':
+        return <DonationsManagement />;
+      case 'content':
         return <ContentManagement />;
-      case 'payments':
-        return <div className="p-8">Payments and donation history coming soon...</div>;
-      case 'submissions':
-        return <div className="p-8">Submissions moderation coming soon...</div>;
+      case 'analytics':
+        return <Analytics />;
       default:
-        return null;
+        return <Dashboard />;
     }
   };
 
@@ -457,7 +743,7 @@ const AdminPanel = () => {
           </div>
         </aside>
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 p-8">
           {renderSection()}
         </main>
       </div>

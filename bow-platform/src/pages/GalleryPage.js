@@ -10,13 +10,21 @@ import {
   Users,
   Heart,
   Share2,
-  Download
+  Download,
+  X,
+  Copy,
+  ExternalLink,
+  MessageCircle
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const GalleryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMedia, setSelectedMedia] = useState(null);
+  const [likedItems, setLikedItems] = useState(new Set());
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
 
   const categories = [
     { value: 'all', label: 'All Media', count: 156 },
@@ -27,7 +35,7 @@ const GalleryPage = () => {
   ];
 
   // Mock gallery data
-  const galleryItems = [
+  const [galleryItems, setGalleryItems] = useState([
     {
       id: 1,
       title: "Summer Music Festival 2023",
@@ -112,7 +120,7 @@ const GalleryPage = () => {
       likes: 198,
       views: 1123
     }
-  ];
+  ]);
 
   const filteredItems = galleryItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
@@ -138,6 +146,103 @@ const GalleryPage = () => {
   const closeModal = () => {
     setSelectedMedia(null);
   };
+
+  // Like functionality
+  const handleLike = (itemId, e) => {
+    e.stopPropagation();
+    const newLikedItems = new Set(likedItems);
+    
+    if (newLikedItems.has(itemId)) {
+      newLikedItems.delete(itemId);
+      toast.success('Removed from favorites');
+    } else {
+      newLikedItems.add(itemId);
+      toast.success('Added to favorites');
+    }
+    
+    setLikedItems(newLikedItems);
+    
+    // Update likes count
+    setGalleryItems(prev => prev.map(item => 
+      item.id === itemId 
+        ? { ...item, likes: newLikedItems.has(itemId) ? item.likes + 1 : item.likes - 1 }
+        : item
+    ));
+  };
+
+  // Share functionality
+  const handleShare = (item, e) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/gallery/${item.id}`;
+    setShareUrl(shareUrl);
+    setShowShareModal(true);
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link copied to clipboard!');
+      setShowShareModal(false);
+    } catch (err) {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const shareOnSocialMedia = (platform) => {
+    const text = `Check out this amazing content from Beats of Washington: ${selectedMedia?.title}`;
+    const url = shareUrl;
+    
+    let shareUrl_platform = '';
+    switch (platform) {
+      case 'facebook':
+        shareUrl_platform = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'twitter':
+        shareUrl_platform = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'linkedin':
+        shareUrl_platform = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl_platform, '_blank', 'width=600,height=400');
+    setShowShareModal(false);
+    toast.success(`Shared on ${platform}!`);
+  };
+
+  // Download functionality
+  const handleDownload = async (item, e) => {
+    e.stopPropagation();
+    
+    try {
+      if (item.type === 'image') {
+        // For images, create a download link
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.download = `${item.title.replace(/\s+/g, '_')}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Image downloaded successfully!');
+      } else if (item.type === 'video') {
+        // For videos, we'll show a message since direct download might not work with external URLs
+        toast.success('Video download started!');
+        // In a real app, you'd have the video file on your server
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.download = `${item.title.replace(/\s+/g, '_')}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      toast.error('Download failed. Please try again.');
+    }
+  };
+
+  const isLiked = (itemId) => likedItems.has(itemId);
 
   return (
     <>
@@ -236,6 +341,32 @@ const GalleryPage = () => {
                   <div className="absolute top-4 right-4 bg-white text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
                     {item.category}
                   </div>
+
+                  {/* Action Buttons */}
+                  <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => handleLike(item.id, e)}
+                      className={`p-2 rounded-full ${
+                        isLiked(item.id) 
+                          ? 'bg-red-500 text-white' 
+                          : 'bg-white/90 text-gray-700 hover:bg-red-500 hover:text-white'
+                      } transition-all duration-200`}
+                    >
+                      <Heart className={`w-4 h-4 ${isLiked(item.id) ? 'fill-current' : ''}`} />
+                    </button>
+                    <button
+                      onClick={(e) => handleShare(item, e)}
+                      className="p-2 rounded-full bg-white/90 text-gray-700 hover:bg-primary-500 hover:text-white transition-all duration-200"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDownload(item, e)}
+                      className="p-2 rounded-full bg-white/90 text-gray-700 hover:bg-green-500 hover:text-white transition-all duration-200"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="p-6">
@@ -273,8 +404,10 @@ const GalleryPage = () => {
                   {/* Stats */}
                   <div className="flex items-center justify-between text-sm text-gray-500">
                     <div className="flex items-center space-x-4">
-                      <span className="flex items-center">
-                        <Heart className="w-4 h-4 mr-1" />
+                      <span className={`flex items-center cursor-pointer ${
+                        isLiked(item.id) ? 'text-red-500' : 'hover:text-red-500'
+                      }`} onClick={(e) => handleLike(item.id, e)}>
+                        <Heart className={`w-4 h-4 mr-1 ${isLiked(item.id) ? 'fill-current' : ''}`} />
                         {item.likes}
                       </span>
                       <span className="flex items-center">
@@ -282,9 +415,20 @@ const GalleryPage = () => {
                         {item.views}
                       </span>
                     </div>
-                    <button className="text-primary-600 hover:text-primary-700">
-                      <Share2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={(e) => handleShare(item, e)}
+                        className="text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={(e) => handleDownload(item, e)}
+                        className="text-green-600 hover:text-green-700 transition-colors duration-200"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -326,7 +470,7 @@ const GalleryPage = () => {
                 onClick={closeModal}
                 className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors duration-200"
               >
-                ×
+                <X className="w-6 h-6" />
               </button>
               
               {/* Media Content */}
@@ -365,16 +509,29 @@ const GalleryPage = () => {
                   </div>
                   
                   <div className="flex items-center space-x-4">
-                    <button className="flex items-center text-gray-600 hover:text-red-600 transition-colors duration-200">
-                      <Heart className="w-4 h-4 mr-1" />
+                    <button 
+                      onClick={(e) => handleLike(selectedMedia.id, e)}
+                      className={`flex items-center transition-colors duration-200 ${
+                        isLiked(selectedMedia.id) 
+                          ? 'text-red-600' 
+                          : 'text-gray-600 hover:text-red-600'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 mr-1 ${isLiked(selectedMedia.id) ? 'fill-current' : ''}`} />
                       {selectedMedia.likes}
                     </button>
-                    <button className="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200">
-                      <Share2 className="w-4 h-4 mr-1" />
+                    <button 
+                      onClick={(e) => handleShare(selectedMedia, e)}
+                      className="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                    >
+                      <Share2 className="w-5 h-5 mr-1" />
                       Share
                     </button>
-                    <button className="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200">
-                      <Download className="w-4 h-4 mr-1" />
+                    <button 
+                      onClick={(e) => handleDownload(selectedMedia, e)}
+                      className="flex items-center text-gray-600 hover:text-green-600 transition-colors duration-200"
+                    >
+                      <Download className="w-5 h-5 mr-1" />
                       Download
                     </button>
                   </div>
@@ -394,6 +551,66 @@ const GalleryPage = () => {
                     </span>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Share This Content</h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Copy Link */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                />
+                <button
+                  onClick={copyToClipboard}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+              
+              {/* Social Media Buttons */}
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => shareOnSocialMedia('facebook')}
+                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Facebook
+                </button>
+                <button
+                  onClick={() => shareOnSocialMedia('twitter')}
+                  className="flex items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors duration-200"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Twitter
+                </button>
+                <button
+                  onClick={() => shareOnSocialMedia('linkedin')}
+                  className="flex items-center justify-center px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors duration-200"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  LinkedIn
+                </button>
               </div>
             </div>
           </div>

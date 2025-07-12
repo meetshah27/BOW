@@ -13,37 +13,57 @@ import {
 } from 'lucide-react';
 import {loadStripe} from '@stripe/stripe-js';
 import {Elements, CardElement, useStripe, useElements} from '@stripe/react-stripe-js';
+import toast from 'react-hot-toast';
 
+// Replace with your actual Stripe publishable key
 const stripePromise = loadStripe('pk_test_REPLACE_WITH_YOUR_PUBLISHABLE_KEY');
 
-function StripeDonationForm({amount}) {
+function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
+    
     try {
-      const res = await fetch('/api/payment/create-payment-intent', {
+      // Create payment intent
+      const res = await fetch('http://localhost:3000/api/payment/create-payment-intent', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({amount: Math.round(amount * 100), currency: 'usd'}),
+        body: JSON.stringify({
+          amount: Math.round(amount * 100), 
+          currency: 'usd',
+          donorEmail: donorEmail,
+          donorName: donorName,
+          isRecurring: isMonthly,
+          frequency: isMonthly ? 'monthly' : 'one-time'
+        }),
       });
+      
+      if (!res.ok) {
+        throw new Error('Payment intent creation failed');
+      }
+      
       const {clientSecret, error} = await res.json();
       if (error) throw new Error(error);
+      
+      // Confirm payment
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {card: elements.getElement(CardElement)},
       });
+      
       if (result.error) {
-        setMessage(result.error.message);
+        toast.error(result.error.message);
       } else if (result.paymentIntent.status === 'succeeded') {
-        setMessage('Thank you for your donation!');
+        toast.success('Thank you for your donation!');
+        // Clear the form
+        elements.getElement(CardElement).clear();
       }
     } catch (err) {
-      setMessage(err.message);
+      console.error('Payment error:', err);
+      toast.error('Payment failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -51,11 +71,32 @@ function StripeDonationForm({amount}) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-      <CardElement options={{hidePostalCode: true}} className="p-3 border rounded"/>
-      <button type="submit" className="btn-primary w-full" disabled={!stripe || loading}>
-        {loading ? 'Processing...' : 'Donate'}
+      <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+        <CardElement 
+          options={{
+            hidePostalCode: true,
+            style: {
+              base: {
+                fontSize: '16px',
+                color: '#424770',
+                '::placeholder': {
+                  color: '#aab7c4',
+                },
+              },
+              invalid: {
+                color: '#9e2146',
+              },
+            },
+          }}
+        />
+      </div>
+      <button 
+        type="submit" 
+        className="btn-primary w-full" 
+        disabled={!stripe || loading}
+      >
+        {loading ? 'Processing Payment...' : `Donate $${amount}`}
       </button>
-      {message && <div className="text-center text-sm mt-2 text-primary-600">{message}</div>}
     </form>
   );
 }
@@ -65,6 +106,8 @@ const DonationPage = () => {
   const [customAmount, setCustomAmount] = useState('');
   const [isMonthly, setIsMonthly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [donorEmail, setDonorEmail] = useState('');
+  const [donorName, setDonorName] = useState('');
 
   const presetAmounts = [25, 50, 100, 250, 500];
 
@@ -301,9 +344,49 @@ const DonationPage = () => {
                 </div>
               </div>
 
+              {/* Donor Information */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Donor Information
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={donorName}
+                      onChange={(e) => setDonorName(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      value={donorEmail}
+                      onChange={(e) => setDonorEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Donate Button */}
               <Elements stripe={stripePromise}>
-                <StripeDonationForm amount={getAmount()} />
+                <StripeDonationForm 
+                  amount={getAmount()} 
+                  donorEmail={donorEmail}
+                  donorName={donorName}
+                  isMonthly={isMonthly}
+                />
               </Elements>
 
               {/* Security Notice */}
