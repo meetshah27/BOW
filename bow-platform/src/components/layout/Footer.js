@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Youtube, Mail, Phone, MapPin, Heart } from 'lucide-react';
 
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
@@ -193,7 +194,11 @@ const Footer = () => {
       <footer className="bg-white border-t py-6 mt-12">
         <div className="container-custom text-center text-gray-500 text-sm">
           &copy; {new Date().getFullYear()} Beats of Washington. All rights reserved.<br />
-          <span className="block mt-2 text-xs text-gray-400">Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Gaurav</a> and Meet</span>
+          <span className="block mt-2 text-xs text-gray-400">
+            Website developed by{' '}
+            <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Gaurav</a>{' '}and{' '}
+            <a href="https://in.linkedin.com/in/meet-shah-5849751a9" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Meet</a>
+          </span>
         </div>
       </footer>
     </footer>

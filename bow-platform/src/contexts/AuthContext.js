@@ -25,13 +25,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
 
+  // Google Sign-in
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      // Save user to MongoDB
-      const response = await fetch('http://localhost:3000/users/signup', {
+      
+      // Send to backend for Google authentication
+      const response = await fetch('http://localhost:3000/users/google', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,26 +45,15 @@ export const AuthProvider = ({ children }) => {
           photoURL: user.photoURL
         }),
       });
+      
       if (response.ok) {
-        const savedUser = await response.json();
-        setUserData(savedUser);
+        const data = await response.json();
+        setUserData(data.user);
         toast.success('Successfully signed in!');
-        return savedUser;
-      } else if (response.status === 400) {
-        // User already exists, try to sign in
-        const signInResponse = await fetch('http://localhost:3000/users/signin', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ uid: user.uid }),
-        });
-        if (signInResponse.ok) {
-          const existingUser = await signInResponse.json();
-          setUserData(existingUser);
-          toast.success('Successfully signed in!');
-          return existingUser;
-        }
+        return data.user;
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Google sign-in failed');
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -71,73 +62,63 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // UPDATED: Register with Firebase Auth, then backend
+  // Email/Password Registration
   const registerWithEmail = async ({ email, password, ...rest }) => {
     try {
       // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      console.log('[Registration] Firebase user created:', user.uid);
-      
-      // 2. Register user in backend (MongoDB)
-      const backendData = {
-        uid: user.uid,
-        email: user.email,
-        ...rest
-      };
-      
-      console.log('[Registration] Sending to backend:', backendData);
-      
+      // 2. Register user in backend
       const response = await fetch('http://localhost:3000/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(backendData),
+        body: JSON.stringify({
+          email: user.email,
+          password, // Send plain password for backend hashing
+          ...rest
+        }),
       });
       
-      console.log('[Registration] Backend response status:', response.status);
-      
       if (response.ok) {
-        const savedUser = await response.json();
-        console.log('[Registration] Backend success:', savedUser);
-        setUserData(savedUser);
+        const data = await response.json();
+        setUserData(data.user);
         toast.success('Successfully registered!');
-        return savedUser;
+        return data.user;
       } else {
-        let errorMsg = 'Registration failed';
-        try {
-          const errorData = await response.json();
-          console.log('[Registration] Backend error data:', errorData);
-          errorMsg = errorData.message || errorMsg;
-        } catch (e) {
-          console.log('[Registration] Could not parse error response:', e);
-        }
-        console.log('[Registration] Backend error:', errorMsg);
-        toast.error(`Failed to register: ${errorMsg}`);
-        throw new Error(errorMsg);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
       }
     } catch (error) {
-      console.log('[Registration] Firebase or network error:', error);
+      console.error('Registration error:', error);
       toast.error(`Failed to register: ${error.message}`);
       throw error;
     }
   };
 
-  // UPDATED: Sign in with Firebase Auth, then fetch user data from backend
+  // Email/Password Sign-in
   const signInWithEmail = async (email, password) => {
     try {
       // 1. Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      // 2. Fetch user data from backend (MongoDB)
-      const response = await fetch(`http://localhost:3000/users/${user.uid}`);
+      
+      // 2. Authenticate with backend
+      const response = await fetch('http://localhost:3000/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
       if (response.ok) {
-        const userData = await response.json();
-        setUserData(userData);
+        const data = await response.json();
+        setUserData(data.user);
         toast.success('Successfully signed in!');
-        return userData;
+        return data.user;
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Sign in failed');
@@ -164,15 +145,22 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
-        // Try to get user data from MongoDB
+        // Try to get user data from backend
         try {
           const response = await fetch(`http://localhost:3000/users/${user.uid}`);
           if (response.ok) {
             const userData = await response.json();
             setUserData(userData);
           } else {
-            // Fallback to default role
-            setUserData({ role: 'member' });
+            // If not found by UID, try to find by email
+            const emailResponse = await fetch(`http://localhost:3000/users/email/${user.email}`);
+            if (emailResponse.ok) {
+              const userData = await emailResponse.json();
+              setUserData(userData);
+            } else {
+              // Fallback to default role
+              setUserData({ role: 'member' });
+            }
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -188,7 +176,7 @@ export const AuthProvider = ({ children }) => {
 
   const hasRole = (role) => {
     if (!userData || !userData.role) return false;
-    if (role === 'member') return userData.role === 'member' || userData.role === 'admin'; // admin is also a member
+    if (role === 'member') return userData.role === 'member' || userData.role === 'admin';
     return userData.role === role;
   };
 

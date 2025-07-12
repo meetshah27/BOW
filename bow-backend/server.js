@@ -12,6 +12,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const paymentRouter = require('./routes/payment');
 const eventsRouter = require('./routes/events');
+const volunteersRouter = require('./routes/volunteers');
 
 const app = express();
 
@@ -20,15 +21,29 @@ app.use(cors());
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/bowdb';
-mongoose.connect(mongoURI);
+
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+});
 
 mongoose.connection.on('connected', () => {
-  console.log('MongoDB connected');
-  console.log(mongoURI);
+  console.log('✅ MongoDB connected successfully');
+  console.log('📊 Database URI:', mongoURI);
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error('MongoDB connection error:', err);
+  console.error('❌ MongoDB connection error:', err.message);
+  console.log('💡 To fix this:');
+  console.log('   1. Install MongoDB locally: https://docs.mongodb.com/manual/installation/');
+  console.log('   2. Or use MongoDB Atlas (cloud): https://www.mongodb.com/cloud/atlas');
+  console.log('   3. Or set MONGO_URI environment variable to your MongoDB connection string');
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('🔌 MongoDB disconnected');
 });
 
 // view engine setup
@@ -44,7 +59,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/payment', paymentRouter);
-app.use('/events', eventsRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/volunteers', volunteersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -7,11 +7,10 @@ import {
   Heart, 
   Music, 
   ArrowRight, 
-  Play,
   Star,
-  MapPin,
-  Clock
+  MapPin
 } from 'lucide-react';
+
 
 // CountUpNumber component with Intersection Observer
 function CountUpNumber({ end, duration = 2, suffix = '' }) {
@@ -414,6 +413,8 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+
 
       {/* CTA Section */}
       <section className="bg-primary-600 text-white py-20">

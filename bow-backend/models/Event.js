@@ -49,8 +49,8 @@ const eventSchema = new mongoose.Schema({
     default: 0
   },
   price: {
-    type: String,
-    default: 'Free'
+    type: Number,
+    default: 0
   },
   organizer: {
     type: String,
@@ -72,6 +72,10 @@ const eventSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isLive: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,

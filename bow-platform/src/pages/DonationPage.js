@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Heart, 
-  CreditCard, 
   Shield, 
   Users, 
   Music, 
@@ -14,14 +13,17 @@ import {
 import {loadStripe} from '@stripe/stripe-js';
 import {Elements, CardElement, useStripe, useElements} from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
+import { useCelebration } from '../contexts/CelebrationContext';
+import DonorTicker from '../components/common/DonorTicker';
 
-// Replace with your actual Stripe publishable key
-const stripePromise = loadStripe('pk_test_REPLACE_WITH_YOUR_PUBLISHABLE_KEY');
+// Live Stripe publishable key
+const stripePromise = loadStripe('pk_live_YOUR_ACTUAL_LIVE_PUBLISHABLE_KEY');
 
 function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const { triggerConfetti } = useCelebration();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +60,7 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
         toast.error(result.error.message);
       } else if (result.paymentIntent.status === 'succeeded') {
         toast.success('Thank you for your donation!');
+        triggerConfetti(); // Trigger confetti animation
         // Clear the form
         elements.getElement(CardElement).clear();
       }
@@ -105,7 +108,6 @@ const DonationPage = () => {
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState('');
   const [isMonthly, setIsMonthly] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [donorEmail, setDonorEmail] = useState('');
   const [donorName, setDonorName] = useState('');
 
@@ -116,7 +118,6 @@ const DonationPage = () => {
       name: "Community Supporter",
       amount: 25,
       benefits: [
-        "Monthly newsletter",
         "Event updates",
         "Recognition on our website"
       ]
@@ -173,16 +174,7 @@ const DonationPage = () => {
     }
   ];
 
-  const handleDonation = async () => {
-    setLoading(true);
-    
-    // In a real application, this would integrate with Stripe
-    // For demo purposes, we'll simulate a successful donation
-    setTimeout(() => {
-      setLoading(false);
-      alert('Thank you for your donation! This is a demo - in a real application, this would process through Stripe.');
-    }, 2000);
-  };
+
 
   const getAmount = () => {
     return customAmount || selectedAmount;
@@ -212,6 +204,9 @@ const DonationPage = () => {
           </p>
         </div>
       </section>
+
+      {/* Donor Ticker */}
+      <DonorTicker />
 
       {/* Impact Stats */}
       <section className="bg-white py-16">
