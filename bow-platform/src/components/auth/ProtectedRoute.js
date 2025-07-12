@@ -7,9 +7,7 @@ const ProtectedRoute = ({ children, requiredRole = 'member' }) => {
   const { userData, loading, hasRole } = useAuth();
 
   // Debug logs for troubleshooting
-  console.log('[ProtectedRoute] userData:', userData);
-  console.log('[ProtectedRoute] requiredRole:', requiredRole);
-  console.log('[ProtectedRoute] hasRole(requiredRole):', hasRole(requiredRole));
+
 
   if (loading) {
     return (
@@ -20,12 +18,12 @@ const ProtectedRoute = ({ children, requiredRole = 'member' }) => {
   }
 
   if (!userData) {
-    console.log('[ProtectedRoute] No userData, redirecting to /login');
+
     return <Navigate to="/login" replace />;
   }
 
   if (!hasRole(requiredRole)) {
-    console.log('[ProtectedRoute] Access denied for role:', requiredRole, 'userData:', userData);
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

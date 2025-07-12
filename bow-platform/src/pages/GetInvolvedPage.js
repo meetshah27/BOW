@@ -15,9 +15,13 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
+import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
+
 
 const GetInvolvedPage = () => {
   const [activeTab, setActiveTab] = useState('volunteer');
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
 
   const volunteerOpportunities = [
     {
@@ -325,13 +329,16 @@ const GetInvolvedPage = () => {
                       </div>
                       
                       <div className="mt-6">
-                        <Link
-                          to="/contact"
+                        <button
+                          onClick={() => {
+                            setSelectedOpportunity(opportunity);
+                            setShowApplicationForm(true);
+                          }}
                           className="btn-primary w-full justify-center"
                         >
                           Apply Now
                           <ArrowRight className="w-4 h-4 ml-2" />
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -400,6 +407,22 @@ const GetInvolvedPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Volunteer Application Form Modal */}
+      {showApplicationForm && selectedOpportunity && (
+        <VolunteerApplicationForm
+          opportunity={selectedOpportunity}
+          onClose={() => {
+            setShowApplicationForm(false);
+            setSelectedOpportunity(null);
+          }}
+          onSuccess={(data) => {
+            console.log('Application submitted successfully:', data);
+            setShowApplicationForm(false);
+            setSelectedOpportunity(null);
+          }}
+        />
+      )}
 
       {/* Testimonials Section */}
       <section className="py-20 bg-white">

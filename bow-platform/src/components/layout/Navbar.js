@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, User, LogOut, Instagram, Facebook, Youtube, UserCircle, Calendar } from 'lucide-react';
+import { Menu, X, LogOut, Instagram, Facebook, Youtube, UserCircle, Calendar, Shield } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { currentUser, logout, userRole, userData, signOut } = useAuth();
+  const { userData, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -45,10 +45,7 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  const handleLogout = async () => {
-    await logout();
-    setIsOpen(false);
-  };
+
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -153,6 +150,14 @@ const Navbar = () => {
                     >
                       <Calendar className="w-4 h-4 mr-2" /> Events Registered
                     </button>
+                    {userData && userData.role === 'admin' && (
+                      <button
+                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
+                        onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
+                      >
+                        <Shield className="w-4 h-4 mr-2" /> Admin Dashboard
+                      </button>
+                    )}
                     <button
                       className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2"
                       onClick={() => { signOut(); setDropdownOpen(false); }}
@@ -255,6 +260,15 @@ const Navbar = () => {
                       </span>
                     </div>
                     
+                    {userData && userData.role === 'admin' && (
+                      <button
+                        className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+                        onClick={() => { navigate('/admin'); setIsOpen(false); }}
+                      >
+                        <Shield className="w-4 h-4 inline mr-2" />
+                        Admin Dashboard
+                      </button>
+                    )}
                     <button
                       className="w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50"
                       onClick={() => { signOut(); setIsOpen(false); }}

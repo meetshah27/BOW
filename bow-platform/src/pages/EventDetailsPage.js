@@ -18,11 +18,13 @@ import {
   Ticket
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCelebration } from '../contexts/CelebrationContext';
 import toast from 'react-hot-toast';
 
 const EventDetailsPage = () => {
   const { id } = useParams();
   const { userData } = useAuth();
+  const { triggerConfetti } = useCelebration();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -31,7 +33,8 @@ const EventDetailsPage = () => {
     email: '',
     phone: '',
     dietaryRestrictions: '',
-    specialRequests: ''
+    specialRequests: '',
+    cardNumber: ''
   });
   const [isRegistering, setIsRegistering] = useState(false);
   const [ticketInfo, setTicketInfo] = useState(null);
@@ -105,84 +108,85 @@ const EventDetailsPage = () => {
         email: "events@beatsofwashington.org",
         website: "https://beatsofwashington.org"
       },
-      tags: ["Youth", "Workshop", "Educational", "Instruments", "Creative"]
+            tags: ["Youth", "Workshop", "Educational", "Instruments", "Creative"]
     }
   ];
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundEvent = mockEvents.find(e => e.id === parseInt(id));
-      setEvent(foundEvent);
-      setLoading(false);
-    }, 500);
+    const fetchEvent = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`http://localhost:3000/api/events/${id}`);
+        if (!response.ok) throw new Error('Event not found');
+        const data = await response.json();
+        setEvent(data);
+      } catch (err) {
+        setEvent(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvent();
   }, [id]);
 
   const handleRegistration = async (e) => {
     e.preventDefault();
-    
     setIsRegistering(true);
-    
     try {
-      console.log('[Registration] Starting registration for event:', id);
-      console.log('[Registration] User data:', userData);
-      console.log('[Registration] Registration data:', registrationData);
-      
-      // Prepare request body based on whether user is logged in or not
+      // Extra validation for required fields
+      if (!userData && (!registrationData.name || !registrationData.email)) {
+        toast.error('Name and email are required.');
+        setIsRegistering(false);
+        return;
+      }
+      if (!registrationData.phone) {
+        toast.error('Phone number is required.');
+        setIsRegistering(false);
+        return;
+      }
+      if ((event.price && event.price !== 'Free' && event.price !== 0) && !registrationData.cardNumber) {
+        toast.error('Card number is required for paid events.');
+        setIsRegistering(false);
+        return;
+      }
+      // Prepare request body
       let requestBody;
-      
       if (userData) {
-        // User is logged in - use their data
         requestBody = {
           userId: userData.uid,
           userEmail: userData.email,
           userName: userData.displayName || userData.email,
           phone: registrationData.phone,
           dietaryRestrictions: registrationData.dietaryRestrictions,
-          specialRequests: registrationData.specialRequests
+          specialRequests: registrationData.specialRequests,
+          cardNumber: registrationData.cardNumber
         };
       } else {
-        // User is not logged in - use form data only
-        // Generate a temporary user ID for anonymous registration
         const tempUserId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         requestBody = {
           userId: tempUserId,
-          userEmail: registrationData.email || 'anonymous@example.com',
-          userName: registrationData.name || 'Anonymous User',
+          userEmail: registrationData.email,
+          userName: registrationData.name,
           phone: registrationData.phone,
           dietaryRestrictions: registrationData.dietaryRestrictions,
-          specialRequests: registrationData.specialRequests
+          specialRequests: registrationData.specialRequests,
+          cardNumber: registrationData.cardNumber
         };
       }
-      
-      console.log('[Registration] Request body:', requestBody);
-      
-      const response = await fetch(`http://localhost:3000/events/${id}/register`, {
+      const response = await fetch(`http://localhost:3000/api/events/${id}/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
-
-      console.log('[Registration] Response status:', response.status);
-      console.log('[Registration] Response headers:', response.headers);
-
       if (response.ok) {
         const result = await response.json();
-        console.log('[Registration] Success result:', result);
         setTicketInfo(result);
         setShowRegistrationModal(false);
         toast.success('Registration successful! Check your email for ticket details.');
-        
-        // Update event registration count
-        setEvent(prev => ({
-          ...prev,
-          registered: prev.registered + 1
-        }));
+        triggerConfetti();
+        setEvent(prev => ({ ...prev, registeredCount: prev.registeredCount + 1 }));
       } else {
         const errorData = await response.json();
-        console.log('[Registration] Error response:', errorData);
         toast.error(errorData.message || 'Registration failed');
       }
     } catch (error) {
@@ -216,8 +220,8 @@ const EventDetailsPage = () => {
     );
   }
 
-  const registrationPercentage = (event.registered / event.capacity) * 100;
-  const isRegistrationOpen = event.registered < event.capacity;
+  const registrationPercentage = (event.registeredCount / event.capacity) * 100;
+  const isRegistrationOpen = event.isLive && event.isActive && event.registeredCount < event.capacity;
 
   return (
     <>
@@ -327,7 +331,7 @@ const EventDetailsPage = () => {
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Registered:</span>
-                    <span className="font-semibold text-gray-900">{event.registered}</span>
+                    <span className="font-semibold text-gray-900">{event.registeredCount}</span>
                   </div>
                   
                   <div className="space-y-2">
@@ -343,17 +347,29 @@ const EventDetailsPage = () => {
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={() => setShowRegistrationModal(true)}
-                    className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
-                      isRegistrationOpen 
-                        ? 'bg-primary-600 hover:bg-primary-700 text-white' 
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                    disabled={!isRegistrationOpen}
-                  >
-                    {isRegistrationOpen ? 'Register Now' : 'Registration Full'}
-                  </button>
+                  {event.isLive ? (
+                    <button 
+                      onClick={() => setShowRegistrationModal(true)}
+                      className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
+                        isRegistrationOpen 
+                          ? 'bg-primary-600 hover:bg-primary-700 text-white' 
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                      disabled={!isRegistrationOpen}
+                    >
+                      {isRegistrationOpen ? 'Register Now' : 'Registration Full'}
+                    </button>
+                  ) : (
+                    <div className="text-center py-4">
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="flex items-center justify-center mb-2">
+                          <Clock className="w-5 h-5 text-yellow-600 mr-2" />
+                          <span className="text-yellow-800 font-medium">Registration Not Open</span>
+                        </div>
+                        <p className="text-yellow-700 text-sm">This event is not yet live for registration. Check back later!</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -511,6 +527,33 @@ const EventDetailsPage = () => {
                     rows="2"
                   />
                 </div>
+
+                {(event.price && event.price !== 'Free' && event.price !== 0) && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Card Number *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={registrationData.cardNumber || ''}
+                        onChange={e => setRegistrationData({ ...registrationData, cardNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="Enter your card number"
+                      />
+                    </div>
+                    <div className="flex items-center my-2">
+                      <button
+                        type="button"
+                        className="flex-1 py-2 px-4 bg-black text-white rounded-lg mr-2 opacity-70 cursor-not-allowed"
+                        disabled
+                      >
+                        Apple Pay (Coming Soon)
+                      </button>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex space-x-3 pt-4">
                   <button

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { 
@@ -17,85 +17,21 @@ const EventsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDate, setSelectedDate] = useState('all');
+  const [events, setEvents] = useState([]);
 
-  // Mock events data
-  const events = [
-    {
-      id: 1,
-      title: "Summer Music Festival 2024",
-      date: "2024-07-15",
-      time: "12:00 PM - 10:00 PM",
-      location: "Seattle Center",
-      category: "Festival",
-      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      description: "Join us for our biggest event of the year! Three days of music, culture, and community celebration featuring local and international artists.",
-      price: "$25",
-      capacity: 5000,
-      registered: 3200,
-      featured: true,
-      tags: ["Music", "Festival", "Family-Friendly"]
-    },
-    {
-      id: 2,
-      title: "Community Drum Circle",
-      date: "2024-06-22",
-      time: "6:00 PM - 8:00 PM",
-      location: "Gas Works Park",
-      category: "Workshop",
-      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      description: "Experience the power of rhythm and community in our monthly drum circle. All skill levels welcome!",
-      price: "Free",
-      capacity: 100,
-      registered: 45,
-      featured: false,
-      tags: ["Drumming", "Community", "Free"]
-    },
-    {
-      id: 3,
-      title: "Youth Music Workshop",
-      date: "2024-06-29",
-      time: "10:00 AM - 2:00 PM",
-      location: "Community Center",
-      category: "Education",
-      image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      description: "A hands-on workshop for young musicians aged 12-18. Learn about different instruments and musical styles.",
-      price: "$15",
-      capacity: 50,
-      registered: 32,
-      featured: false,
-      tags: ["Youth", "Education", "Workshop"]
-    },
-    {
-      id: 4,
-      title: "Jazz in the Park",
-      date: "2024-07-08",
-      time: "7:00 PM - 9:00 PM",
-      location: "Volunteer Park",
-      category: "Concert",
-      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      description: "An evening of smooth jazz under the stars. Bring a blanket and enjoy the music!",
-      price: "$10",
-      capacity: 300,
-      registered: 180,
-      featured: false,
-      tags: ["Jazz", "Outdoor", "Concert"]
-    },
-    {
-      id: 5,
-      title: "Cultural Music Showcase",
-      date: "2024-07-20",
-      time: "5:00 PM - 8:00 PM",
-      location: "Seattle Town Hall",
-      category: "Showcase",
-      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      description: "Celebrate the diverse musical traditions of our community with performances from various cultural groups.",
-      price: "$20",
-      capacity: 400,
-      registered: 250,
-      featured: true,
-      tags: ["Cultural", "Showcase", "Diverse"]
-    }
-  ];
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/events');
+        if (!response.ok) throw new Error('Failed to fetch events');
+        const data = await response.json();
+        setEvents(data);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+      }
+    };
+    fetchEvents();
+  }, []);
 
   const categories = [
     { value: 'all', label: 'All Events' },
@@ -253,6 +189,11 @@ const EventsPage = () => {
                     <div className="absolute top-4 right-4 bg-white text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
                       {event.category}
                     </div>
+                    {!event.isLive && (
+                      <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        Draft
+                      </div>
+                    )}
                     <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
                       {event.price}
                     </div>
@@ -314,7 +255,7 @@ const EventsPage = () => {
                     </div>
                     
                     <Link
-                      to={`/events/${event.id}`}
+                      to={`/events/${event._id}`}
                       className="btn-outline w-full justify-center"
                     >
                       View Details

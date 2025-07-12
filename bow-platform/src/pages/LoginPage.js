@@ -28,8 +28,13 @@ const LoginPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
-      await signInWithGoogle();
-      navigate(from, { replace: true });
+      const userData = await signInWithGoogle();
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (error) {
       console.error('Sign in failed:', error);
     } finally {
@@ -48,8 +53,13 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      await signInWithEmail(formData.email, formData.password);
-      navigate(from, { replace: true });
+      const userData = await signInWithEmail(formData.email, formData.password);
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (error) {
       // error handling is in context
     } finally {
@@ -69,14 +79,19 @@ const LoginPage = () => {
     }
     try {
       setLoading(true);
-      await registerWithEmail({
+      const userData = await registerWithEmail({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone
       });
-      navigate(from, { replace: true });
+      // Redirect based on user role
+      if (userData.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (error) {
       // error handling is in context
     } finally {

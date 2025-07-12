@@ -4,11 +4,7 @@ import { Link } from 'react-router-dom';
 import { 
   Users, 
   Heart, 
-  Calendar, 
-  MapPin, 
   ArrowRight, 
-  Star,
-  Share2,
   BookOpen,
   MessageCircle,
   Tag
@@ -213,6 +209,8 @@ const PeopleStoriesPage = () => {
           </div>
         </section>
       )}
+
+
 
       {/* Stories Grid */}
       <section className="py-16 bg-white">
