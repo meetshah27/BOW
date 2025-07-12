@@ -77,20 +77,31 @@ export const AuthProvider = ({ children }) => {
       // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      
+      console.log('[Registration] Firebase user created:', user.uid);
+      
       // 2. Register user in backend (MongoDB)
+      const backendData = {
+        uid: user.uid,
+        email: user.email,
+        ...rest
+      };
+      
+      console.log('[Registration] Sending to backend:', backendData);
+      
       const response = await fetch('http://localhost:3000/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          ...rest
-        }),
+        body: JSON.stringify(backendData),
       });
+      
+      console.log('[Registration] Backend response status:', response.status);
+      
       if (response.ok) {
         const savedUser = await response.json();
+        console.log('[Registration] Backend success:', savedUser);
         setUserData(savedUser);
         toast.success('Successfully registered!');
         return savedUser;
@@ -98,12 +109,17 @@ export const AuthProvider = ({ children }) => {
         let errorMsg = 'Registration failed';
         try {
           const errorData = await response.json();
+          console.log('[Registration] Backend error data:', errorData);
           errorMsg = errorData.message || errorMsg;
-        } catch (e) {}
+        } catch (e) {
+          console.log('[Registration] Could not parse error response:', e);
+        }
+        console.log('[Registration] Backend error:', errorMsg);
         toast.error(`Failed to register: ${errorMsg}`);
         throw new Error(errorMsg);
       }
     } catch (error) {
+      console.log('[Registration] Firebase or network error:', error);
       toast.error(`Failed to register: ${error.message}`);
       throw error;
     }
