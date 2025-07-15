@@ -24,15 +24,15 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 
 const EventDetailsPage = () => {
   const { id } = useParams();
-  const { userData } = useAuth();
+  const { currentUser } = useAuth();
   const { triggerConfetti } = useCelebration();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [registrationData, setRegistrationData] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: currentUser ? (currentUser.displayName || '') : '',
+    email: currentUser ? (currentUser.email || '') : '',
+    phone: currentUser ? (currentUser.phone || '') : '',
     dietaryRestrictions: '',
     specialRequests: '',
     cardNumber: ''
@@ -130,12 +130,24 @@ const EventDetailsPage = () => {
     fetchEvent();
   }, [id]);
 
+  // Keep registrationData in sync with currentUser
+  useEffect(() => {
+    if (currentUser) {
+      setRegistrationData(data => ({
+        ...data,
+        name: currentUser.displayName || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || ''
+      }));
+    }
+  }, [currentUser]);
+
   const handleRegistration = async (e) => {
     e.preventDefault();
     setIsRegistering(true);
     try {
       // Extra validation for required fields
-      if (!userData && (!registrationData.name || !registrationData.email)) {
+      if (!currentUser && (!registrationData.name || !registrationData.email)) {
         toast.error('Name and email are required.');
         setIsRegistering(false);
         return;
@@ -153,12 +165,12 @@ const EventDetailsPage = () => {
       // Prepare request body
       let requestBody;
       let headers = { 'Content-Type': 'application/json' };
-      if (userData) {
+      if (currentUser) {
         requestBody = {
-          userId: userData.uid,
-          userEmail: userData.email,
-          userName: userData.displayName || userData.email,
-          phone: registrationData.phone,
+          userId: currentUser.uid,
+          userEmail: currentUser.email,
+          userName: currentUser.displayName || currentUser.email,
+          phone: currentUser.phone || registrationData.phone,
           dietaryRestrictions: registrationData.dietaryRestrictions,
           specialRequests: registrationData.specialRequests,
           cardNumber: registrationData.cardNumber
@@ -447,8 +459,8 @@ const EventDetailsPage = () => {
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Register for Event</h3>
-                  {userData ? (
-                    <p className="text-sm text-green-600 mt-1">✓ Logged in as {userData.displayName || userData.email}</p>
+                  {currentUser ? (
+                    <p className="text-sm text-green-600 mt-1">✓ Logged in as {currentUser.displayName || currentUser.email}</p>
                   ) : (
                     <p className="text-sm text-orange-600 mt-1">⚠ Guest registration - please provide your details</p>
                   )}
@@ -462,7 +474,32 @@ const EventDetailsPage = () => {
               </div>
 
               <form onSubmit={handleRegistration} className="space-y-4">
-                {!userData && (
+                {currentUser ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={registrationData.name}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={registrationData.email}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
+                    </div>
+                  </>
+                ) : (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -502,9 +539,10 @@ const EventDetailsPage = () => {
                     type="tel"
                     required
                     value={registrationData.phone}
-                    onChange={(e) => setRegistrationData({...registrationData, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="(555) 123-4567"
+                    onChange={currentUser ? undefined : (e) => setRegistrationData({...registrationData, phone: e.target.value})}
+                    disabled={!!currentUser}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${currentUser ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-300'}`}
+                    placeholder="Enter your phone number"
                   />
                 </div>
 

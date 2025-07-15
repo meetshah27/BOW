@@ -14,7 +14,8 @@ import {
   Star,
   Download,
   Edit,
-  Camera
+  Camera,
+  CreditCard
 } from 'lucide-react';
 
 // Member Portal Sub-components
@@ -809,6 +810,16 @@ const SupportHelpCenter = () => {
 };
 
 const MemberPortal = () => {
+  const location = useLocation();
+  const memberNavigation = [
+    { name: 'Dashboard', href: '/member', icon: User },
+    { name: 'My Events', href: '/member/events', icon: Calendar },
+    { name: 'My Payments', href: '/member/payments', icon: CreditCard },
+    { name: 'Support', href: '/member/support', icon: Heart },
+    { name: 'Profile', href: '/member/profile', icon: Settings },
+    { name: 'Settings', href: '/member/settings', icon: Settings },
+  ];
+
   return (
     <>
       <Helmet>
@@ -836,12 +847,18 @@ const MemberPortal = () => {
             <div className="lg:col-span-1">
               <nav className="bg-white rounded-lg shadow p-4">
                 <ul className="space-y-2">
-                  <li><Link to="/member" className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">Dashboard</Link></li>
-                  <li><Link to="/member/events" className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">My Events</Link></li>
-                  <li><Link to="/member/payments" className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">My Payments</Link></li>
-                  <li><Link to="/member/support" className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">Support</Link></li>
-                  <li><Link to="/member/profile" className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">Profile</Link></li>
-                  <li><Link to="/member/settings" className="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">Settings</Link></li>
+                  {memberNavigation.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        to={item.href}
+                        className={`flex items-center px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none
+                          ${location.pathname === item.href ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'}`}
+                      >
+                        <item.icon className="w-5 h-5 mr-3" />
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </nav>
             </div>

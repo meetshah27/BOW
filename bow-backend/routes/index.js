@@ -278,6 +278,10 @@ router.get('/api/events', async (req, res) => {
   }
 });
 
+// API: Create new event
+const eventsRouter = require('./events');
+router.post('/api/events', eventsRouter);
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.json({ message: 'Welcome to the BOW API!' });

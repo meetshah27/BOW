@@ -316,7 +316,17 @@ const EventsPage = () => {
                           </div>
                         </div>
                         
-                        <p className="text-gray-600 mb-4 leading-relaxed">
+                        <p
+                          className="text-gray-600 mb-4 leading-relaxed overflow-hidden text-ellipsis"
+                          style={{
+                            maxHeight: '3.6em', // ~3 lines
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            whiteSpace: 'normal',
+                          }}
+                          title={event.description}
+                        >
                           {event.description}
                         </p>
                         
