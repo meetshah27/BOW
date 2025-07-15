@@ -520,8 +520,23 @@ const EventManagement = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredEvents.map((event) => (
                 <tr key={event.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap max-w-xs">
                     <div className="text-sm font-medium text-gray-900">{event.title}</div>
+                    {/* Show description with ellipsis and tooltip for long text */}
+                    <div
+                      className="text-xs text-gray-600 mt-1 overflow-hidden text-ellipsis"
+                      style={{
+                        maxWidth: '220px',
+                        maxHeight: '3.6em', // ~3 lines
+                        whiteSpace: 'normal',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                      title={event.description}
+                    >
+                      {event.description}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
@@ -555,9 +570,13 @@ const EventManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button className="text-primary-600 hover:text-primary-900" onClick={() => navigate(`/events/${event._id}`)}><Eye className="w-4 h-4" /></button>
+                      {/* View Event Details */}
+                      <button className="text-primary-600 hover:text-primary-900" onClick={() => handleView(event)}><Eye className="w-4 h-4" /></button>
+                      {/* Edit Event */}
                       <button className="text-blue-600 hover:text-blue-900" onClick={() => handleEdit(event)}><Edit className="w-4 h-4" /></button>
+                      {/* Delete Event */}
                       <button className="text-red-600 hover:text-red-900" onClick={() => handleDelete(event)}><Trash2 className="w-4 h-4" /></button>
+                      {/* View Registrations */}
                       <button className="text-green-600 hover:text-green-900" onClick={() => handleViewRegistrations(event)} title="View Registrations"> <Users className="w-4 h-4" /> </button>
                     </div>
                   </td>
@@ -1193,9 +1212,9 @@ const RegistrationManagement = () => {
     }
   };
 
-  const handleCheckIn = async (registrationId) => {
+  const handleCheckIn = async (registration) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/events/registrations/${registrationId}/checkin`, {
+      const response = await fetch(`http://localhost:3000/api/events/registrations/${registration.eventId}/${registration.userId}/checkin`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ checkedIn: true, checkInTime: new Date() })
@@ -1561,7 +1580,7 @@ const RegistrationManagement = () => {
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
-                  onClick={() => handleCheckIn(selectedRegistration._id)}
+                  onClick={() => handleCheckIn(selectedRegistration)}
                   className="btn-primary"
                 >
                   Confirm Check-in

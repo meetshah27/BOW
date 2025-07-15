@@ -13,6 +13,7 @@ const paymentRouter = require('./routes/payment');
 const eventsRouter = require('./routes/events');
 const volunteersRouter = require('./routes/volunteers');
 const storiesRouter = require('./routes/stories');
+const galleryRouter = require('./routes/gallery');
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use('/api/payment', paymentRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/volunteers', volunteersRouter);
 app.use('/api/stories', storiesRouter);
+app.use('/api/gallery', galleryRouter);
 
 // Handle missing sponsor images gracefully
 app.get('/sponsors/*', (req, res) => {

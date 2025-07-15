@@ -169,7 +169,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST register for an event
-router.post('/:id/register', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.post('/:id/register', async (req, res) => {
   try {
     console.log('[Backend] Registration request received for event:', req.params.id);
     console.log('[Backend] Request body:', req.body);
@@ -209,11 +209,14 @@ router.post('/:id/register', verifyCognito, syncUserToDynamoDB, async (req, res)
       const existingRegistration = await Registration.findByEventAndUser(req.params.id, userId);
       if (existingRegistration) {
         console.error('[Backend] User already registered');
-        return res.status(400).json({ message: 'You are already registered for this event' });
+        return res.status(200).json({
+          message: 'You are already registered for this event',
+          registration: existingRegistration
+        });
       }
 
       // Check capacity
-      const currentRegistrations = await Registration.countByEvent(req.params.id);
+      const currentRegistrations = await Registration.getEventRegistrationCount(req.params.id);
       if (currentRegistrations >= event.capacity) {
         console.error('[Backend] Event is at full capacity');
         return res.status(400).json({ message: 'Event is at full capacity' });
@@ -348,16 +351,20 @@ router.get('/:id/registrations', async (req, res) => {
   }
 });
 
-// PUT update registration check-in status
-router.put('/registrations/:id/checkin', async (req, res) => {
+// PUT update registration check-in status (use eventId and userId)
+router.put('/registrations/:eventId/:userId/checkin', async (req, res) => {
   try {
     const { checkedIn, checkInTime } = req.body;
     
     if (Registration) {
-      const registration = await Registration.update(req.params.id, {
-        checkedIn: checkedIn,
-        checkInTime: checkInTime || new Date().toISOString()
-      });
+      const registration = await Registration.updateByKeys(
+        req.params.eventId,
+        req.params.userId,
+        {
+          checkedIn: checkedIn,
+          checkInTime: checkInTime || new Date().toISOString()
+        }
+      );
       
       if (!registration) {
         return res.status(404).json({ message: 'Registration not found' });
@@ -366,13 +373,7 @@ router.put('/registrations/:id/checkin', async (req, res) => {
       res.json(registration);
     } else {
       // Fallback demo response
-      const demoRegistration = {
-        id: req.params.id,
-        checkedIn: checkedIn,
-        checkInTime: checkInTime || new Date().toISOString(),
-        message: 'Check-in updated (demo mode)'
-      };
-      res.json(demoRegistration);
+      res.json({ eventId: req.params.eventId, userId: req.params.userId, checkedIn, checkInTime });
     }
   } catch (error) {
     console.error('Error updating check-in:', error);
@@ -409,7 +410,7 @@ router.put('/registrations/:id/status', async (req, res) => {
 });
 
 // POST create a new event
-router.post('/', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const {
       title,
@@ -500,14 +501,11 @@ router.post('/', verifyCognito, syncUserToDynamoDB, async (req, res) => {
 });
 
 // PUT update an event
-router.put('/:id', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const updated = await Event.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!updated) return res.status(404).json({ message: 'Event not found' });
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+    const updated = await event.update(req.body);
     res.json(updated);
   } catch (error) {
     console.error('[Backend] Update event error:', error);
@@ -516,10 +514,11 @@ router.put('/:id', verifyCognito, syncUserToDynamoDB, async (req, res) => {
 });
 
 // DELETE an event
-router.delete('/:id', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const deleted = await Event.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Event not found' });
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+    await event.delete();
     res.json({ message: 'Event deleted' });
   } catch (error) {
     console.error('[Backend] Delete event error:', error);

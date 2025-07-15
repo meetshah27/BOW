@@ -25,7 +25,8 @@ const TABLES = {
   FOUNDERS: 'bow-founders',
   DONATIONS: 'bow-donations',
   REGISTRATIONS: 'bow-registrations',
-  VOLUNTEERS: 'bow-volunteers'
+  VOLUNTEERS: 'bow-volunteers',
+  GALLERY: 'bow-gallery'
 };
 
 // Table schemas for creation
@@ -153,6 +154,19 @@ const TABLE_SCHEMAS = {
     AttributeDefinitions: [
       { AttributeName: 'opportunityId', AttributeType: 'S' },
       { AttributeName: 'applicantEmail', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.GALLERY]: {
+    TableName: TABLES.GALLERY,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
     ],
     ProvisionedThroughput: {
       ReadCapacityUnits: 5,
