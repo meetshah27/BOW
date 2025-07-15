@@ -1,0 +1,18 @@
+This directory contains sponsor images.
+If you see this file, it means the sponsor images are not yet uploaded.
+You can add sponsor images here with the following names:
+- Apana bazar.png
+- Bel Red Best Smiles.png
+- Chutneys.jpg
+- Dulay Homes.png
+- Emerald pacific capital.png
+- Fusion India.avif
+- goEzz.png
+- images.jpg
+- mayuri foods.png
+- Soul Kitchen.png
+- Sukarya USA.jpg
+- Swapna Kadam.webp
+- THE shade Home.jpg
+- VG Force.png
+- Washington State India Trade Relations Action Committee.jpg 

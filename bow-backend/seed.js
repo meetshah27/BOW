@@ -1,21 +1,14 @@
-const mongoose = require('mongoose');
-const Story = require('./models/Story');
-const Founder = require('./models/Founder');
-const Event = require('./models/Event');
-
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/bowdb';
+const Story = require('./models-dynamodb/Story');
+const Founder = require('./models-dynamodb/Founder');
+const Event = require('./models-dynamodb/Event');
 
 const seed = async () => {
-  await mongoose.connect(mongoURI);
+  console.log('🌱 Starting DynamoDB seeding...');
 
-  // Clear existing data
-  await Story.deleteMany({});
-  await Founder.deleteMany({});
-  await Event.deleteMany({});
-
-  // Seed Founders
-  await Founder.insertMany([
-    {
+  try {
+    // Seed Founders
+    console.log('📝 Seeding founders...');
+    await Founder.create({
       name: 'Aand Sane',
       role: 'Board Chair & Co-Founder',
       bio: 'Aand Sane is the visionary founder of Beats of Washington, whose passion for community building through music has inspired thousands across Washington State. As Board Chair, Aand continues to lead our organization with dedication and innovative thinking.',
@@ -25,8 +18,9 @@ const seed = async () => {
         facebook: 'https://www.facebook.com/BeatsOfRedmond/',
         youtube: 'https://www.youtube.com/c/BeatsOfRedmond'
       }
-    },
-    {
+    });
+
+    await Founder.create({
       name: 'Deepali Sane',
       role: 'Vice Chair & Co-Founder',
       bio: 'Deepali Sane co-founded Beats of Washington with a deep commitment to fostering cultural connections through music. As Vice Chair, Deepali brings strategic vision and community expertise to ensure our programs continue to serve and inspire diverse communities.',
@@ -36,12 +30,11 @@ const seed = async () => {
         facebook: 'https://www.facebook.com/BeatsOfRedmond/',
         youtube: 'https://www.youtube.com/c/BeatsOfRedmond'
       }
-    }
-  ]);
+    });
 
-  // Seed Stories
-  await Story.insertMany([
-    {
+        // Seed Stories
+    console.log('📝 Seeding stories...');
+    await Story.create({
       title: "Our Story: More Than Just an Organization—It's Our Passion, Our Dream, Our Baby",
       author: "Deepali Sane & Anand Sane",
       authorImage: "/assets/founders.png",
@@ -55,12 +48,11 @@ const seed = async () => {
       likes: 567,
       comments: 89,
       featured: true
-    }
-  ]);
+    });
 
-  // Seed Events
-  await Event.insertMany([
-    {
+    // Seed Events
+    console.log('📝 Seeding events...');
+    await Event.create({
       title: "Summer Music Festival 2024",
       date: "July 15-17, 2024",
       location: "Seattle Center",
@@ -68,11 +60,12 @@ const seed = async () => {
       category: "Festival",
       description: "A three-day celebration of music, culture, and community at the Seattle Center.",
       featured: true
-    }
-  ]);
+    });
 
-  console.log('Database seeded!');
-  mongoose.disconnect();
+    console.log('✅ Database seeded successfully!');
+  } catch (error) {
+    console.error('❌ Error seeding database:', error);
+  }
 };
 
 seed(); 

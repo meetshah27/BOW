@@ -107,4 +107,31 @@
   animation: confetti-fall 3s linear forwards;
 }
 
+/* Counter Animation Enhancements */
+@keyframes count-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes count-glow {
+  0% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+  50% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+  100% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+}
+
+.count-animate {
+  animation: count-pulse 0.5s ease-out, count-glow 2s ease-in-out infinite;
+}
+
+/* Stats section hover effects */
+.stats-card {
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
 
