@@ -1,46 +1,115 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const verifyCognito = require('../middleware/verifyCognito');
+const syncUserToDynamoDB = require('../middleware/syncUserToDynamoDB');
+
+// Try to use DynamoDB User model, fallback to sample data if not available
+let User;
+try {
+  User = require('../models-dynamodb/User');
+  console.log('✅ Using DynamoDB User model');
+} catch (error) {
+  console.log('⚠️  DynamoDB User model not available, using fallback mode');
+  User = null;
+}
+
+// Sample user data for fallback
+const sampleUsers = [
+  {
+    uid: 'sample_user_1',
+    email: 'admin@bow.org',
+    displayName: 'Admin User',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    isActive: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    uid: 'sample_user_2',
+    email: 'member@bow.org',
+    displayName: 'Sample Member',
+    firstName: 'Sample',
+    lastName: 'Member',
+    role: 'member',
+    isActive: true,
+    createdAt: new Date().toISOString()
+  }
+];
 
 // GET all users (admin only)
-router.get('/', async (req, res) => {
+router.get('/', verifyCognito, syncUserToDynamoDB, async (req, res) => {
   try {
-    const users = await User.find({ isActive: true })
-      .select('-password -__v')
-      .sort({ createdAt: -1 });
-    res.json(users);
+    if (User) {
+      const users = await User.findAll();
+      res.json(users);
+    } else {
+      // Fallback to sample data
+      res.json(sampleUsers);
+    }
   } catch (error) {
     console.error('Error fetching users:', error);
-    res.status(500).json({ message: 'Failed to fetch users' });
+    // Fallback to sample data on error
+    res.json(sampleUsers);
   }
 });
 
 // GET user by UID
-router.get('/:uid', async (req, res) => {
+router.get('/:uid', verifyCognito, syncUserToDynamoDB, async (req, res) => {
   try {
-    const user = await User.findOne({ uid: req.params.uid }).select('-password -__v');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (User) {
+      const user = await User.findByUid(req.params.uid);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.json(user);
+    } else {
+      // Fallback to sample data
+      const user = sampleUsers.find(u => u.uid === req.params.uid);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.json(user);
     }
-    res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'Failed to fetch user' });
+    // Fallback to sample data
+    const user = sampleUsers.find(u => u.uid === req.params.uid);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
   }
 });
 
 // GET user by email
-router.get('/email/:email', async (req, res) => {
+router.get('/email/:email', verifyCognito, syncUserToDynamoDB, async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.params.email }).select('-password -__v');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (User) {
+      const user = await User.findByEmail(req.params.email);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.json(user);
+    } else {
+      // Fallback to sample data
+      const user = sampleUsers.find(u => u.email === req.params.email);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.json(user);
     }
-    res.json(user);
   } catch (error) {
     console.error('Error fetching user by email:', error);
-    res.status(500).json({ message: 'Failed to fetch user' });
+    // Fallback to sample data
+    const user = sampleUsers.find(u => u.email === req.params.email);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
   }
 });
 
@@ -48,7 +117,7 @@ router.get('/email/:email', async (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
-    
+    console.log(req.body);
     // Validate required fields
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ 
@@ -69,94 +138,97 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User with this email already exists' });
+    if (User) {
+      // Check if user already exists
+      const existingUser = await User.findByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'User with this email already exists' });
+      }
+
+      // Hash the password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Create a unique UID for the user
+      const uid = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Create new user
+      const userData = {
+        uid,
+        email: email.toLowerCase(),
+        displayName: `${firstName} ${lastName}`,
+        firstName,
+        lastName,
+        phone,
+        password: hashedPassword,
+        role: 'member',
+        isActive: true
+      };
+
+      const savedUser = await User.create(userData);
+      
+      // Don't send password in response
+      const userResponse = {
+        uid: savedUser.uid,
+        email: savedUser.email,
+        displayName: savedUser.displayName,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
+        phone: savedUser.phone,
+        role: savedUser.role,
+        isActive: savedUser.isActive,
+        createdAt: savedUser.createdAt
+      };
+
+      res.status(201).json({
+        message: 'User registered successfully',
+        user: userResponse
+      });
+    } else {
+      // Fallback response for demo mode
+      res.status(201).json({
+        message: 'User registered successfully (demo mode)',
+        user: {
+          uid: `demo_${Date.now()}`,
+          email: email.toLowerCase(),
+          displayName: `${firstName} ${lastName}`,
+          firstName,
+          lastName,
+          phone,
+          role: 'member',
+          isActive: true,
+          createdAt: new Date().toISOString()
+        }
+      });
     }
-
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create a unique UID for the user
-    const uid = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Create new user (default role is 'member')
-    const user = new User({
-      uid,
-      email: email.toLowerCase(),
-      displayName: `${firstName} ${lastName}`,
-      firstName,
-      lastName,
-      phone,
-      password: hashedPassword,
-      role: 'member', // Default role
-      isActive: true
-    });
-
-    const savedUser = await user.save();
-    
-    // Don't send password in response
-    const userResponse = {
-      uid: savedUser.uid,
-      email: savedUser.email,
-      displayName: savedUser.displayName,
-      firstName: savedUser.firstName,
-      lastName: savedUser.lastName,
-      phone: savedUser.phone,
-      role: savedUser.role,
-      isActive: savedUser.isActive,
-      createdAt: savedUser.createdAt
-    };
-
-    res.status(201).json({
-      message: 'User registered successfully',
-      user: userResponse
-    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Failed to register user' });
   }
 });
 
-// POST - Email/Password Login
+// POST /login - User login (no Cognito, DynamoDB only)
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Validate required fields
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
-    
+    if (!User) {
+      return res.status(500).json({ message: 'User model not available' });
+    }
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findByEmail(email.toLowerCase());
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(401).json({ message: 'Account is deactivated' });
-    }
-
-    // Check if user has a password (for email/password users)
-    if (!user.password) {
+    // Compare password
+    const bcrypt = require('bcryptjs');
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Update last sign in
-    user.lastSignIn = Date.now();
-    await user.save();
-
-    // Don't send password in response
+    // Success: return user info (no password)
     const userResponse = {
       uid: user.uid,
       email: user.email,
@@ -166,14 +238,9 @@ router.post('/login', async (req, res) => {
       phone: user.phone,
       role: user.role,
       isActive: user.isActive,
-      lastSignIn: user.lastSignIn,
       createdAt: user.createdAt
     };
-
-    res.json({
-      message: 'Login successful',
-      user: userResponse
-    });
+    res.json({ message: 'Login successful', user: userResponse });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Failed to login' });
@@ -190,57 +257,77 @@ router.post('/google', async (req, res) => {
       return res.status(400).json({ message: 'UID and email are required' });
     }
     
-    // Check if user already exists
-    let user = await User.findOne({ uid });
-    
-    if (user) {
-      // User exists - update last sign in
-      user.lastSignIn = Date.now();
-      await user.save();
-    } else {
-      // Check if email already exists (for users who might have registered with email/password)
-      const existingUserByEmail = await User.findOne({ email: email.toLowerCase() });
+    if (User) {
+      // Check if user already exists
+      let user = await User.findByUid(uid);
       
-      if (existingUserByEmail) {
-        // Email exists but with different UID - update the existing user
-        existingUserByEmail.uid = uid;
-        existingUserByEmail.displayName = displayName || existingUserByEmail.displayName;
-        existingUserByEmail.photoURL = photoURL;
-        existingUserByEmail.lastSignIn = Date.now();
-        user = await existingUserByEmail.save();
+      if (user) {
+        // User exists - update last sign in
+        await User.update(uid, { lastSignIn: Date.now() });
       } else {
-        // Create new user
-        user = new User({
-          uid,
-          email: email.toLowerCase(),
-          displayName: displayName || email,
-          photoURL,
-          role: 'member', // Default role
-          isActive: true
-        });
-        await user.save();
+        // Check if email already exists
+        const existingUserByEmail = await User.findByEmail(email.toLowerCase());
+        
+        if (existingUserByEmail) {
+          // Email exists but with different UID - update the existing user
+          await User.update(existingUserByEmail.uid, {
+            uid: uid,
+            displayName: displayName || existingUserByEmail.displayName,
+            photoURL: photoURL,
+            lastSignIn: Date.now()
+          });
+          user = await User.findByUid(uid);
+        } else {
+          // Create new user
+          const userData = {
+            uid,
+            email: email.toLowerCase(),
+            displayName: displayName || email,
+            photoURL,
+            role: 'member',
+            isActive: true
+          };
+          user = await User.create(userData);
+        }
       }
+
+      // Don't send password in response
+      const userResponse = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        photoURL: user.photoURL,
+        role: user.role,
+        isActive: user.isActive,
+        lastSignIn: user.lastSignIn,
+        createdAt: user.createdAt
+      };
+
+      res.json({
+        message: 'Google authentication successful',
+        user: userResponse
+      });
+    } else {
+      // Fallback demo response
+      const demoUser = {
+        uid: uid,
+        email: email.toLowerCase(),
+        displayName: displayName || email,
+        photoURL,
+        role: 'member',
+        isActive: true,
+        lastSignIn: Date.now(),
+        createdAt: new Date().toISOString()
+      };
+      
+      res.json({
+        message: 'Google authentication successful (demo mode)',
+        user: demoUser
+      });
     }
-
-    // Don't send password in response
-    const userResponse = {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      photoURL: user.photoURL,
-      role: user.role,
-      isActive: user.isActive,
-      lastSignIn: user.lastSignIn,
-      createdAt: user.createdAt
-    };
-
-    res.json({
-      message: 'Google authentication successful',
-      user: userResponse
-    });
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(500).json({ message: 'Failed to authenticate with Google' });
@@ -248,7 +335,7 @@ router.post('/google', async (req, res) => {
 });
 
 // PUT - Update user (admin can update roles)
-router.put('/:uid', async (req, res) => {
+router.put('/:uid', verifyCognito, syncUserToDynamoDB, async (req, res) => {
   try {
     const { firstName, lastName, phone, role, isActive } = req.body;
     

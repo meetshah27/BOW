@@ -11,6 +11,7 @@ import { CelebrationProvider, useCelebration } from './contexts/CelebrationConte
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ConfettiAnimation from './components/common/ConfettiAnimation';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -28,6 +29,10 @@ import MemberPortal from './pages/MemberPortal';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import MemberProfile from './pages/MemberProfile';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import LegalNoticesPage from './pages/LegalNoticesPage';
+import StoryDetailsPage from './pages/StoryDetailsPage';
 
 // Protected Route Component
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -37,6 +42,7 @@ function AppContent() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
         <main className="flex-grow">
@@ -51,7 +57,11 @@ function AppContent() {
             <Route path="/donate" element={<DonationPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/stories" element={<PeopleStoriesPage />} />
+            <Route path="/stories/:id" element={<StoryDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/legal" element={<LegalNoticesPage />} />
             
             {/* Protected Routes */}
             <Route 
@@ -67,14 +77,6 @@ function AppContent() {
               element={
                 <ProtectedRoute requiredRole="member">
                   <MemberPortal />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/member/profile" 
-              element={
-                <ProtectedRoute requiredRole="member">
-                  <MemberProfile />
                 </ProtectedRoute>
               } 
             />

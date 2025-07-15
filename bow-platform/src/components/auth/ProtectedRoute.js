@@ -4,10 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const ProtectedRoute = ({ children, requiredRole = 'member' }) => {
-  const { userData, loading, hasRole } = useAuth();
+  const { currentUser, loading } = useAuth();
 
-  // Debug logs for troubleshooting
-
+  // Fallback role check
+  const hasRole = (role) => {
+    if (!currentUser) return false;
+    if (role === 'member') return true; // all logged-in users are members
+    return currentUser.role === role;
+  };
 
   if (loading) {
     return (
@@ -17,13 +21,11 @@ const ProtectedRoute = ({ children, requiredRole = 'member' }) => {
     );
   }
 
-  if (!userData) {
-
+  if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
   if (!hasRole(requiredRole)) {
-
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

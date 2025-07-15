@@ -13,9 +13,10 @@ import {
 
 
 // CountUpNumber component with Intersection Observer
-function CountUpNumber({ end, duration = 2, suffix = '' }) {
+function CountUpNumber({ end, duration = 1.5, suffix = '' }) {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const ref = useRef();
 
   useEffect(() => {
@@ -23,39 +24,57 @@ function CountUpNumber({ end, duration = 2, suffix = '' }) {
     if (!node) return;
     let observer;
     let rafId;
+    
     function animate() {
-      let start = 0;
-      const totalFrames = Math.round(duration * 60);
-      let frame = 0;
-      const increment = end / totalFrames;
-      function step() {
-        frame++;
-        start += increment;
-        if (frame < totalFrames) {
-          setCount(Math.floor(start));
+      let startTime = null;
+      const startValue = 0;
+      const endValue = end;
+
+      function step(currentTime) {
+        if (!startTime) startTime = currentTime;
+        const progress = Math.min((currentTime - startTime) / (duration * 1000), 1);
+        
+        // Easing function for smooth animation
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        const currentCount = Math.floor(startValue + (endValue - startValue) * easeOutQuart);
+        
+        setCount(currentCount);
+
+        if (progress < 1) {
           rafId = requestAnimationFrame(step);
         } else {
-          setCount(end);
+          setCount(endValue);
+          setIsComplete(true);
         }
       }
-      step();
+      
+      rafId = requestAnimationFrame(step);
     }
+    
     function handleIntersect(entries) {
       if (entries[0].isIntersecting && !hasAnimated) {
         setHasAnimated(true);
         animate();
       }
     }
-    observer = new window.IntersectionObserver(handleIntersect, { threshold: 0.3 });
+    
+    observer = new window.IntersectionObserver(handleIntersect, { threshold: 0.1 });
     observer.observe(node);
+    
     return () => {
       if (observer && node) observer.unobserve(node);
       if (rafId) cancelAnimationFrame(rafId);
     };
-    // eslint-disable-next-line
   }, [end, duration, hasAnimated]);
 
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+  return (
+    <span 
+      ref={ref} 
+      className={isComplete ? 'count-animate' : ''}
+    >
+      {count.toLocaleString()}{suffix}
+    </span>
+  );
 }
 
 const HomePage = () => {
@@ -89,10 +108,30 @@ const HomePage = () => {
   ];
 
   const stats = [
-    { number: 50000, label: "Community Members", icon: Users, suffix: "+" },
-    { number: 5000, label: "Volunteers", icon: Heart, suffix: "+" },
-    { number: 200, label: "Events Annually", icon: Calendar, suffix: "+" },
-    { number: 15, label: "Years of Service", icon: Music },
+    {
+      label: 'Community Members',
+      number: 50000,
+      suffix: '+',
+      icon: Users
+    },
+    {
+      label: 'Volunteers',
+      number: 5000,
+      suffix: '+',
+      icon: Heart
+    },
+    {
+      label: 'Events Annually',
+      number: 25,
+      suffix: '+',
+      icon: Calendar
+    },
+    {
+      label: 'Years of Service',
+      number: 5,
+      suffix: '',
+      icon: Star
+    }
   ];
 
   const testimonials = [
@@ -227,22 +266,58 @@ const HomePage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-white py-16">
+      <section className="bg-gradient-to-br from-gray-50 to-white py-20">
         <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Our Impact in Numbers
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              See how our community has grown and the impact we've made together
+            </p>
+          </div>
+          
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
+              <div 
+                key={index} 
+                className="text-center stats-card transform transition-all duration-500 hover:scale-105"
+              >
                 <div className="flex justify-center mb-4">
                   <stat.icon className="w-12 h-12 text-primary-600" />
                 </div>
                 <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                  <CountUpNumber end={stat.number} suffix={stat.suffix || ''} duration={0.2} />
+                  <CountUpNumber 
+                    end={stat.number} 
+                    suffix={stat.suffix || ''} 
+                    duration={1.5}
+                  />
                 </div>
                 <div className="text-gray-600 font-medium">
                   {stat.label}
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Call to Action */}
+          <div className="mt-16 text-center">
+            <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white">
+              <h3 className="text-2xl font-bold mb-4">
+                Join Our Growing Community
+              </h3>
+              <p className="text-lg opacity-90 mb-6">
+                Be part of something bigger. Every member, volunteer, and event contributes to our mission of building a stronger, more connected community.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link to="/get-involved" className="bg-white text-primary-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                  Become a Member
+                </Link>
+                <Link to="/volunteer" className="border-2 border-white text-white px-6 py-3 rounded-full font-semibold hover:bg-white hover:text-primary-600 transition-colors">
+                  Volunteer Today
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -413,8 +488,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-
 
       {/* CTA Section */}
       <section className="bg-primary-600 text-white py-20">

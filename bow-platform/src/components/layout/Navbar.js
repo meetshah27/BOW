@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, LogOut, Instagram, Facebook, Youtube, UserCircle, Calendar, Shield } from 'lucide-react';
+import { Menu, X, LogOut, UserCircle, Calendar, Shield } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { userData, signOut } = useAuth();
+  const { currentUser, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -23,29 +23,47 @@ const Navbar = () => {
   ];
 
   const socialLinks = [
-    { 
-      name: 'Instagram', 
-      href: 'https://www.instagram.com/beatsofwa/', 
-      icon: Instagram,
-      color: 'hover:text-pink-600'
+    {
+      name: 'Instagram',
+      href: 'https://www.instagram.com/beatsofwa/',
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="url(#ig-gradient)"/>
+          <defs>
+            <linearGradient id="ig-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#f58529"/>
+              <stop offset="0.5" stop-color="#dd2a7b"/>
+              <stop offset="1" stop-color="#515bd4"/>
+            </linearGradient>
+          </defs>
+          <circle cx="12" cy="12" r="5" stroke="#fff" strokeWidth="2"/>
+          <circle cx="18" cy="6" r="1" fill="#fff"/>
+        </svg>
+      )
     },
-    { 
-      name: 'Facebook', 
-      href: 'https://www.facebook.com/BeatsOfRedmond/', 
-      icon: Facebook,
-      color: 'hover:text-blue-600'
+    {
+      name: 'Facebook',
+      href: 'https://www.facebook.com/BeatsOfRedmond/',
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="#1877F3" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#1877F3"/>
+          <path d="M16.5 8.5h-2a.5.5 0 0 0-.5.5v2h2.5l-.5 2H14v6h-2v-6h-2v-2h2v-1.5A2.5 2.5 0 0 1 14.5 7h2v1.5z" fill="#fff"/>
+        </svg>
+      )
     },
-    { 
-      name: 'YouTube', 
-      href: 'https://www.youtube.com/c/BeatsOfRedmond', 
-      icon: Youtube,
-      color: 'hover:text-red-600'
+    {
+      name: 'YouTube',
+      href: 'https://www.youtube.com/c/BeatsOfRedmond',
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#FF0000"/>
+          <polygon points="10,8 16,12 10,16" fill="#fff"/>
+        </svg>
+      )
     }
   ];
 
   const isActive = (path) => location.pathname === path;
-
-
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -97,46 +115,46 @@ const Navbar = () => {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-gray-600 transition-colors duration-200 ${social.color}`}
+                  className={`text-gray-600 transition-colors duration-200`}
                   title={social.name}
                 >
-                  <social.icon className="w-5 h-5" />
+                  {social.icon()}
                 </a>
               ))}
             </div>
 
             {/* If user is logged in, show profile dropdown */}
-            {userData ? (
+            {currentUser ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen((open) => !open)}
                   className="flex items-center space-x-2 focus:outline-none group"
                 >
-                  {userData.photoURL ? (
+                  {currentUser.photoURL ? (
                     <img
-                      src={userData.photoURL}
-                      alt={userData.displayName || userData.email}
+                      src={currentUser.photoURL}
+                      alt={currentUser.displayName || currentUser.email}
                       className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
                       <span className="text-primary-700 font-bold">
-                        {(userData.displayName && userData.displayName[0]) ||
-                         (userData.email && userData.email[0]) ||
+                        {(currentUser.displayName && currentUser.displayName[0]) ||
+                         (currentUser.email && currentUser.email[0]) ||
                          "?"}
                       </span>
                     </div>
                   )}
                   <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600">
-                    {userData.displayName || userData.email}
+                    {currentUser.displayName || currentUser.email}
                   </span>
                   <svg className="w-4 h-4 ml-1 text-gray-400 group-hover:text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-2 animate-fade-in">
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <div className="font-semibold text-gray-900">{userData.displayName || userData.email}</div>
-                      <div className="text-xs text-gray-500">{userData.email}</div>
+                      <div className="font-semibold text-gray-900">{currentUser.displayName || currentUser.email}</div>
+                      <div className="text-xs text-gray-500">{currentUser.email}</div>
                     </div>
                     <button
                       className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
@@ -150,7 +168,7 @@ const Navbar = () => {
                     >
                       <Calendar className="w-4 h-4 mr-2" /> Events Registered
                     </button>
-                    {userData && userData.role === 'admin' && (
+                    {currentUser && currentUser.role === 'admin' && (
                       <button
                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
                         onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
@@ -225,11 +243,10 @@ const Navbar = () => {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors duration-200 ${social.color}`}
+                      className={`flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors duration-200`}
                       onClick={() => setIsOpen(false)}
                     >
-                      <social.icon className="w-5 h-5" />
-                      <span className="text-sm font-medium">{social.name}</span>
+                      {social.icon()}
                     </a>
                   ))}
                 </div>
@@ -237,30 +254,30 @@ const Navbar = () => {
               
               {/* Mobile Auth Section */}
               <div className="border-t pt-4 mt-4">
-                {userData ? (
+                {currentUser ? (
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 px-3 py-2">
-                      {userData.photoURL ? (
+                      {currentUser.photoURL ? (
                         <img
-                          src={userData.photoURL}
-                          alt={userData.displayName || userData.email}
+                          src={currentUser.photoURL}
+                          alt={currentUser.displayName || currentUser.email}
                           className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
                           <span className="text-primary-700 font-bold">
-                            {(userData.displayName && userData.displayName[0]) ||
-                             (userData.email && userData.email[0]) ||
+                            {(currentUser.displayName && currentUser.displayName[0]) ||
+                             (currentUser.email && currentUser.email[0]) ||
                              "?"}
                           </span>
                         </div>
                       )}
                       <span className="text-sm text-gray-700">
-                        {userData.displayName || userData.email}
+                        {currentUser.displayName || currentUser.email}
                       </span>
                     </div>
                     
-                    {userData && userData.role === 'admin' && (
+                    {currentUser && currentUser.role === 'admin' && (
                       <button
                         className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
                         onClick={() => { navigate('/admin'); setIsOpen(false); }}

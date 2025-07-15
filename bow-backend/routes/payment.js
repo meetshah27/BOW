@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
-const Donation = require('../models/Donation');
+const Donation = require('../models-dynamodb/Donation');
 
 // Initialize Stripe with error handling
 let stripe;
@@ -54,7 +54,7 @@ router.post('/create-payment-intent', async (req, res) => {
     console.log('[Payment] Payment intent created:', paymentIntent.id);
 
     // Create donation record in database
-    const donation = new Donation({
+    const donation = await Donation.create({
       paymentIntentId: paymentIntent.id,
       amount: amount,
       currency: currency,
@@ -67,8 +67,7 @@ router.post('/create-payment-intent', async (req, res) => {
       metadata: metadata
     });
 
-    await donation.save();
-    console.log('[Payment] Donation record created:', donation._id);
+    console.log('[Payment] Donation record created:', donation.paymentIntentId);
 
     res.json({ 
       clientSecret: paymentIntent.client_secret,
@@ -93,14 +92,12 @@ router.post('/confirm-payment', async (req, res) => {
     
     if (paymentIntent.status === 'succeeded') {
       // Update donation record in database
-      const donation = await Donation.findOneAndUpdate(
-        { paymentIntentId: paymentIntentId },
+      const donation = await Donation.updateByPaymentIntentId(
+        paymentIntentId,
         { 
           status: 'succeeded',
-          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null,
-          updatedAt: new Date()
-        },
-        { new: true }
+          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
+        }
       );
 
       console.log('[Payment] Payment confirmed and donation updated:', paymentIntentId);
@@ -113,11 +110,10 @@ router.post('/confirm-payment', async (req, res) => {
       });
     } else {
       // Update donation status to failed
-      await Donation.findOneAndUpdate(
-        { paymentIntentId: paymentIntentId },
+      await Donation.updateByPaymentIntentId(
+        paymentIntentId,
         { 
-          status: paymentIntent.status,
-          updatedAt: new Date()
+          status: paymentIntent.status
         }
       );
 
@@ -152,21 +148,12 @@ router.get('/donations', async (req, res) => {
       query.status = status;
     }
     
-    const donations = await Donation.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-    
-    const total = await Donation.countDocuments(query);
+    const result = await Donation.findAll({ page, limit, status });
+    const { donations, pagination } = result;
     
     res.json({
       donations,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination
     });
   } catch (err) {
     console.error('[Payment] Error fetching donations:', err);
@@ -177,31 +164,12 @@ router.get('/donations', async (req, res) => {
 // GET /api/payment/donations/stats - Get donation statistics
 router.get('/donations/stats', async (req, res) => {
   try {
-    const totalDonations = await Donation.countDocuments({ status: 'succeeded' });
-    const totalAmount = await Donation.aggregate([
-      { $match: { status: 'succeeded' } },
-      { $group: { _id: null, total: { $sum: '$amount' } } }
-    ]);
-    
-    const monthlyStats = await Donation.aggregate([
-      { $match: { status: 'succeeded' } },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' }
-          },
-          count: { $sum: 1 },
-          amount: { $sum: '$amount' }
-        }
-      },
-      { $sort: { '_id.year': -1, '_id.month': -1 } },
-      { $limit: 12 }
-    ]);
+    const stats = await Donation.getStats();
+    const { totalDonations, totalAmount, monthlyStats } = stats;
     
     res.json({
       totalDonations,
-      totalAmount: totalAmount[0]?.total || 0,
+      totalAmount,
       monthlyStats
     });
   } catch (err) {

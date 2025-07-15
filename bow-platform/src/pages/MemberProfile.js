@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Helmet } from 'react-helmet-async';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 const MemberProfile = () => {
   const { userData, loading } = useAuth();
@@ -42,9 +43,13 @@ const MemberProfile = () => {
     }
     setSaving(true);
     try {
+      let headers = { 'Content-Type': 'application/json' };
+      const { tokens } = await fetchAuthSession();
+      const idToken = tokens?.idToken?.toString();
+      headers['Authorization'] = `Bearer ${idToken}`;
       const res = await fetch(`http://localhost:3000/users/${userData.uid}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           firstName: form.firstName,
           lastName: form.lastName,

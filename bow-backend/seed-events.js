@@ -1,17 +1,6 @@
-const mongoose = require('mongoose');
-const Event = require('./models/Event');
+const Event = require('./models-dynamodb/Event');
 
-// MongoDB connection
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/bowdb';
-mongoose.connect(mongoURI);
-
-mongoose.connection.on('connected', () => {
-  console.log('MongoDB connected for seeding');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB connection error:', err);
-});
+console.log('🌱 Starting DynamoDB event seeding...');
 
 const sampleEvents = [
   {
@@ -87,24 +76,17 @@ const sampleEvents = [
 
 async function seedEvents() {
   try {
-    // Clear existing events
-    await Event.deleteMany({});
-    console.log('Cleared existing events');
+    console.log('📝 Seeding events...');
     
-    // Insert sample events
-    const insertedEvents = await Event.insertMany(sampleEvents);
-    console.log(`Inserted ${insertedEvents.length} events`);
+    // Create each event individually
+    for (const eventData of sampleEvents) {
+      const event = await Event.create(eventData);
+      console.log(`✅ Created event: ${event.title} - ID: ${event.id}`);
+    }
     
-    // Log the events with their IDs
-    insertedEvents.forEach(event => {
-      console.log(`Event: ${event.title} - ID: ${event._id}`);
-    });
-    
-    console.log('Seeding completed successfully!');
-    process.exit(0);
+    console.log('✅ Event seeding completed successfully!');
   } catch (error) {
-    console.error('Seeding error:', error);
-    process.exit(1);
+    console.error('❌ Seeding error:', error);
   }
 }
 

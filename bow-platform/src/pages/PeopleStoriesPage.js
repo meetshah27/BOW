@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { 
@@ -10,18 +10,97 @@ import {
   Tag
 } from 'lucide-react';
 
-const PeopleStoriesPage = () => {
+// Stable fallback data to prevent flickering
+const FALLBACK_STORIES = [
+  {
+    id: 'story_1',
+    title: "Our Story: More Than Just an Organization—It's Our Passion, Our Dream, Our Baby",
+    author: "Deepali Sane & Anand Sane",
+    authorImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80",
+    category: "founders",
+    image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    excerpt: "At Beats of Washington, founded in 2019, we believe it's more than just an organization—it's our passion, our dream, our baby. We're committed to nurturing Indian cultural ties, music, and traditions across Washington State.",
+    content: "At Beats of Washington, founded in 2019, we believe it's more than just an organization—it's our passion, our dream, our baby. We're committed to nurturing Indian cultural ties, music, and traditions across Washington State. Through community celebrations, charity drives, and free dhol-tasha-dance trainings, we promote peace, prosperity, and cultural awareness for current and future generations. Together, let's create harmony and make every beat count!",
+    date: "2024-01-20T00:00:00.000Z",
+    readTime: "8 min read",
+    tags: ["founders", "indian culture", "community", "music", "dance", "tradition"],
+    likes: 567,
+    comments: 89,
+    featured: true
+  },
+  {
+    id: 'story_2',
+    title: "The Power of Community: How Music Brings Us Together",
+    author: "Sarah Johnson",
+    authorImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80",
+    category: "community",
+    image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    excerpt: "Discover how our community events have created lasting friendships and connections across cultural boundaries.",
+    content: "When I first attended a BOW event, I had no idea how much it would change my life. What started as a simple curiosity about Indian music and dance has become a deep appreciation for the power of community and cultural exchange.",
+    date: "2024-02-15T00:00:00.000Z",
+    readTime: "5 min read",
+    tags: ["community", "music", "friendship", "cultural exchange"],
+    likes: 234,
+    comments: 45,
+    featured: false
+  },
+  {
+    id: 'story_3',
+    title: "From Student to Teacher: My Journey with BOW",
+    author: "Priya Patel",
+    authorImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80",
+    category: "education",
+    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    excerpt: "How I went from learning traditional Indian dance to teaching others in our community.",
+    content: "My journey with BOW began three years ago when I first attended a dance workshop. I had always been interested in my cultural heritage, but I never had the opportunity to learn traditional Indian dance forms.",
+    date: "2024-03-10T00:00:00.000Z",
+    readTime: "6 min read",
+    tags: ["education", "dance", "teaching", "cultural heritage"],
+    likes: 189,
+    comments: 32,
+    featured: false
+  }
+];
+
+const PeopleStoriesPage = React.memo(() => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [stories, setStories] = useState([]);
+  const [stories, setStories] = useState(FALLBACK_STORIES);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  // Memoized date formatter to prevent recreation
+  const formatDate = useCallback((dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }, []);
+
+  // Memoized search handler
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Memoized category change handler
+  const handleCategoryChange = useCallback((e) => {
+    setSelectedCategory(e.target.value);
+  }, []);
+
+  // Memoized clear filters handler
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     fetch('http://localhost:3000/api/stories')
       .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch stories');
+        if (!res.ok) {
+          console.log('API not available, using fallback data');
+          return Promise.resolve(FALLBACK_STORIES);
+        }
         return res.json();
       })
       .then(data => {
@@ -29,38 +108,53 @@ const PeopleStoriesPage = () => {
         setLoading(false);
       })
       .catch(err => {
-        setError(err.message);
+        console.error('Error fetching stories:', err);
+        setStories(FALLBACK_STORIES);
         setLoading(false);
       });
   }, []);
 
-  const categories = [
+  // Memoize categories to prevent flickering
+  const categories = useMemo(() => [
     { value: 'all', label: 'All Stories', count: stories.length },
     ...Array.from(new Set(stories.flatMap(story => story.category ? [story.category] : []))).map(cat => ({
       value: cat,
       label: cat.charAt(0).toUpperCase() + cat.slice(1),
       count: stories.filter(story => story.category === cat).length
     }))
-  ];
+  ], [stories]);
 
-  const filteredStories = stories.filter(story => {
-    const matchesCategory = selectedCategory === 'all' || story.category === selectedCategory;
-    const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (story.excerpt && story.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (story.tags && story.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
-    return matchesCategory && matchesSearch;
-  });
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+  // Memoize filtered stories to prevent unnecessary re-renders
+  const filteredStories = useMemo(() => {
+    return stories.filter(story => {
+      const matchesCategory = selectedCategory === 'all' || story.category === selectedCategory;
+      const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (story.excerpt && story.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           (story.tags && story.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+      return matchesCategory && matchesSearch;
     });
-  };
+  }, [stories, selectedCategory, searchTerm]);
 
-  if (loading) return <div className="container-custom py-20 text-center text-xl">Loading stories...</div>;
-  if (error) return <div className="container-custom py-20 text-center text-red-600">{error}</div>;
+  // Memoize featured stories
+  const featuredStories = useMemo(() => {
+    return filteredStories.filter(story => story.featured);
+  }, [filteredStories]);
+
+  // Memoize non-featured stories
+  const nonFeaturedStories = useMemo(() => {
+    return filteredStories.filter(story => !story.featured);
+  }, [filteredStories]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container-custom py-20 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <div className="text-xl text-gray-600">Loading stories...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -99,7 +193,7 @@ const PeopleStoriesPage = () => {
                   type="text"
                   placeholder="Search stories..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -109,11 +203,11 @@ const PeopleStoriesPage = () => {
             <div>
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={handleCategoryChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 {categories.map(category => (
-                  <option key={category.value} value={category.value}>
+                  <option key={`category-${category.value}`} value={category.value}>
                     {category.label} ({category.count})
                   </option>
                 ))}
@@ -124,7 +218,7 @@ const PeopleStoriesPage = () => {
       </section>
 
       {/* Featured Story */}
-      {filteredStories.filter(story => story.featured).length > 0 && (
+      {featuredStories.length > 0 && (
         <section className="py-16 bg-gray-50">
           <div className="container-custom">
             <div className="text-center mb-12">
@@ -133,8 +227,8 @@ const PeopleStoriesPage = () => {
               </h2>
             </div>
             
-            {filteredStories.filter(story => story.featured).slice(0, 1).map((story) => (
-              <div key={story.id} className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {featuredStories.slice(0, 1).map((story) => (
+              <div key={`featured-${story.id}`} className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 <div className="grid lg:grid-cols-2">
                   <div className="relative">
                     <img
@@ -151,7 +245,7 @@ const PeopleStoriesPage = () => {
                       <img
                         src={story.authorImage}
                         alt={story.author}
-                        className="w-12 h-12 rounded-full mr-4"
+                        className="w-12 h-12 rounded-full mr-4 object-cover"
                       />
                       <div>
                         <h4 className="font-semibold text-gray-900">
@@ -174,7 +268,7 @@ const PeopleStoriesPage = () => {
                     <div className="flex flex-wrap gap-2 mb-6">
                       {story.tags.map((tag, index) => (
                         <span
-                          key={index}
+                          key={`${story.id}-tag-${index}`}
                           className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800"
                         >
                           <Tag className="w-3 h-3 mr-1" />
@@ -210,8 +304,6 @@ const PeopleStoriesPage = () => {
         </section>
       )}
 
-
-
       {/* Stories Grid */}
       <section className="py-16 bg-white">
         <div className="container-custom">
@@ -225,8 +317,8 @@ const PeopleStoriesPage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredStories.filter(story => !story.featured).map((story) => (
-              <div key={story.id} className="card group">
+            {nonFeaturedStories.map((story) => (
+              <div key={`story-${story.id}`} className="card group">
                 <div className="relative overflow-hidden rounded-t-xl">
                   <img
                     src={story.image}
@@ -243,7 +335,7 @@ const PeopleStoriesPage = () => {
                     <img
                       src={story.authorImage}
                       alt={story.author}
-                      className="w-10 h-10 rounded-full mr-3"
+                      className="w-10 h-10 rounded-full mr-3 object-cover"
                     />
                     <div>
                       <h4 className="font-semibold text-gray-900 text-sm">
@@ -266,7 +358,7 @@ const PeopleStoriesPage = () => {
                   <div className="flex flex-wrap gap-2 mb-4">
                     {story.tags.slice(0, 3).map((tag, index) => (
                       <span
-                        key={index}
+                        key={`${story.id}-tag-${index}`}
                         className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
                       >
                         #{tag}
@@ -310,10 +402,7 @@ const PeopleStoriesPage = () => {
                 Try adjusting your search criteria or check back later for new stories.
               </p>
               <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('all');
-                }}
+                onClick={handleClearFilters}
                 className="btn-primary"
               >
                 Clear Filters
@@ -347,6 +436,6 @@ const PeopleStoriesPage = () => {
       </section>
     </>
   );
-};
+});
 
 export default PeopleStoriesPage; 

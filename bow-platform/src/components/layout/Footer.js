@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Youtube, Mail, Phone, MapPin, Heart } from 'lucide-react';
+import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 
 
 const Footer = () => {
@@ -29,9 +29,44 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { name: 'Facebook', href: 'https://www.facebook.com/BeatsOfRedmond/', icon: Facebook },
-    { name: 'Instagram', href: 'https://www.instagram.com/beatsofwa/', icon: Instagram },
-    { name: 'YouTube', href: 'https://www.youtube.com/c/BeatsOfRedmond', icon: Youtube },
+    {
+      name: 'Facebook',
+      href: 'https://www.facebook.com/BeatsOfRedmond/',
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="#1877F3" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#1877F3"/>
+          <path d="M16.5 8.5h-2a.5.5 0 0 0-.5.5v2h2.5l-.5 2H14v6h-2v-6h-2v-2h2v-1.5A2.5 2.5 0 0 1 14.5 7h2v1.5z" fill="#fff"/>
+        </svg>
+      )
+    },
+    {
+      name: 'Instagram',
+      href: 'https://www.instagram.com/beatsofwa/',
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="url(#ig-gradient)"/>
+          <defs>
+            <linearGradient id="ig-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#f58529"/>
+              <stop offset="0.5" stop-color="#dd2a7b"/>
+              <stop offset="1" stop-color="#515bd4"/>
+            </linearGradient>
+          </defs>
+          <circle cx="12" cy="12" r="5" stroke="#fff" strokeWidth="2"/>
+          <circle cx="18" cy="6" r="1" fill="#fff"/>
+        </svg>
+      )
+    },
+    {
+      name: 'YouTube',
+      href: 'https://www.youtube.com/c/BeatsOfRedmond',
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#FF0000"/>
+          <polygon points="10,8 16,12 10,16" fill="#fff"/>
+        </svg>
+      )
+    }
   ];
 
   return (
@@ -138,7 +173,7 @@ const Footer = () => {
                     aria-label={`Follow us on ${social.name}`}
                     title={`Follow us on ${social.name}`}
                   >
-                    <social.icon className="w-5 h-5" />
+                    {social.icon()}
                   </a>
                 ))}
               </div>
@@ -179,6 +214,10 @@ const Footer = () => {
               <span>•</span>
               <Link to="/terms" className="hover:text-primary-400 transition-colors duration-200">
                 Terms of Service
+              </Link>
+              <span>•</span>
+              <Link to="/legal" className="hover:text-primary-400 transition-colors duration-200">
+                Legal Notices
               </Link>
               <span>•</span>
               <span className="flex items-center space-x-1">
