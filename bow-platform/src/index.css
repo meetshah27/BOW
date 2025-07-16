@@ -134,4 +134,12 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
+html, body {
+  @apply bg-white text-gray-900;
+}
+
+dark html, dark body, html.dark, body.dark {
+  @apply bg-gray-900 text-gray-100;
+}
+
 

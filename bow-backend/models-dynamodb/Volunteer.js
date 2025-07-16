@@ -40,13 +40,29 @@ class Volunteer {
 
   // Create a new volunteer application
   static async create(volunteerData) {
-    const volunteer = new Volunteer(volunteerData);
+    console.log('Creating volunteer with data:', volunteerData);
+    
+    // Ensure the key fields are properly set
+    const volunteer = new Volunteer({
+      ...volunteerData,
+      opportunityId: volunteerData.opportunityId || volunteerData.id,
+      applicantEmail: volunteerData.applicantEmail
+    });
+    
+    console.log('Volunteer object created:', volunteer);
+    
+    // Validate required key fields
+    if (!volunteer.opportunityId || !volunteer.applicantEmail) {
+      throw new Error('opportunityId and applicantEmail are required for volunteer applications');
+    }
+    
     const command = new PutCommand({
       TableName: TABLES.VOLUNTEERS,
       Item: volunteer
     });
 
     try {
+      console.log('Sending DynamoDB command with Item:', volunteer);
       await docClient.send(command);
       return volunteer;
     } catch (error) {

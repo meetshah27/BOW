@@ -21,6 +21,8 @@ const VolunteerManagement = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchApplications();
@@ -40,22 +42,61 @@ const VolunteerManagement = () => {
     }
   };
 
-  const updateApplicationStatus = async (applicationId, status, notes = '') => {
+  const updateApplicationStatus = async (application, status, notes = '') => {
     try {
-      const response = await fetch(`/api/volunteers/applications/${applicationId}/status`, {
+      // Use the composite key for DynamoDB
+      const key = {
+        opportunityId: application.opportunityId,
+        applicantEmail: application.applicantEmail
+      };
+      
+      const response = await fetch(`/api/volunteers/applications/update-status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status, reviewNotes: notes }),
+        body: JSON.stringify({ 
+          key,
+          status, 
+          reviewNotes: notes 
+        }),
       });
 
       if (response.ok) {
-        fetchApplications(); // Refresh the list
+        // Show success message
+        const action = status === 'approved' ? 'approved' : 'rejected';
+        setSuccessMessage(`Application ${action} successfully!`);
+        setShowSuccessMessage(true);
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setSuccessMessage('');
+        }, 3000);
+        
+        // Update the application status immediately in the local state
+        setApplications(prevApplications => 
+          prevApplications.map(app => 
+            app.opportunityId === application.opportunityId && 
+            app.applicantEmail === application.applicantEmail
+              ? { ...app, status: status }
+              : app
+          )
+        );
+        
+        // Also refresh from server to get any additional updates
+        fetchApplications();
+      } else {
+        console.error('Failed to update application status');
       }
     } catch (error) {
       console.error('Error updating application status:', error);
     }
+  };
+
+  const handleStatusUpdate = (application, status) => {
+    // Directly update the status without confirmation modal
+    updateApplicationStatus(application, status);
   };
 
   const getStatusColor = (status) => {
@@ -103,6 +144,16 @@ const VolunteerManagement = () => {
 
   return (
     <div className="space-y-6">
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          <div className="flex items-center">
+            <CheckCircle className="w-5 h-5 mr-2" />
+            <span>{successMessage}</span>
+          </div>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Volunteer Applications</h2>
         <div className="text-sm text-gray-600">
@@ -208,14 +259,14 @@ const VolunteerManagement = () => {
                     {application.status === 'pending' && (
                       <div className="inline-flex space-x-1">
                         <button
-                          onClick={() => updateApplicationStatus(application._id, 'approved')}
+                          onClick={() => handleStatusUpdate(application, 'approved')}
                           className="text-green-600 hover:text-green-900"
                           title="Approve"
                         >
                           <CheckCircle className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => updateApplicationStatus(application._id, 'rejected')}
+                          onClick={() => handleStatusUpdate(application, 'rejected')}
                           className="text-red-600 hover:text-red-900"
                           title="Reject"
                         >
@@ -359,8 +410,8 @@ const VolunteerManagement = () => {
                 <>
                   <button
                     onClick={() => {
-                      updateApplicationStatus(selectedApplication._id, 'approved');
                       setShowDetails(false);
+                      updateApplicationStatus(selectedApplication, 'approved');
                     }}
                     className="btn-primary"
                   >
@@ -368,8 +419,8 @@ const VolunteerManagement = () => {
                   </button>
                   <button
                     onClick={() => {
-                      updateApplicationStatus(selectedApplication._id, 'rejected');
                       setShowDetails(false);
+                      updateApplicationStatus(selectedApplication, 'rejected');
                     }}
                     className="btn-outline text-red-600 border-red-600 hover:bg-red-50"
                   >
@@ -387,6 +438,8 @@ const VolunteerManagement = () => {
           </div>
         </div>
       )}
+
+
     </div>
   );
 };

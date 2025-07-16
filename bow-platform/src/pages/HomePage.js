@@ -159,72 +159,72 @@ const HomePage = () => {
   const sponsors = [
     {
       name: 'Apna Bazar',
-      logo: '/sponsors/Apana bazar.png',
+      logo: '/sponsors/apana-bazar.png',
       website: '#'
     },
     {
       name: 'Bel Red Best Smiles',
-      logo: '/sponsors/Bel Red Best Smiles.png',
+      logo: '/sponsors/bel-red-best-smiles.png',
       website: '#'
     },
     {
       name: 'Chutneys',
-      logo: '/sponsors/Chutneys.jpg',
+      logo: '/sponsors/chutneys.jpg',
       website: '#'
     },
     {
       name: 'Dulay Homes',
-      logo: '/sponsors/Dulay Homes.png',
+      logo: '/sponsors/dulay-homes.png',
       website: '#'
     },
     {
       name: 'Emerald Pacific Capital',
-      logo: '/sponsors/Emerald pacific capital.png',
+      logo: '/sponsors/emerald-pacific-capital.png',
       website: '#'
     },
     {
       name: 'Fusion India',
-      logo: '/sponsors/Fusion India.avif',
+      logo: '/sponsors/fusion-india.avif',
       website: '#'
     },
     {
       name: 'goEzz',
-      logo: '/sponsors/goEzz.png',
+      logo: '/sponsors/goezz.png',
       website: '#'
     },
     {
       name: 'Mayuri',
-      logo: '/sponsors/mayuri foods.png',
+      logo: '/sponsors/mayuri-foods.png',
       website: '#'
     },
     {
       name: 'Soul Kitchen',
-      logo: '/sponsors/Soul Kitchen.png',
+      logo: '/sponsors/soul-kitchen.png',
       website: '#'
     },
     {
       name: 'Sukarya USA',
-      logo: '/sponsors/Sukarya USA.jpg',
+      logo: '/sponsors/sukarya-usa.jpg',
       website: '#'
     },
     {
       name: 'Swapna Kadam',
-      logo: '/sponsors/Swapna Kadam.webp',
+      logo: '/sponsors/swapna-kadam.webp',
       website: '#'
     },
     {
       name: 'The Shade Home',
-      logo: '/sponsors/THE shade Home.jpg',
+      logo: '/sponsors/the-shade-home.jpg',
       website: '#'
     },
     {
       name: 'VG Force',
-      logo: '/sponsors/VG Force.png',
+      logo: '/sponsors/vg-force.png',
       website: '#'
     },
     {
       name: 'Washington State India Trade Relations Action Committee',
-      logo: '/sponsors/Washington State India Trade Relations Action Committee.jpg',
+      logo: '/sponsors/washington-state-india-trade-relations-action-committee.jpg',
       website: '#'
     }
   ];
@@ -240,7 +240,6 @@ const HomePage = () => {
       <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center opacity-10"></div>
-        
         <div className="container-custom section-padding relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -260,99 +259,6 @@ const HomePage = () => {
                 <Users className="w-5 h-5 mr-2" />
                 Get Involved
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="bg-gradient-to-br from-gray-50 to-white py-20">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Impact in Numbers
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              See how our community has grown and the impact we've made together
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div 
-                key={index} 
-                className="text-center stats-card transform transition-all duration-500 hover:scale-105"
-              >
-                <div className="flex justify-center mb-4">
-                  <stat.icon className="w-12 h-12 text-primary-600" />
-                </div>
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                  <CountUpNumber 
-                    end={stat.number} 
-                    suffix={stat.suffix || ''} 
-                    duration={1.5}
-                  />
-                </div>
-                <div className="text-gray-600 font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Call to Action */}
-          <div className="mt-16 text-center">
-            <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4">
-                Join Our Growing Community
-              </h3>
-              <p className="text-lg opacity-90 mb-6">
-                Be part of something bigger. Every member, volunteer, and event contributes to our mission of building a stronger, more connected community.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Link to="/get-involved" className="bg-white text-primary-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
-                  Become a Member
-                </Link>
-                <Link to="/volunteer" className="border-2 border-white text-white px-6 py-3 rounded-full font-semibold hover:bg-white hover:text-primary-600 transition-colors">
-                  Volunteer Today
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Section */}
-      <section className="bg-gray-50 py-20">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Our Mission
-              </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Beats of Washington (BOW) is dedicated to fostering community connections 
-                through the universal language of music. We believe that music has the 
-                power to bridge cultural divides, inspire creativity, and create lasting 
-                bonds within our communities.
-              </p>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                As a 501(c)(3) non-profit organization, we serve over 50,000 community 
-                members and coordinate 5,000+ volunteers across Washington State, 
-                creating inclusive spaces where everyone can participate, learn, and grow.
-              </p>
-              <Link to="/about" className="btn-primary">
-                Learn More About Us
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </div>
-            <div className="relative">
-              <img
-                src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-                alt="Community music event"
-                className="rounded-2xl shadow-2xl"
-              />
-              <div className="absolute inset-0 bg-primary-600 rounded-2xl opacity-20"></div>
             </div>
           </div>
         </div>
@@ -420,6 +326,103 @@ const HomePage = () => {
               View All Events
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Impact in Numbers Section */}
+      <section className="bg-white py-20">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Our Impact in Numbers
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              See how our community has grown and the impact we've made together
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center stats-card">
+              <div className="flex justify-center mb-4">
+                <Users className="w-12 h-12 text-primary-600" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                50,000+
+              </div>
+              <div className="text-gray-600 font-medium">
+                Community Members
+              </div>
+            </div>
+            <div className="text-center stats-card">
+              <div className="flex justify-center mb-4">
+                <Heart className="w-12 h-12 text-primary-600" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                2,000+
+              </div>
+              <div className="text-gray-600 font-medium">
+                Volunteers
+              </div>
+            </div>
+            <div className="text-center stats-card">
+              <div className="flex justify-center mb-4">
+                <Calendar className="w-12 h-12 text-primary-600" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                200+
+              </div>
+              <div className="text-gray-600 font-medium">
+                Events Annually
+              </div>
+            </div>
+            <div className="text-center stats-card">
+              <div className="flex justify-center mb-4">
+                <Star className="w-12 h-12 text-primary-600" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                7
+              </div>
+              <div className="text-gray-600 font-medium">
+                Years of Service
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="bg-gray-50 py-20">
+        <div className="container-custom">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Our Mission
+              </h2>
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                Beats of Washington (BOW) is dedicated to fostering community connections 
+                through the universal language of music. We believe that music has the 
+                power to bridge cultural divides, inspire creativity, and create lasting 
+                bonds within our communities.
+              </p>
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                As a 501(c)(3) non-profit organization, we serve over 50,000 community 
+                members and coordinate 5,000+ volunteers across Washington State, 
+                creating inclusive spaces where everyone can participate, learn, and grow.
+              </p>
+              <Link to="/about" className="btn-primary">
+                Learn More About Us
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+            </div>
+            <div className="relative">
+              <img
+                src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+                alt="Community music event"
+                className="rounded-2xl shadow-2xl"
+              />
+              <div className="absolute inset-0 bg-primary-600 rounded-2xl opacity-20"></div>
+            </div>
           </div>
         </div>
       </section>

@@ -167,7 +167,7 @@ const EventDetailsPage = () => {
       let headers = { 'Content-Type': 'application/json' };
       if (currentUser) {
         requestBody = {
-          userId: currentUser.uid,
+          userId: currentUser.uid || currentUser.id,
           userEmail: currentUser.email,
           userName: currentUser.displayName || currentUser.email,
           phone: currentUser.phone || registrationData.phone,
