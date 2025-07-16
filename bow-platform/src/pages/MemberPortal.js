@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,53 +21,57 @@ import {
 // Member Portal Sub-components
 const Dashboard = () => {
   const { currentUser } = useAuth();
-  
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: "Summer Music Festival 2024",
-      date: "2024-07-15",
-      time: "12:00 PM - 10:00 PM",
-      location: "Seattle Center",
-      status: "registered"
-    },
-    {
-      id: 2,
-      title: "Community Drum Circle",
-      date: "2024-06-22",
-      time: "6:00 PM - 8:00 PM",
-      location: "Gas Works Park",
-      status: "registered"
-    }
-  ];
+  const [events, setEvents] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const recentActivity = [
-    { action: 'Registered for Summer Music Festival', date: '2024-01-15' },
-    { action: 'Attended Youth Music Workshop', date: '2024-01-10' },
-    { action: 'Updated profile information', date: '2024-01-08' },
-    { action: 'Joined Community Drum Circle', date: '2024-01-05' }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        let userId = currentUser?.uid || currentUser?.id || '';
+        let userEmail = currentUser?.email || '';
+        // Fetch registered events
+        let eventsRes = await fetch(`/api/events/user/${userId}/registrations`);
+        let eventsData = eventsRes.ok ? await eventsRes.json() : [];
+        // Fetch payments/donations
+        let paymentsRes = await fetch(`/api/payment/donations/user/${userId}`);
+        let paymentsData = paymentsRes.ok ? await paymentsRes.json() : [];
+        // If no payments by userId, try by email
+        if (paymentsData.length === 0 && userEmail) {
+          let paymentsEmailRes = await fetch(`/api/payment/donations/user/${userEmail}`);
+          paymentsData = paymentsEmailRes.ok ? await paymentsEmailRes.json() : [];
+        }
+        setEvents(eventsData);
+        setPayments(paymentsData);
+      } catch (err) {
+        setError('Failed to load your data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (currentUser) fetchData();
+  }, [currentUser]);
 
+  // Stats
   const memberStats = [
-    { label: 'Events Attended', value: '12' },
-    { label: 'Volunteer Hours', value: '24' },
-    { label: 'Community Points', value: '1,250' },
-    { label: 'Member Since', value: '2023' }
+    { label: 'Events Registered', value: events.length },
+    { label: 'Total Donations', value: `$${payments.reduce((sum, p) => sum + (p.amount || 0) / 100, 0).toFixed(2)}` },
+    { label: 'Member Since', value: currentUser?.createdAt ? new Date(currentUser.createdAt).getFullYear() : '—' }
   ];
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg p-6 text-white">
         <h2 className="text-2xl font-bold mb-2">
-          Welcome back, {currentUser?.displayName || 'Member'}!
+          Welcome back, {currentUser?.displayName || currentUser?.name || 'Member'}!
         </h2>
         <p className="text-primary-100">
           You're part of a community of over 2,000 members making a difference through music.
         </p>
       </div>
-
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {memberStats.map((stat, index) => (
           <div key={index} className="bg-white rounded-lg shadow p-4 text-center">
@@ -76,34 +80,35 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
-
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Upcoming Events */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Upcoming Events</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Registered Events</h3>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {upcomingEvents.map((event) => (
-                <div key={event.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{event.title}</h4>
-                    <div className="flex items-center text-sm text-gray-600 mt-1">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {event.date} at {event.time}
+            {loading ? <div>Loading events...</div> : error ? <div className="text-red-500">{error}</div> : (
+              <div className="space-y-4">
+                {events.length === 0 ? <div>No registered events yet.</div> : events.map((event) => (
+                  <div key={event.eventId || event.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{event.eventTitle || event.title}</h4>
+                      <div className="flex items-center text-sm text-gray-600 mt-1">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {event.date ? new Date(event.date).toLocaleDateString() : '-'}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600 mt-1">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {event.location || '-'}
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600 mt-1">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {event.location}
-                    </div>
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      {event.status || 'registered'}
+                    </span>
                   </div>
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                    {event.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <div className="mt-4">
               <Link to="/events" className="btn-outline w-full justify-center">
                 View All Events
@@ -111,22 +116,32 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
-        {/* Recent Activity */}
+        {/* Recent Payments */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Recent Donations</h3>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-sm text-gray-600">{activity.date}</p>
+            {loading ? <div>Loading donations...</div> : error ? <div className="text-red-500">{error}</div> : (
+              <div className="space-y-4">
+                {payments.length === 0 ? <div>No donations yet.</div> : payments.slice(0, 5).map((p) => (
+                  <div key={p.paymentIntentId} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                      <div className="font-medium text-gray-900">${(p.amount / 100).toFixed(2)}</div>
+                      <div className="text-xs text-gray-600">{p.status}</div>
+                      <div className="text-xs text-gray-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-'}</div>
+                    </div>
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      {p.frequency || 'one-time'}
+                    </span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+            <div className="mt-4">
+              <Link to="/member/payments" className="btn-outline w-full justify-center">
+                View All Donations
+              </Link>
             </div>
           </div>
         </div>
@@ -136,106 +151,63 @@ const Dashboard = () => {
 };
 
 const MyEvents = () => {
-  const [events] = useState([
-    {
-      id: 1,
-      title: "Summer Music Festival 2024",
-      date: "2024-07-15",
-      time: "12:00 PM - 10:00 PM",
-      location: "Seattle Center",
-      status: "registered",
-      category: "Festival"
-    },
-    {
-      id: 2,
-      title: "Community Drum Circle",
-      date: "2024-06-22",
-      time: "6:00 PM - 8:00 PM",
-      location: "Gas Works Park",
-      status: "registered",
-      category: "Workshop"
-    },
-    {
-      id: 3,
-      title: "Youth Music Workshop",
-      date: "2024-06-29",
-      time: "10:00 AM - 2:00 PM",
-      location: "Community Center",
-      status: "attended",
-      category: "Education"
-    }
-  ]);
+  const { currentUser } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        let userId = currentUser?.uid || currentUser?.id || '';
+        let res = await fetch(`/api/events/user/${userId}/registrations`);
+        let data = res.ok ? await res.json() : [];
+        setEvents(data);
+      } catch (err) {
+        setError('Failed to load your events.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (currentUser) fetchEvents();
+  }, [currentUser]);
 
   return (
     <div className="space-y-8">
       <h2 className="text-2xl font-bold text-gray-900">My Events</h2>
-
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Event History</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Event
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date & Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {events.map((event) => (
-                <tr key={event.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{event.title}</div>
-                      <div className="text-sm text-gray-500">{event.category}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{event.date}</div>
-                    <div className="text-sm text-gray-500">{event.time}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{event.location}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      event.status === 'registered' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {event.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="btn-outline text-sm py-1 px-3">
-                        View Details
-                      </button>
-                      {event.status === 'registered' && (
-                        <button className="text-red-600 hover:text-red-900 text-sm py-1 px-3 border border-red-600 rounded hover:bg-red-50 transition-colors duration-200">
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                  </td>
+          {loading ? <div>Loading events...</div> : error ? <div className="text-red-500">{error}</div> : (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {events.length === 0 ? (
+                  <tr><td colSpan={4} className="text-center py-4">No events found.</td></tr>
+                ) : events.map((event) => (
+                  <tr key={event.eventId || event.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{event.eventTitle || event.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{event.date ? new Date(event.date).toLocaleString() : '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{event.location || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{event.status || 'registered'}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
@@ -584,112 +556,71 @@ const SettingsPage = () => {
 };
 
 const MyPayments = () => {
-  // Example data; replace with real fetch logic later
-  const [payments, setPayments] = React.useState([
-    { id: 1, date: '2024-06-01', amount: 50, event: 'Summer Music Festival 2024', type: 'Donation' },
-    { id: 2, date: '2024-05-15', amount: 25, event: 'Community Drum Circle', type: 'Ticket' },
-    { id: 3, date: '2024-04-10', amount: 100, event: 'Annual Gala', type: 'Donation' },
-    { id: 4, date: '2024-03-20', amount: 40, event: 'Youth Music Workshop', type: 'Ticket' },
-  ]);
-  const [filters, setFilters] = React.useState({ date: '', amount: '', event: '' });
+  const { currentUser } = useAuth();
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
-  };
-
-  const handleDownloadReceipt = (payment) => {
-    const receipt = `Beats of Washington Payment Receipt\n\nPayment ID: ${payment.id}\nDate: ${payment.date}\nAmount: $${payment.amount}\nEvent: ${payment.event}\nType: ${payment.type}\n\nThank you for your support!`;
-    const blob = new Blob([receipt], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `BOW_Receipt_${payment.id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const filteredPayments = payments.filter((p) => {
-    const dateMatch = filters.date ? p.date.includes(filters.date) : true;
-    const amountMatch = filters.amount ? p.amount.toString().includes(filters.amount) : true;
-    const eventMatch = filters.event ? p.event.toLowerCase().includes(filters.event.toLowerCase()) : true;
-    return dateMatch && amountMatch && eventMatch;
-  });
+  useEffect(() => {
+    const fetchPayments = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        let userId = currentUser?.uid || currentUser?.id || '';
+        let res = await fetch(`/api/payment/donations/user/${userId}`);
+        let data = res.ok ? await res.json() : [];
+        // If no payments by userId, try by email
+        if (data.length === 0 && currentUser?.email) {
+          let resEmail = await fetch(`/api/payment/donations/user/${currentUser.email}`);
+          data = resEmail.ok ? await resEmail.json() : [];
+        }
+        setPayments(data);
+      } catch (err) {
+        setError('Failed to load your donations.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (currentUser) fetchPayments();
+  }, [currentUser]);
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">My Payments / Donation History</h2>
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <input
-              type="date"
-              name="date"
-              value={filters.date}
-              onChange={handleFilterChange}
-              className="input-field"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-            <input
-              type="number"
-              name="amount"
-              value={filters.amount}
-              onChange={handleFilterChange}
-              className="input-field"
-              min="0"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
-            <input
-              type="text"
-              name="event"
-              value={filters.event}
-              onChange={handleFilterChange}
-              className="input-field"
-              placeholder="Search event..."
-            />
-          </div>
+      <h2 className="text-2xl font-bold text-gray-900">My Donations</h2>
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Donation History</h3>
         </div>
-      </div>
-      <div className="bg-white rounded-lg shadow p-6 overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Download</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPayments.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center py-8 text-gray-500">No payments found.</td>
-              </tr>
-            ) : (
-              filteredPayments.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{p.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">${p.amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{p.event}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{p.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="btn-outline text-xs" onClick={() => handleDownloadReceipt(p)}>
-                      Download Receipt
-                    </button>
-                  </td>
+        <div className="overflow-x-auto">
+          {loading ? <div>Loading donations...</div> : error ? <div className="text-red-500">{error}</div> : (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequency</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {payments.length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-4">No donations found.</td></tr>
+                ) : payments.map((p) => (
+                  <tr key={p.paymentIntentId}>
+                    <td className="px-6 py-4 whitespace-nowrap">${(p.amount / 100).toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{p.status}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{p.createdAt ? new Date(p.createdAt).toLocaleString() : '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{p.frequency || 'one-time'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {p.receiptUrl ? <a href={p.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Download</a> : '-' }
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

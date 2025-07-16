@@ -66,18 +66,22 @@ class Event {
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
 
+    let updatingUpdatedAt = false;
     Object.keys(updateData).forEach(key => {
       if (key !== 'id') { // Don't allow updating ID
         updateExpressions.push(`#${key} = :${key}`);
         expressionAttributeNames[`#${key}`] = key;
         expressionAttributeValues[`:${key}`] = updateData[key];
+        if (key === 'updatedAt') updatingUpdatedAt = true;
       }
     });
 
-    // Always update the updatedAt field
-    updateExpressions.push('#updatedAt = :updatedAt');
-    expressionAttributeNames['#updatedAt'] = 'updatedAt';
-    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    // Only add updatedAt if not already being updated
+    if (!updatingUpdatedAt) {
+      updateExpressions.push('#updatedAt = :updatedAt');
+      expressionAttributeNames['#updatedAt'] = 'updatedAt';
+      expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    }
 
     const command = new UpdateCommand({
       TableName: TABLES.EVENTS,

@@ -283,19 +283,54 @@ router.post('/:id/register', async (req, res) => {
 // GET user's registrations
 router.get('/user/:userId/registrations', async (req, res) => {
   try {
-    if (Registration) {
+    if (Registration && Event) {
       const registrations = await Registration.findByUser(req.params.userId);
-      res.json(registrations);
+      // Fetch all events in one go for efficiency
+      const allEvents = await Event.findAll();
+      // Map eventId to event details
+      const eventMap = {};
+      allEvents.forEach(e => {
+        eventMap[e.id || e._id] = e;
+      });
+      // Attach event details to each registration
+      const result = registrations.map(r => {
+        const event = eventMap[r.eventId];
+        return {
+          ...r,
+          eventTitle: event ? event.title : undefined,
+          date: event ? event.date : undefined,
+          location: event ? event.location : undefined
+        };
+      });
+      res.json(result);
     } else {
       // Fallback to sample data
       const userRegistrations = sampleRegistrations.filter(r => r.userId === req.params.userId);
-      res.json(userRegistrations);
+      const result = userRegistrations.map(r => {
+        const event = sampleEvents.find(e => e.id === r.eventId);
+        return {
+          ...r,
+          eventTitle: event ? event.title : undefined,
+          date: event ? event.date : undefined,
+          location: event ? event.location : undefined
+        };
+      });
+      res.json(result);
     }
   } catch (error) {
     console.error('Error fetching user registrations:', error);
     // Fallback to sample data
     const userRegistrations = sampleRegistrations.filter(r => r.userId === req.params.userId);
-    res.json(userRegistrations);
+    const result = userRegistrations.map(r => {
+      const event = sampleEvents.find(e => e.id === r.eventId);
+      return {
+        ...r,
+        eventTitle: event ? event.title : undefined,
+        date: event ? event.date : undefined,
+        location: event ? event.location : undefined
+      };
+    });
+    res.json(result);
   }
 });
 
@@ -503,13 +538,16 @@ router.post('/', async (req, res) => {
 // PUT update an event
 router.put('/:id', async (req, res) => {
   try {
+    console.log('[PUT /api/events/:id] Update request for event:', req.params.id);
+    console.log('[PUT /api/events/:id] Request body:', req.body);
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
     const updated = await event.update(req.body);
+    console.log('[PUT /api/events/:id] Event updated:', updated);
     res.json(updated);
   } catch (error) {
     console.error('[Backend] Update event error:', error);
-    res.status(500).json({ message: 'Failed to update event' });
+    res.status(500).json({ message: 'Failed to update event', error: error.message });
   }
 });
 

@@ -178,4 +178,25 @@ router.get('/donations/stats', async (req, res) => {
   }
 });
 
+// GET /api/payment/donations/user/:userIdOrEmail - Get all donations for a user
+router.get('/donations/user/:userIdOrEmail', async (req, res) => {
+  try {
+    const { userIdOrEmail } = req.params;
+    let donations = [];
+    // Try to find by donorId (userId)
+    if (userIdOrEmail.includes('@')) {
+      // Looks like an email
+      donations = await Donation.findByDonorEmail(userIdOrEmail);
+    } else {
+      // Try to find by donorId
+      const allDonations = await Donation.findAll({ limit: 1000 });
+      donations = allDonations.donations.filter(d => d.donorId === userIdOrEmail);
+    }
+    res.json(donations);
+  } catch (err) {
+    console.error('[Payment] Error fetching user donations:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router; 

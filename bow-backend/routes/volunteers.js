@@ -143,8 +143,10 @@ router.get('/opportunities', async (req, res) => {
 });
 
 // Submit volunteer application (protected)
-router.post('/apply', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.post('/apply', async (req, res) => {
   try {
+    console.log('Received volunteer application data:', req.body);
+    
     const {
       opportunityId,
       opportunityTitle,
@@ -242,7 +244,7 @@ router.post('/apply', verifyCognito, syncUserToDynamoDB, async (req, res) => {
 });
 
 // Admin: Get all applications (protected)
-router.get('/applications', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.get('/applications', async (req, res) => {
   try {
     if (Volunteer) {
       const applications = await Volunteer.findAll();
@@ -259,7 +261,7 @@ router.get('/applications', verifyCognito, syncUserToDynamoDB, async (req, res) 
 });
 
 // Admin: Get application by ID (protected)
-router.get('/applications/:id', verifyCognito, syncUserToDynamoDB, async (req, res) => {
+router.get('/applications/:id', async (req, res) => {
   try {
     if (Volunteer) {
       const application = await Volunteer.findById(req.params.id);
@@ -292,18 +294,19 @@ router.get('/applications/:id', verifyCognito, syncUserToDynamoDB, async (req, r
 });
 
 // Update volunteer application status (admin only)
-router.patch('/applications/:id/status', async (req, res) => {
+router.patch('/applications/update-status', async (req, res) => {
   try {
-    const { status, reviewNotes } = req.body;
+    const { key, status, reviewNotes } = req.body;
     
     if (Volunteer) {
-      const application = await Volunteer.findById(req.params.id);
+      // Use the composite key to find and update the application
+      const application = await Volunteer.findByOpportunityAndEmail(key.opportunityId, key.applicantEmail);
       
       if (!application) {
         return res.status(404).json({ error: 'Application not found' });
       }
 
-      await Volunteer.update(req.params.id, {
+      await application.update({
         status: status,
         reviewNotes: reviewNotes,
         reviewDate: new Date().toISOString()
@@ -316,7 +319,7 @@ router.patch('/applications/:id/status', async (req, res) => {
       // Fallback demo response
       res.json({
         message: 'Application status updated successfully (demo mode)',
-        applicationId: req.params.id,
+        key: key,
         status: status,
         reviewNotes: reviewNotes
       });

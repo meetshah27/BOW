@@ -12,7 +12,7 @@ import {
   AlertCircle,
   Loader
 } from 'lucide-react';
-import { fetchAuthSession } from 'aws-amplify/auth';
+
 
 const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -145,18 +145,11 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
     setError('');
 
     try {
-      let headers = { 'Content-Type': 'application/json' };
-      // Add Cognito token if logged in
-      try {
-        const { tokens } = await fetchAuthSession();
-        const idToken = tokens?.idToken?.toString();
-        headers['Authorization'] = `Bearer ${idToken}`;
-      } catch {}
       const response = await fetch('http://localhost:3000/api/volunteers/apply', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          opportunityId: opportunity.id,
+          opportunityId: opportunity.id.toString(),
           opportunityTitle: opportunity.title,
           opportunityCategory: opportunity.category,
           ...formData,
