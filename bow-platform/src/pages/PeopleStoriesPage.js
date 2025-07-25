@@ -34,26 +34,50 @@ const stories = [
 
 const PeopleStoriesPage = () => {
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h1 className="text-4xl font-bold text-center mb-4">People Stories</h1>
-      <p className="text-center text-lg mb-10 max-w-2xl mx-auto">
-        Discover the inspiring journeys of individuals whose lives have been touched by Beats of Washington. Each story reflects the impact of our community and the power of coming together.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {stories.map((story) => (
-          <div key={story.id} className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
-            <img
-              src={story.photo}
-              alt={story.name}
-              className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-indigo-100"
-            />
-            <h2 className="text-xl font-semibold mb-2">{story.name}</h2>
-            <p className="italic text-gray-600 mb-4 text-center">"{story.quote}"</p>
-            <button className="text-indigo-600 hover:underline text-sm">Read More</button>
-              </div>
-            ))}
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white overflow-hidden py-10 mb-8 shadow-lg">
+        <div className="absolute inset-0 bg-black opacity-20"></div>
+        <div className="container-custom relative z-10 flex flex-col items-center justify-center text-center">
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-2 drop-shadow-lg">People Stories</h1>
+          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-2 font-medium drop-shadow text-gray-100">
+            Discover the inspiring journeys of individuals whose lives have been touched by Beats of Washington. Each story reflects the impact of our community and the power of coming together.
+          </p>
         </div>
+      </section>
+
+      {/* Stories Grid */}
+      <section className="container-custom pb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+          {stories.map((story, idx) => (
+            <div
+              key={story.id}
+              className="group bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl border border-orange-100 opacity-0 animate-fade-in"
+              style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'forwards' }}
+            >
+              <img
+                src={story.photo}
+                alt={story.name}
+                className="w-28 h-28 rounded-full object-cover mb-4 border-4 border-orange-200 shadow-md group-hover:scale-105 transition-transform duration-300"
+              />
+              <h2 className="text-xl font-bold mb-2 text-primary-700 text-center">{story.name}</h2>
+              <p className="italic text-gray-700 mb-4 text-center">"{story.quote}"</p>
+              <button className="px-6 py-2 rounded-full font-semibold shadow hover:shadow-lg transition-all text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm mt-auto">
+                Read More
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+      <style>{`
+        @keyframes fade-in {
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.8s ease forwards;
+        }
+      `}</style>
+    </div>
   );
 };
 

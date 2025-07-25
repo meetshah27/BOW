@@ -8,7 +8,8 @@ import {
   Music, 
   ArrowRight, 
   Star,
-  MapPin
+  MapPin,
+  Clock
 } from 'lucide-react';
 
 
@@ -77,35 +78,94 @@ function CountUpNumber({ end, duration = 1.5, suffix = '' }) {
   );
 }
 
-const HomePage = () => {
-  // Mock data for upcoming events
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: "Summer Music Festival 2024",
-      date: "July 15-17, 2024",
-      location: "Seattle Center",
-      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      category: "Festival",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "Community Drum Circle",
-      date: "June 22, 2024",
-      location: "Gas Works Park",
-      image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      category: "Workshop"
-    },
-    {
-      id: 3,
-      title: "Youth Music Workshop",
-      date: "June 29, 2024",
-      location: "Community Center",
-      image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      category: "Education"
+// Countdown component
+function CountdownTimer({ targetDate }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    function parseTargetDate(dateStr) {
+      // If dateStr is date-only (YYYY-MM-DD), treat as end of that day
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return new Date(dateStr + 'T23:59:59');
+      }
+      // Otherwise, let Date parse it
+      return new Date(dateStr);
     }
-  ];
+    function updateCountdown() {
+      const now = new Date();
+      const target = parseTargetDate(targetDate);
+      const diff = target - now;
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, minutes, seconds });
+    }
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  if (timeLeft.days + timeLeft.hours + timeLeft.minutes + timeLeft.seconds <= 0) return null;
+
+  return (
+    <div className="flex items-center text-xs font-semibold text-orange-600 mb-1 space-x-1">
+      <Clock className="w-4 h-4 mr-1 text-orange-500" />
+      {timeLeft.days > 0 && <span>{timeLeft.days}d</span>}
+      <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
+      <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
+      <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
+      <span>left</span>
+    </div>
+  );
+}
+
+const HomePage = () => {
+  // Dynamic events state
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [eventsError, setEventsError] = useState(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoadingEvents(true);
+      setEventsError(null);
+      try {
+        const res = await fetch('/api/events');
+        if (!res.ok) throw new Error('Failed to fetch events');
+        const data = await res.json();
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setEventsError('Could not load events.');
+        setEvents([]);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  // Find the nearest (soonest) live event by date, only if date is today or in the future
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const liveEvents = events.filter(e => {
+    if (!e.isLive || !e.date) return false;
+    const eventDate = new Date(e.date);
+    eventDate.setHours(0,0,0,0);
+    return eventDate >= now;
+  });
+  liveEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const liveEvent = liveEvents[0];
+
+  // DEBUG: Log the live event date and parsed date
+  if (typeof window !== 'undefined' && liveEvent && liveEvent.date) {
+    // eslint-disable-next-line no-console
+    console.log('Live Event Date:', liveEvent.date, 'Parsed:', new Date(liveEvent.date));
+  }
 
   const stats = [
     {
@@ -229,6 +289,9 @@ const HomePage = () => {
     }
   ];
 
+  // Style for event badge (match event section)
+  const eventBadgeClass = "inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200";
+
   return (
     <>
       <Helmet>
@@ -241,11 +304,54 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center opacity-10"></div>
         <div className="container-custom section-padding relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          {/* Live event placeholder absolutely at the far left of the hero section, outside the centered container */}
+          {(loadingEvents || liveEvent) && (
+            <div className="absolute left-0 top-[30%] -translate-y-1/2 z-20">
+              {loadingEvents ? (
+                <div className="bg-white/80 rounded-2xl px-5 py-5 min-w-[240px] max-w-[280px] flex items-center justify-center shadow-2xl border-2 border-orange-200 animate-pulse text-gray-400 text-base">
+                  Loading event...
+                </div>
+              ) : eventsError ? null : liveEvent ? (
+                <div className="bg-white rounded-2xl shadow-2xl border-2 border-orange-200 px-5 py-5 min-w-[240px] max-w-[280px] flex flex-col items-start hover:shadow-2xl transition-all duration-200 text-left text-base">
+                  <div className="flex items-center mb-3">
+                    <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 mr-2">Live</span>
+                    <span className="text-xs text-gray-500 font-medium">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
+                  </div>
+                  <div className="font-bold text-gray-900 text-base truncate w-full mb-2">{liveEvent.title}</div>
+                  <div className="flex items-center text-gray-600 mb-2 text-sm">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {liveEvent.date}
+                  </div>
+                  {/* Countdown Timer */}
+                  <div className="mb-2">
+                    <CountdownTimer targetDate={liveEvent.date} />
+                  </div>
+                  <div className="flex items-center text-gray-600 mb-2 text-sm">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {liveEvent.location || '—'}
+                  </div>
+                  <div className="flex items-center text-gray-600 mb-3 text-sm">
+                    <span className="mr-2">/</span>
+                    <span className="font-medium text-green-700">{liveEvent.registeredCount || 0}{liveEvent.capacity ? ` / ${liveEvent.capacity}` : ''} registered</span>
+                  </div>
+                  <a
+                    href={`/events/${liveEvent.id}`}
+                    className="mt-2 w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
+                  >
+                    Register Now
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          )}
+          <div className="max-w-4xl mx-auto mb-6 flex items-center justify-center">
+            <div className="flex-1 text-center">
+              <h1 className="text-5xl md:text-7xl font-bold leading-tight">
               Empowering Communities
               <span className="block text-secondary-300">Through Music</span>
             </h1>
+            </div>
+          </div>
             <p className="text-xl md:text-2xl mb-8 text-gray-100 leading-relaxed">
               Beats of Washington connects, inspires, and celebrates cultural diversity 
               through music and community events across Washington State since 2019.
@@ -259,7 +365,6 @@ const HomePage = () => {
                 <Users className="w-5 h-5 mr-2" />
                 Get Involved
               </Link>
-            </div>
           </div>
         </div>
       </section>
@@ -278,7 +383,7 @@ const HomePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {upcomingEvents.map((event) => (
+            {events.slice(0, 6).map((event) => (
               <div key={event.id} className="card group">
                 <div className="relative overflow-hidden rounded-t-xl">
                   <img

@@ -156,8 +156,17 @@ const VolunteerManagement = () => {
       
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Volunteer Applications</h2>
-        <div className="text-sm text-gray-600">
-          {applications.length} total applications
+        <div className="flex items-center space-x-4">
+          <div className="text-sm text-gray-600">
+            {applications.length} total applications
+          </div>
+          {/* Showcase Enable/Disable Button */}
+          <button
+            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
+            disabled
+          >
+            Enable/Disable Volunteer Opportunities
+          </button>
         </div>
       </div>
 

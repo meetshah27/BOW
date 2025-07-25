@@ -96,58 +96,73 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
+  // Enhanced stat cards with icons and color backgrounds
   const statCards = [
     {
       title: 'Total Members',
       value: stats.loading ? '...' : stats.totalMembers,
-      change: '',
-      icon: Users
+      icon: Users,
+      color: 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700',
+      iconBg: 'bg-blue-200'
     },
     {
       title: 'Active Events',
       value: stats.loading ? '...' : stats.activeEvents,
-      change: '',
-      icon: Calendar
+      icon: Calendar,
+      color: 'bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700',
+      iconBg: 'bg-orange-200'
     },
     {
       title: 'Monthly Donations',
       value: stats.loading ? '...' : `$${stats.monthlyDonations?.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      change: '',
-      icon: CreditCard
+      icon: CreditCard,
+      color: 'bg-gradient-to-br from-green-100 to-green-200 text-green-700',
+      iconBg: 'bg-green-200'
     },
     {
       title: 'Volunteer Hours',
       value: stats.loading ? '...' : stats.volunteerHours,
-      change: '',
-      icon: Users
+      icon: Users,
+      color: 'bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700',
+      iconBg: 'bg-purple-200'
     }
   ];
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-primary-700 via-orange-500 to-secondary-600 rounded-2xl p-8 text-white shadow-xl mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold mb-2 flex items-center">
+            <Settings className="w-8 h-8 mr-3 text-white/80" />
+            Admin Dashboard
+          </h2>
+          <p className="text-primary-100 text-lg">Welcome, Admin! Manage your platform with ease.</p>
+        </div>
+        <div className="hidden md:block">
+          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
+            <Users className="w-12 h-12 text-white" />
+          </div>
+        </div>
+      </div>
       {stats.error && <div className="text-red-600 font-semibold">{stats.error}</div>}
-      {/* Stats Grid */}
+      {/* Enhanced Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <stat.icon className="w-6 h-6 text-primary-600" />
+          <div key={index} className={`${stat.color} rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className={`p-3 rounded-xl ${stat.iconBg}`}>
+                <stat.icon className="w-6 h-6" />
               </div>
             </div>
+            <div className="text-2xl font-bold mb-1">{stat.value}</div>
+            <div className="text-sm font-medium">{stat.title}</div>
           </div>
         ))}
       </div>
       {/* Recent Activity (unchanged) */}
-      <div className="p-6 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-      </div>
-      <div className="p-6">
+      <div className="bg-white/80 rounded-2xl shadow-xl p-6 mt-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
         <div className="space-y-4">
           {/* You can update this section to show real activity if desired */}
           <div className="flex items-center justify-between">
@@ -407,10 +422,25 @@ const EventManagement = () => {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Event Management</h2>
-        <div>
-          <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
+        <div className="flex gap-2">
+          <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 flex items-center" onClick={() => setShowCreateModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create Event
+          </button>
+          <button className="bg-gradient-to-r from-red-500 to-orange-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-red-600 hover:to-orange-700 transition-all duration-200 flex items-center" onClick={async () => {
+            if (window.confirm('Are you sure you want to delete ALL events? This action cannot be undone.')) {
+              try {
+                const response = await fetch('http://localhost:3000/api/events/all', { method: 'DELETE' });
+                if (!response.ok) throw new Error('Failed to delete all events');
+                await fetchEvents();
+                toast.success('All events deleted successfully!');
+              } catch (err) {
+                toast.error('Error deleting all events: ' + err.message);
+              }
+            }
+          }}>
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete All
           </button>
         </div>
       </div>
@@ -419,7 +449,7 @@ const EventManagement = () => {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-6">Create New Event</h3>
+            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg px-4 py-2 inline-block">Create New Event</h3>
             
             <form onSubmit={handleCreateEvent} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -1731,9 +1761,9 @@ const AdminPanel = () => {
         <meta name="description" content="Admin panel for managing Beats of Washington events, users, and content." />
       </Helmet>
 
-      <div className="flex min-h-screen bg-gray-100">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg flex flex-col">
+      <div className="flex min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100">
+        {/* Enhanced Sidebar */}
+        <aside className="w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl">
           <div className="h-20 flex items-center justify-center border-b">
             <span className="text-2xl font-bold text-primary-700">Admin Portal</span>
           </div>
@@ -1742,12 +1772,14 @@ const AdminPanel = () => {
               {navigation.map((section) => (
                 <li key={section.name}>
                   <button
-                    className={`w-full flex items-center px-6 py-3 text-left rounded-lg transition-colors duration-200 font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700 focus:outline-none ${
-                      activeSection === section.name.toLowerCase() ? 'bg-primary-100 text-primary-700' : ''
-                    }`}
+                    className={`w-full flex items-center px-6 py-4 text-left rounded-xl transition-all duration-200 font-medium text-gray-700 focus:outline-none group
+                      ${activeSection === section.name.toLowerCase() 
+                        ? 'bg-gradient-to-r from-primary-600 to-orange-500 text-white shadow-lg transform scale-105' 
+                        : 'hover:bg-gradient-to-r hover:from-primary-50 hover:to-orange-50 hover:text-primary-700 hover:shadow-md'
+                      }`}
                     onClick={() => setActiveSection(section.name.toLowerCase())}
                   >
-                    <section.icon className="w-5 h-5 mr-3" />
+                    <section.icon className={`w-5 h-5 mr-3 ${activeSection === section.name.toLowerCase() ? 'text-white' : 'text-gray-500 group-hover:text-primary-600'}`} />
                     {section.name}
                   </button>
                 </li>
@@ -1761,9 +1793,11 @@ const AdminPanel = () => {
             </button>
           </div>
         </aside>
-        {/* Main Content */}
+        {/* Enhanced Main Content */}
         <main className="flex-1 p-8">
-          {renderSection()}
+          <div className="bg-white/80 rounded-3xl shadow-2xl p-8 min-h-[60vh] animate-fade-in">
+            {renderSection()}
+          </div>
         </main>
       </div>
     </>
