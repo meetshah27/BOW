@@ -22,6 +22,7 @@ const GetInvolvedPage = () => {
   const [activeTab, setActiveTab] = useState('volunteer');
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [showCommunityModal, setShowCommunityModal] = useState(false);
 
   const volunteerOpportunities = [
     {
@@ -175,6 +176,8 @@ const GetInvolvedPage = () => {
     { number: "15", label: "Years of Service", icon: Award }
   ];
 
+  const closeCommunityModal = () => setShowCommunityModal(false);
+
   return (
     <>
       <Helmet>
@@ -236,27 +239,25 @@ const GetInvolvedPage = () => {
 
           {/* Tab Navigation */}
           <div className="flex justify-center mb-12">
-            <div className="bg-white rounded-lg p-1 shadow-lg">
+            <div className="bg-white rounded-lg p-1 shadow-lg flex gap-2">
               <button
                 onClick={() => setActiveTab('volunteer')}
-                className={`btn-toggle ${
-                  activeTab === 'volunteer'
-                    ? 'btn-toggle-active'
-                    : 'btn-toggle-inactive'
-                }`}
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base shadow-sm border 
+                  ${activeTab === 'volunteer' ? 'btn-primary text-white border-primary-600 bg-primary-600 hover:bg-primary-700' : 'btn-outline text-primary-600 border-primary-600 bg-white hover:bg-primary-50'}`}
+                type="button"
+                aria-pressed={activeTab === 'volunteer'}
               >
-                <Users className="w-5 h-5 inline mr-2" />
+                <Users className="w-5 h-5 inline mr-2 align-text-bottom" />
                 Volunteer
               </button>
               <button
                 onClick={() => setActiveTab('member')}
-                className={`btn-toggle ${
-                  activeTab === 'member'
-                    ? 'btn-toggle-active'
-                    : 'btn-toggle-inactive'
-                }`}
+                className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base shadow-sm border 
+                  ${activeTab === 'member' ? 'btn-primary text-white border-primary-600 bg-primary-600 hover:bg-primary-700' : 'btn-outline text-primary-600 border-primary-600 bg-white hover:bg-primary-50'}`}
+                type="button"
+                aria-pressed={activeTab === 'member'}
               >
-                <Heart className="w-5 h-5 inline mr-2" />
+                <Heart className="w-5 h-5 inline mr-2 align-text-bottom" />
                 Become a Member
               </button>
             </div>
@@ -362,9 +363,7 @@ const GetInvolvedPage = () => {
                   {membershipLevels.map((level, index) => (
                     <div
                       key={index}
-                      className={`bg-white rounded-xl shadow-lg p-8 ${
-                        index === 1 ? 'ring-2 ring-primary-600 relative' : ''
-                      }`}
+                      className={`bg-white rounded-xl shadow-lg p-8 ${index === 1 ? 'ring-2 ring-primary-600 relative' : ''}`}
                     >
                       {index === 1 && (
                         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -373,17 +372,9 @@ const GetInvolvedPage = () => {
                           </span>
                         </div>
                       )}
-                      
-                      <h4 className="text-2xl font-bold text-gray-900 mb-2">
-                        {level.name}
-                      </h4>
-                      <div className="text-3xl font-bold text-primary-600 mb-2">
-                        {level.price}
-                      </div>
-                      <p className="text-gray-600 mb-6">
-                        {level.description}
-                      </p>
-                      
+                      <h4 className="text-2xl font-bold text-gray-900 mb-2">{level.name}</h4>
+                      <div className="text-3xl font-bold text-primary-600 mb-2">{level.price}</div>
+                      <p className="text-gray-600 mb-6">{level.description}</p>
                       <ul className="space-y-3 mb-8">
                         {level.benefits.map((benefit, benefitIndex) => (
                           <li key={benefitIndex} className="flex items-start">
@@ -392,13 +383,22 @@ const GetInvolvedPage = () => {
                           </li>
                         ))}
                       </ul>
-                      
-                      <Link
-                        to="/contact"
-                        className={`w-full ${index === 1 ? 'btn-primary' : 'btn-outline'}`}
-                      >
-                        Join Now
-                      </Link>
+                      {index === 0 ? (
+                        <button
+                          className="w-full btn-outline"
+                          onClick={() => setShowCommunityModal(true)}
+                          type="button"
+                        >
+                          Join Now
+                        </button>
+                      ) : (
+                        <Link
+                          to="/donate"
+                          className={`w-full ${index === 1 ? 'btn-primary' : 'btn-outline'}`}
+                        >
+                          Join Now
+                        </Link>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -497,6 +497,92 @@ const GetInvolvedPage = () => {
           </p>
         </div>
       </section>
+
+      {showCommunityModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 relative mx-4 my-8">
+            <button onClick={closeCommunityModal} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Community Member Registration (Placeholder)</h2>
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div>
+                <label className="block font-medium mb-1">Email *</label>
+                <input type="email" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your email" />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Full Name *</label>
+                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your full name" />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Company *</label>
+                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="e.g. AMAZON, Microsoft, TCS" />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Mobile *</label>
+                <input type="tel" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your mobile number" />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">City *</label>
+                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your city" />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Zipcode *</label>
+                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your zipcode" />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">DOB *</label>
+                <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Gender *</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Non-binary</option>
+                  <option>Prefer not to say</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Experience *</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                  <option value="">Any Past experience with Dhol Tasha Pathak?</option>
+                  <option>YES</option>
+                  <option>NO</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Your Interest *</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                  <option value="">Select your interest</option>
+                  <option>DHOL</option>
+                  <option>TASHA</option>
+                  <option>ZAANJ</option>
+                  <option>LAZIM</option>
+                  <option>DHWAJ</option>
+                  <option>Shankhnaad (Bring your Own Shankha)</option>
+                  <option>BOW BAND</option>
+                  <option>Dance/Flashmob/Garba/Dandiya/</option>
+                  <option>VOLUNTEER (Decoration, Event management, PR etc.)</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-medium mb-1">Please Follow us on YouTube / Insta / Facebook *</label>
+                <p className="text-xs mb-2">𝗡𝗼𝘁𝗲: Before you submit this form you must subscribe to our <a href="https://www.youtube.com/@BeatsOfWashington?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">YouTube Channel</a> and follow us on <a href="https://www.instagram.com/beatsofwa/" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Instagram</a> and <a href="https://www.facebook.com/BORDTP" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Facebook</a>.</p>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                  <option value="">Have you followed us?</option>
+                  <option>YES</option>
+                  <option>NO</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <button type="submit" className="btn-primary w-full mt-4 py-2 text-base">Submit (Placeholder)</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

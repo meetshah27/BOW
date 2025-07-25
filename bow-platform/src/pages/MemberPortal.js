@@ -15,7 +15,11 @@ import {
   Download,
   Edit,
   Camera,
-  CreditCard
+  CreditCard,
+  Trophy,
+  TrendingUp,
+  Award,
+  Gift
 } from 'lucide-react';
 
 // Member Portal Sub-components
@@ -55,91 +59,182 @@ const Dashboard = () => {
     if (currentUser) fetchData();
   }, [currentUser]);
 
-  // Stats
+  // Enhanced Stats with icons and colors
   const memberStats = [
-    { label: 'Events Registered', value: events.length },
-    { label: 'Total Donations', value: `$${payments.reduce((sum, p) => sum + (p.amount || 0) / 100, 0).toFixed(2)}` },
-    { label: 'Member Since', value: currentUser?.createdAt ? new Date(currentUser.createdAt).getFullYear() : '—' }
+    { 
+      label: 'Events Registered', 
+      value: events.length,
+      icon: Calendar,
+      color: 'bg-blue-100 text-blue-600',
+      bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100'
+    },
+    { 
+      label: 'Total Donations', 
+      value: `$${payments.reduce((sum, p) => sum + (p.amount || 0) / 100, 0).toFixed(2)}`,
+      icon: Gift,
+      color: 'bg-green-100 text-green-600',
+      bgColor: 'bg-gradient-to-br from-green-50 to-green-100'
+    },
+    { 
+      label: 'Member Since', 
+      value: currentUser?.createdAt ? new Date(currentUser.createdAt).getFullYear() : '—',
+      icon: Trophy,
+      color: 'bg-purple-100 text-purple-600',
+      bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100'
+    },
+    { 
+      label: 'Community Rank', 
+      value: 'Active',
+      icon: Star,
+      color: 'bg-orange-100 text-orange-600',
+      bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100'
+    }
   ];
 
   return (
     <div className="space-y-8">
-      <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">
-          Welcome back, {currentUser?.displayName || currentUser?.name || 'Member'}!
-        </h2>
-        <p className="text-primary-100">
-          You're part of a community of over 2,000 members making a difference through music.
-        </p>
+      {/* Enhanced Hero Banner */}
+      <div className="bg-gradient-to-r from-primary-700 via-blue-600 to-secondary-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-3">
+              Welcome back, {currentUser?.displayName || currentUser?.name || 'Member'}! 👋
+            </h2>
+            <p className="text-primary-100 text-lg">
+              You're part of a community of over 2,000 members making a difference through music.
+            </p>
+            <div className="mt-4 flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5" />
+                <span className="text-sm">2,000+ Members</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Award className="w-5 h-5" />
+                <span className="text-sm">Premium Member</span>
+              </div>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
+              <User className="w-12 h-12 text-white" />
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+      {/* Enhanced Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {memberStats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-4 text-center">
+          <div key={index} className={`${stat.bgColor} rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-3 rounded-xl ${stat.color}`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <TrendingUp className="w-5 h-5 text-gray-400" />
+            </div>
             <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
-            <div className="text-sm text-gray-600">{stat.label}</div>
+            <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
           </div>
         ))}
       </div>
+
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Upcoming Events */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Registered Events</h3>
+        {/* Enhanced Events Section */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6">
+            <h3 className="text-xl font-bold text-white flex items-center">
+              <Calendar className="w-6 h-6 mr-3" />
+              Registered Events
+            </h3>
           </div>
           <div className="p-6">
-            {loading ? <div>Loading events...</div> : error ? <div className="text-red-500">{error}</div> : (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-8">{error}</div>
+            ) : (
               <div className="space-y-4">
-                {events.length === 0 ? <div>No registered events yet.</div> : events.map((event) => (
-                  <div key={event.eventId || event.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{event.eventTitle || event.title}</h4>
-                      <div className="flex items-center text-sm text-gray-600 mt-1">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {event.date ? new Date(event.date).toLocaleDateString() : '-'}
+                {events.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No registered events yet.</p>
+                    <p className="text-sm">Start exploring our upcoming events!</p>
+                  </div>
+                ) : events.map((event) => (
+                  <div key={event.eventId || event.id} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-2">{event.eventTitle || event.title}</h4>
+                        <div className="flex items-center text-sm text-gray-600 mb-1">
+                          <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                          {event.date ? new Date(event.date).toLocaleDateString() : '-'}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="w-4 h-4 mr-2 text-red-500" />
+                          {event.location || '-'}
+                        </div>
                       </div>
-                      <div className="flex items-center text-sm text-gray-600 mt-1">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {event.location || '-'}
-                      </div>
+                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200">
+                        {event.status || 'registered'}
+                      </span>
                     </div>
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                      {event.status || 'registered'}
-                    </span>
                   </div>
                 ))}
               </div>
             )}
-            <div className="mt-4">
-              <Link to="/events" className="btn-outline w-full justify-center">
+            <div className="mt-6">
+              <Link to="/events" className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-6 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all duration-200 flex items-center justify-center">
+                <Calendar className="w-5 h-5 mr-2" />
                 View All Events
               </Link>
             </div>
           </div>
         </div>
-        {/* Recent Payments */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Donations</h3>
+
+        {/* Enhanced Payments Section */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-600 to-green-700 p-6">
+            <h3 className="text-xl font-bold text-white flex items-center">
+              <Gift className="w-6 h-6 mr-3" />
+              Recent Donations
+            </h3>
           </div>
           <div className="p-6">
-            {loading ? <div>Loading donations...</div> : error ? <div className="text-red-500">{error}</div> : (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-8">{error}</div>
+            ) : (
               <div className="space-y-4">
-                {payments.length === 0 ? <div>No donations yet.</div> : payments.slice(0, 5).map((p) => (
-                  <div key={p.paymentIntentId} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <div className="font-medium text-gray-900">${(p.amount / 100).toFixed(2)}</div>
-                      <div className="text-xs text-gray-600">{p.status}</div>
-                      <div className="text-xs text-gray-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-'}</div>
+                {payments.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No donations yet.</p>
+                    <p className="text-sm">Make your first contribution to our cause!</p>
+                  </div>
+                ) : payments.slice(0, 5).map((p) => (
+                  <div key={p.paymentIntentId} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-900 text-lg">${(p.amount / 100).toFixed(2)}</div>
+                        <div className="text-xs text-gray-600 capitalize">{p.status}</div>
+                        <div className="text-xs text-gray-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-'}</div>
+                      </div>
+                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                        {p.frequency || 'one-time'}
+                      </span>
                     </div>
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {p.frequency || 'one-time'}
-                    </span>
                   </div>
                 ))}
               </div>
             )}
-            <div className="mt-4">
-              <Link to="/member/payments" className="btn-outline w-full justify-center">
+            <div className="mt-6">
+              <Link to="/member/payments" className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-6 rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center">
+                <CreditCard className="w-5 h-5 mr-2" />
                 View All Donations
               </Link>
             </div>
@@ -742,6 +837,50 @@ const SupportHelpCenter = () => {
 
 const MemberPortal = () => {
   const location = useLocation();
+  const { currentUser } = useAuth();
+  const [userStats, setUserStats] = useState({ events: 0, donations: 0, totalAmount: 0 });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user stats for sidebar
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!currentUser) return;
+      
+      try {
+        let userId = currentUser?.uid || currentUser?.id || '';
+        let userEmail = currentUser?.email || '';
+        
+        // Fetch events
+        let eventsRes = await fetch(`/api/events/user/${userId}/registrations`);
+        let eventsData = eventsRes.ok ? await eventsRes.json() : [];
+        
+        // Fetch payments
+        let paymentsRes = await fetch(`/api/payment/donations/user/${userId}`);
+        let paymentsData = paymentsRes.ok ? await paymentsRes.json() : [];
+        
+        // If no payments by userId, try by email
+        if (paymentsData.length === 0 && userEmail) {
+          let paymentsEmailRes = await fetch(`/api/payment/donations/user/${userEmail}`);
+          paymentsData = paymentsEmailRes.ok ? await paymentsEmailRes.json() : [];
+        }
+        
+        const totalAmount = paymentsData.reduce((sum, p) => sum + (p.amount || 0) / 100, 0);
+        
+        setUserStats({
+          events: eventsData.length,
+          donations: paymentsData.length,
+          totalAmount: totalAmount
+        });
+      } catch (err) {
+        console.error('Failed to fetch user stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserStats();
+  }, [currentUser]);
+
   const memberNavigation = [
     { name: 'Dashboard', href: '/member', icon: User },
     { name: 'My Events', href: '/member/events', icon: Calendar },
@@ -757,52 +896,103 @@ const MemberPortal = () => {
         <title>Member Portal - Beats of Washington</title>
         <meta name="description" content="Access your personalized member dashboard, manage events, and update your profile." />
       </Helmet>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white shadow">
-          <div className="container-custom py-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-blue-50 to-secondary-100">
+        {/* Enhanced Header */}
+        <div className="bg-gradient-to-r from-primary-600 to-secondary-600 shadow-xl">
+          <div className="container-custom py-6">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Member Portal</h1>
               <div className="flex items-center space-x-4">
-                <button className="p-2 text-gray-600 hover:text-gray-900">
-                  <Bell className="w-5 h-5" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white">Member Portal</h1>
+                  <p className="text-primary-100 text-sm">Your personalized dashboard</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-6">
+                <button className="p-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200">
+                  <Bell className="w-6 h-6" />
                 </button>
-                <span className="text-sm text-gray-600">Member</span>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    {currentUser?.photoURL ? (
+                      <img src={currentUser.photoURL} alt="Profile" className="w-10 h-10 rounded-full" />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div className="text-white">
+                    <div className="font-medium">{currentUser?.displayName || currentUser?.name || 'Member'}</div>
+                    <div className="text-xs text-primary-100">Premium Member</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
         <div className="container-custom py-8">
           <div className="grid lg:grid-cols-4 gap-8">
-            {/* Sidebar */}
+            {/* Enhanced Sidebar */}
             <div className="lg:col-span-1">
-              <nav className="bg-white rounded-lg shadow p-4">
-                <ul className="space-y-2">
+              <nav className="bg-gradient-to-b from-primary-100 via-white to-secondary-50 rounded-2xl shadow-xl p-6 flex flex-col items-center">
+                <div className="w-full space-y-3">
                   {memberNavigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className={`flex items-center px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none
-                          ${location.pathname === item.href ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'}`}
-                      >
-                        <item.icon className="w-5 h-5 mr-3" />
-                        {item.name}
-                      </Link>
-                    </li>
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-6 py-4 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none group
+                        ${location.pathname === item.href 
+                          ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg transform scale-105' 
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 hover:text-primary-700 hover:shadow-md'
+                        }`}
+                    >
+                      <item.icon className={`w-5 h-5 mr-3 ${location.pathname === item.href ? 'text-white' : 'text-gray-500 group-hover:text-primary-600'}`} />
+                      {item.name}
+                    </Link>
                   ))}
-                </ul>
+                </div>
+                
+                {/* Quick Stats - Now Dynamic */}
+                <div className="w-full mt-8 p-4 bg-white/50 rounded-xl border border-white/20">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Quick Stats</h4>
+                  {loading ? (
+                    <div className="flex justify-center py-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Events</span>
+                        <span className="font-medium text-primary-600">{userStats.events}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Donations</span>
+                        <span className="font-medium text-green-600">${userStats.totalAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Rank</span>
+                        <span className="font-medium text-orange-600">Active</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </nav>
             </div>
-            {/* Main Content */}
+
+            {/* Enhanced Main Content */}
             <div className="lg:col-span-3">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/events" element={<MyEvents />} />
-                <Route path="/payments" element={<MyPayments />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/support" element={<SupportHelpCenter />} />
-              </Routes>
+              <div className="bg-white/80 rounded-3xl shadow-2xl p-8 min-h-[60vh] animate-fade-in">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/events" element={<MyEvents />} />
+                  <Route path="/payments" element={<MyPayments />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/support" element={<SupportHelpCenter />} />
+                </Routes>
+              </div>
             </div>
           </div>
         </div>

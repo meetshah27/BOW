@@ -103,13 +103,16 @@ const AboutPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20">
+      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20 animate-fade-in">
         <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            About Beats of Washington
+          <div className="mb-4">
+            <span className="inline-block bg-white/10 text-primary-100 text-xs font-semibold px-4 py-2 rounded-full tracking-widest uppercase shadow-sm animate-fade-in">Welcome to Our Story</span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display tracking-tight animate-fade-in">
+            About <span className="text-secondary-300">Beats of Washington</span>
           </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
-            Empowering communities through music, culture, and connection since 2019
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed text-primary-100 animate-fade-in">
+            Empowering communities through <span className="text-secondary-200 font-semibold">music</span>, <span className="text-secondary-200 font-semibold">culture</span>, and <span className="text-secondary-200 font-semibold">connection</span> since 2019.
           </p>
         </div>
       </section>
@@ -122,16 +125,11 @@ const AboutPage = () => {
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
                 Our Mission
               </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Beats of Washington (BOW) is dedicated to fostering community connections 
-                through the universal language of music. We believe that music has the 
-                power to bridge cultural divides, inspire creativity, and create lasting 
-                bonds within our communities.
+              <p className="text-lg text-primary-700 mb-6 leading-relaxed font-semibold">
+                Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.
               </p>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                As a 501(c)(3) non-profit organization, we serve over 50,000 community 
-                members and coordinate 5,000+ volunteers across Washington State, 
-                creating inclusive spaces where everyone can participate, learn, and grow.
+              <p className="text-lg text-primary-600 mb-6 leading-relaxed italic">
+                Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/get-involved" className="btn-primary">
@@ -172,16 +170,19 @@ const AboutPage = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <div key={index} className="text-center">
+              <div
+                key={index}
+                className="group bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl shadow-xl p-8 text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl animate-fade-in"
+              >
                 <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-                    <value.icon className="w-8 h-8 text-primary-600" />
+                  <div className="w-16 h-16 bg-white shadow-lg rounded-full flex items-center justify-center border-4 border-primary-100 group-hover:border-secondary-300 transition-all">
+                    <value.icon className="w-8 h-8 text-primary-600 group-hover:text-secondary-600 transition-colors" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                <h3 className="text-xl font-bold text-primary-700 mb-3 tracking-tight group-hover:text-secondary-700 transition-colors">
                   {value.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed group-hover:text-gray-900 transition-colors">
                   {value.description}
                 </p>
               </div>
@@ -203,42 +204,30 @@ const AboutPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                Founded in 2019
-              </h3>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Beats of Washington was founded by Aand Sane and Deepali Sane, visionary 
-                community leaders who recognized the power of music to bring people together. 
-                What started as a small neighborhood drum circle has grown into one of Washington 
-                State's most impactful community organizations.
+          <div className="grid md:grid-cols-2 gap-12 items-center bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-8 shadow-xl animate-fade-in">
+            <div className="border-l-4 border-primary-400 pl-8 bg-white/80 rounded-2xl shadow p-6">
+              <h3 className="text-2xl font-bold text-primary-700 mb-6">Founded in 2019</h3>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                Beats of Washington was founded by
+                <span className="font-extrabold bg-gradient-to-r from-blue-500 via-green-400 to-green-600 bg-clip-text text-transparent underline decoration-wavy decoration-2 mx-1">Aand Sane</span>
+                and
+                <span className="font-extrabold bg-gradient-to-r from-pink-500 via-purple-400 to-purple-700 bg-clip-text text-transparent underline decoration-wavy decoration-2 mx-1">Deepali Sane</span>,
+                visionary community leaders who recognized the power of music to bring people together. What started as a small neighborhood drum circle has grown into one of Washington State's most impactful community organizations.
               </p>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Our founders believed that music transcends barriers of language, culture, 
-                and background, creating opportunities for genuine connection and understanding 
-                between diverse communities.
-              </p>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Today, we continue to honor that vision while adapting to meet the evolving 
-                needs of our communities through innovative programming and partnerships.
-              </p>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">Our founders believed that music transcends barriers of language, culture, and background, creating opportunities for genuine connection and understanding between diverse communities.</p>
+              <p className="text-lg text-gray-700 leading-relaxed">Today, we continue to honor that vision while adapting to meet the evolving needs of our communities through innovative programming and partnerships.</p>
             </div>
             <div className="space-y-6">
               {achievements.map((achievement, index) => (
-                <div key={index} className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span className="text-primary-600 font-bold text-lg">
-                      {achievement.year}
-                    </span>
+                <div key={index} className="flex items-start gap-4 bg-white rounded-xl shadow-lg p-5 border-l-4 border-primary-200 hover:border-secondary-400 transition-all animate-fade-in">
+                  <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-600 font-bold text-lg">{achievement.year}</span>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                      {achievement.title}
+                    <h4 className="text-lg font-semibold text-primary-700 mb-2 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" /> {achievement.title}
                     </h4>
-                    <p className="text-gray-600">
-                      {achievement.description}
-                    </p>
+                    <p className="text-gray-600">{achievement.description}</p>
                   </div>
                 </div>
               ))}
@@ -262,28 +251,31 @@ const AboutPage = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {leadership.map((leader, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div
+                key={index}
+                className="group bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl shadow-xl overflow-hidden border-l-4 border-primary-400 hover:border-secondary-400 transition-all duration-300 hover:-translate-y-2 animate-fade-in"
+              >
                 <div className="relative">
                   <img
                     src={leader.image}
                     alt={leader.name}
-                    className="w-full h-64 object-cover"
+                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                  <h3 className="text-2xl font-bold text-primary-700 mb-1 tracking-tight group-hover:text-secondary-700 transition-colors">
                     {leader.name}
                   </h3>
-                  <p className="text-primary-600 font-medium mb-3">
+                  <span className="inline-block bg-primary-100 text-primary-700 font-semibold px-3 py-1 rounded-full text-xs mb-3 group-hover:bg-secondary-100 group-hover:text-secondary-700 transition-colors">
                     {leader.role}
-                  </p>
-                  <p className="text-gray-600 mb-4 leading-relaxed">
+                  </span>
+                  <p className="text-gray-700 mb-4 leading-relaxed bg-white/70 rounded-lg p-4 shadow-inner">
                     {leader.bio}
                   </p>
                   <a
                     href={`mailto:${leader.email}`}
-                    className="text-primary-600 hover:text-primary-700 font-medium"
+                    className="text-primary-600 hover:text-secondary-600 font-medium underline underline-offset-2"
                   >
                     {leader.email}
                   </a>
