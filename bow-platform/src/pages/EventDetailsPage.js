@@ -15,7 +15,9 @@ import {
   Globe,
   X,
   CheckCircle,
-  Ticket
+  Ticket,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
@@ -39,6 +41,7 @@ const EventDetailsPage = () => {
   });
   const [isRegistering, setIsRegistering] = useState(false);
   const [ticketInfo, setTicketInfo] = useState(null);
+  const [copiedTicket, setCopiedTicket] = useState(false);
 
   // Mock event data - in a real app, this would come from your backend
   const mockEvents = [
@@ -252,6 +255,19 @@ const EventDetailsPage = () => {
 
   const registrationPercentage = (event.registeredCount / event.capacity) * 100;
   const isRegistrationOpen = event.isLive && event.isActive && event.registeredCount < event.capacity;
+
+  const copyTicketToClipboard = async () => {
+    if (ticketInfo?.ticketNumber) {
+      try {
+        await navigator.clipboard.writeText(ticketInfo.ticketNumber);
+        setCopiedTicket(true);
+        toast.success('Ticket number copied to clipboard!');
+        setTimeout(() => setCopiedTicket(false), 2000);
+      } catch (err) {
+        toast.error('Failed to copy ticket number');
+      }
+    }
+  };
 
   return (
     <>
@@ -646,13 +662,23 @@ const EventDetailsPage = () => {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h3>
               <p className="text-gray-600 mb-4">Your ticket has been generated and sent to your email.</p>
               
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="flex items-center justify-center mb-2">
-                  <Ticket className="w-5 h-5 mr-2 text-primary-600" />
-                  <span className="font-semibold text-gray-900">Ticket Number</span>
+                              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Ticket className="w-5 h-5 text-primary-600" />
+                    <p className="text-lg font-mono text-primary-600">{ticketInfo.ticketNumber}</p>
+                    <button
+                      onClick={copyTicketToClipboard}
+                      className="p-2 text-gray-500 hover:text-primary-600 transition-colors duration-200"
+                      title="Copy ticket number"
+                    >
+                      {copiedTicket ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <p className="text-lg font-mono text-primary-600">{ticketInfo.ticketNumber}</p>
-              </div>
               
               <button
                 onClick={() => setTicketInfo(null)}
