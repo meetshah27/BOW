@@ -228,7 +228,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="mt-4 text-center">
-            <span>Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Gaurav Khandekar</a></span>
+            <span>Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Gaurav Khandekar</a> and <a href="#" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Meet Shah</a></span>
           </div>
         </div>
       </div>

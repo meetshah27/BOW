@@ -205,9 +205,10 @@ class Event {
     const command = new UpdateCommand({
       TableName: TABLES.EVENTS,
       Key: { id: this.id },
-      UpdateExpression: 'SET registeredCount = registeredCount + :inc, updatedAt = :updatedAt',
+      UpdateExpression: 'SET registeredCount = if_not_exists(registeredCount, :zero) + :inc, updatedAt = :updatedAt',
       ExpressionAttributeValues: {
         ':inc': 1,
+        ':zero': 0,
         ':updatedAt': new Date().toISOString()
       },
       ReturnValues: 'ALL_NEW'
