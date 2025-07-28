@@ -39,7 +39,7 @@ const sampleEvents = [
     featured: true,
     isActive: true,
     isLive: false,
-    registeredCount: 0,
+    registeredCount: 2,
     createdAt: new Date().toISOString()
   },
   {
@@ -64,7 +64,7 @@ const sampleEvents = [
     featured: false,
     isActive: true,
     isLive: false,
-    registeredCount: 0,
+    registeredCount: 1,
     createdAt: new Date().toISOString()
   }
 ];
@@ -160,10 +160,77 @@ router.get('/test', (req, res) => {
   res.json({ message: 'Events API is working!' });
 });
 
+// Test endpoint to check registration count
+router.get('/:id/registration-count', async (req, res) => {
+  try {
+    if (Event && Registration) {
+      const event = await Event.findById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      const actualCount = await Registration.getEventRegistrationCount(req.params.id);
+      
+      res.json({
+        eventId: req.params.id,
+        eventRegisteredCount: event.registeredCount,
+        actualRegistrationCount: actualCount,
+        match: event.registeredCount === actualCount
+      });
+    } else {
+      res.json({ message: 'DynamoDB models not available' });
+    }
+  } catch (error) {
+    console.error('Error checking registration count:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Test endpoint to reset registration count
+router.post('/:id/reset-registration-count', async (req, res) => {
+  try {
+    if (Event && Registration) {
+      const event = await Event.findById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      const actualCount = await Registration.getEventRegistrationCount(req.params.id);
+      await event.update({ registeredCount: actualCount });
+      
+      res.json({
+        message: 'Registration count reset successfully',
+        eventId: req.params.id,
+        newCount: actualCount
+      });
+    } else {
+      res.json({ message: 'DynamoDB models not available' });
+    }
+  } catch (error) {
+    console.error('Error resetting registration count:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET all events
 router.get('/', async (req, res) => {
   try {
-    if (Event) {
+    if (Event && Registration) {
+      const events = await Event.findAll();
+      
+      // Sync registration counts for all events
+      for (const event of events) {
+        const actualCount = await Registration.getEventRegistrationCount(event.id);
+        if (event.registeredCount !== actualCount) {
+          console.log(`[Backend] Syncing registration count for event ${event.id}: ${event.registeredCount} -> ${actualCount}`);
+          await event.update({ registeredCount: actualCount });
+        }
+      }
+      
+      // Fetch events again after sync
+      const updatedEvents = await Event.findAll();
+      res.json(updatedEvents);
+    } else if (Event) {
       const events = await Event.findAll();
       res.json(events);
     } else {
@@ -180,11 +247,27 @@ router.get('/', async (req, res) => {
 // GET single event by ID
 router.get('/:id', async (req, res) => {
   try {
-    if (Event) {
+    if (Event && Registration) {
       const event = await Event.findById(req.params.id);
       if (!event) {
         return res.status(404).json({ message: 'Event not found' });
       }
+      
+      // Sync registration count for this event
+      const actualCount = await Registration.getEventRegistrationCount(req.params.id);
+      if (event.registeredCount !== actualCount) {
+        console.log(`[Backend] Syncing registration count for event ${event.id}: ${event.registeredCount} -> ${actualCount}`);
+        await event.update({ registeredCount: actualCount });
+      }
+      
+      console.log('[Backend] Returning event data:', { id: event.id, registeredCount: event.registeredCount });
+      res.json(event);
+    } else if (Event) {
+      const event = await Event.findById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      console.log('[Backend] Returning event data:', { id: event.id, registeredCount: event.registeredCount });
       res.json(event);
     } else {
       // Fallback to sample data
@@ -279,8 +362,13 @@ router.post('/:id/register', async (req, res) => {
 
       const savedRegistration = await Registration.create(registrationData);
 
-      // Update event registration count
-      await Event.update(req.params.id, { registeredCount: event.registeredCount + 1 });
+      // Get the actual registration count and update the event
+      const actualCount = await Registration.getEventRegistrationCount(req.params.id);
+      console.log('[Backend] Actual registration count:', actualCount);
+      
+      // Update event registration count to match actual count
+      await event.update({ registeredCount: actualCount });
+      console.log('[Backend] Updated event registeredCount to:', actualCount);
 
       const result = {
         message: 'Registration successful!',
@@ -304,6 +392,18 @@ router.post('/:id/register', async (req, res) => {
         registrationDate: new Date().toISOString(),
         status: 'confirmed'
       };
+
+      // Add the new registration to sample registrations
+      sampleRegistrations.push(demoRegistration);
+      
+      // Update sample event registration count
+      const sampleEvent = sampleEvents.find(e => e.id === req.params.id);
+      if (sampleEvent) {
+        // Count actual registrations for this event
+        const actualRegistrations = sampleRegistrations.filter(r => r.eventId === req.params.id);
+        sampleEvent.registeredCount = actualRegistrations.length;
+        console.log('[Backend] Updated sample event registeredCount to:', sampleEvent.registeredCount);
+      }
 
       const result = {
         message: 'Registration successful! (demo mode)',

@@ -202,7 +202,19 @@ const EventDetailsPage = () => {
         setShowRegistrationModal(false);
         toast.success('Registration successful! Check your email for ticket details.');
         triggerConfetti();
-        setEvent(prev => ({ ...prev, registeredCount: prev.registeredCount + 1 }));
+        
+        // Refetch the event to get the updated registration count
+        console.log('[Frontend] Refetching event data after registration...');
+        const eventResponse = await fetch(`http://localhost:3000/api/events/${id}`);
+        if (eventResponse.ok) {
+          const updatedEvent = await eventResponse.json();
+          console.log('[Frontend] Updated event data:', updatedEvent);
+          setEvent(updatedEvent);
+        } else {
+          console.log('[Frontend] Failed to refetch event, using fallback increment');
+          // Fallback to manual increment if refetch fails
+          setEvent(prev => ({ ...prev, registeredCount: prev.registeredCount + 1 }));
+        }
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || 'Registration failed');
@@ -351,6 +363,8 @@ const EventDetailsPage = () => {
                     <span className="text-gray-600">Registered:</span>
                     <span className="font-semibold text-gray-900">{event.registeredCount}</span>
                   </div>
+                  
+
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">

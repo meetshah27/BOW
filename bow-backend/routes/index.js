@@ -232,20 +232,54 @@ router.get('/api/events', async (req, res) => {
         // Fallback to sample data when DynamoDB fails
         const sampleEvents = [
           {
-            id: '1',
-            title: 'Summer Music Festival 2024',
-            description: 'A three-day celebration of music, culture, and community',
-            date: '2024-07-15',
-            category: 'Festival',
-            featured: true
+            id: 'event_1',
+            title: 'Annual Cultural Festival',
+            description: 'Join us for our biggest celebration of the year',
+            longDescription: 'Experience the rich cultural diversity of our community through music, dance, food, and art. This annual festival brings together people from all backgrounds to celebrate our shared humanity.',
+            date: '2024-08-15',
+            time: '2:00 PM - 8:00 PM',
+            location: 'Seattle Center',
+            address: '305 Harrison St, Seattle, WA 98109',
+            category: 'Cultural',
+            image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            capacity: 500,
+            price: 25,
+            organizer: 'Beats of Washington',
+            contact: {
+              phone: '(206) 555-0123',
+              email: 'events@bow.org'
+            },
+            tags: ['cultural', 'festival', 'music', 'dance'],
+            featured: true,
+            isActive: true,
+            isLive: false,
+            registeredCount: 2,
+            createdAt: new Date().toISOString()
           },
           {
-            id: '2',
-            title: 'Music Workshop Series',
-            description: 'Learn traditional and contemporary music techniques',
-            date: '2024-08-20',
-            category: 'Workshop',
-            featured: false
+            id: 'event_2',
+            title: 'Community Workshop Series',
+            description: 'Learn new skills and connect with neighbors',
+            longDescription: 'Our monthly workshop series offers hands-on learning opportunities in various topics including cooking, crafts, technology, and wellness. All skill levels welcome.',
+            date: '2024-07-20',
+            time: '10:00 AM - 12:00 PM',
+            location: 'Community Center',
+            address: '123 Main St, Seattle, WA 98101',
+            category: 'Educational',
+            image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            capacity: 30,
+            price: 0,
+            organizer: 'Beats of Washington',
+            contact: {
+              phone: '(206) 555-0123',
+              email: 'workshops@bow.org'
+            },
+            tags: ['workshop', 'learning', 'community'],
+            featured: false,
+            isActive: true,
+            isLive: false,
+            registeredCount: 1,
+            createdAt: new Date().toISOString()
           }
         ];
         res.json(sampleEvents);
@@ -254,20 +288,54 @@ router.get('/api/events', async (req, res) => {
       // Fallback to sample data when DynamoDB models aren't available
       const sampleEvents = [
         {
-          id: '1',
-          title: 'Summer Music Festival 2024',
-          description: 'A three-day celebration of music, culture, and community',
-          date: '2024-07-15',
-          category: 'Festival',
-          featured: true
+          id: 'event_1',
+          title: 'Annual Cultural Festival',
+          description: 'Join us for our biggest celebration of the year',
+          longDescription: 'Experience the rich cultural diversity of our community through music, dance, food, and art. This annual festival brings together people from all backgrounds to celebrate our shared humanity.',
+          date: '2024-08-15',
+          time: '2:00 PM - 8:00 PM',
+          location: 'Seattle Center',
+          address: '305 Harrison St, Seattle, WA 98109',
+          category: 'Cultural',
+          image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          capacity: 500,
+          price: 25,
+          organizer: 'Beats of Washington',
+          contact: {
+            phone: '(206) 555-0123',
+            email: 'events@bow.org'
+          },
+          tags: ['cultural', 'festival', 'music', 'dance'],
+          featured: true,
+          isActive: true,
+          isLive: false,
+          registeredCount: 2,
+          createdAt: new Date().toISOString()
         },
         {
-          id: '2',
-          title: 'Music Workshop Series',
-          description: 'Learn traditional and contemporary music techniques',
-          date: '2024-08-20',
-          category: 'Workshop',
-          featured: false
+          id: 'event_2',
+          title: 'Community Workshop Series',
+          description: 'Learn new skills and connect with neighbors',
+          longDescription: 'Our monthly workshop series offers hands-on learning opportunities in various topics including cooking, crafts, technology, and wellness. All skill levels welcome.',
+          date: '2024-07-20',
+          time: '10:00 AM - 12:00 PM',
+          location: 'Community Center',
+          address: '123 Main St, Seattle, WA 98101',
+          category: 'Educational',
+          image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          capacity: 30,
+          price: 0,
+          organizer: 'Beats of Washington',
+          contact: {
+            phone: '(206) 555-0123',
+            email: 'workshops@bow.org'
+          },
+          tags: ['workshop', 'learning', 'community'],
+          featured: false,
+          isActive: true,
+          isLive: false,
+          registeredCount: 1,
+          createdAt: new Date().toISOString()
         }
       ];
       res.json(sampleEvents);

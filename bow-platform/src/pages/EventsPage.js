@@ -37,7 +37,7 @@ const FALLBACK_EVENTS = [
     featured: true,
     isActive: true,
     isLive: false,
-    registered: 0,
+    registeredCount: 2,
     createdAt: new Date().toISOString()
   },
   {
@@ -62,7 +62,7 @@ const FALLBACK_EVENTS = [
     featured: false,
     isActive: true,
     isLive: false,
-    registered: 0,
+    registeredCount: 1,
     createdAt: new Date().toISOString()
   }
 ];
@@ -145,9 +145,9 @@ const EventsPage = () => {
   };
 
   const getRegistrationStatus = (event) => {
-    if (event.registered >= event.capacity) {
+    if (event.registeredCount >= event.capacity) {
       return { status: 'full', text: 'Event Full', color: 'text-red-600' };
-    } else if (event.registered > event.capacity * 0.8) {
+    } else if (event.registeredCount > event.capacity * 0.8) {
       return { status: 'limited', text: 'Limited Spots', color: 'text-orange-600' };
     } else {
       return { status: 'available', text: 'Available', color: 'text-green-600' };
@@ -267,7 +267,7 @@ const EventsPage = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Array.isArray(filteredEvents) && filteredEvents.map((event) => {
                   const registrationStatus = getRegistrationStatus(event);
-                  const registrationPercentage = (event.registered / event.capacity) * 100;
+                  const registrationPercentage = (event.registeredCount / event.capacity) * 100;
                   
                   return (
                     <div key={event.id} className="card group">
@@ -347,7 +347,7 @@ const EventsPage = () => {
                         <div className="mb-4">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-gray-600">
-                              {event.registered} / {event.capacity} registered
+                              {event.registeredCount} / {event.capacity} registered
                             </span>
                             <span className={`text-sm font-medium ${registrationStatus.color}`}>
                               {registrationStatus.text}
