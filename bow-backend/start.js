@@ -16,10 +16,13 @@ if (!fs.existsSync(envPath)) {
 PORT=3000
 NODE_ENV=development
 
-# AWS DynamoDB Configuration (optional)
+# AWS Configuration
 # AWS_REGION=us-east-1
 # AWS_ACCESS_KEY_ID=your_access_key_here
 # AWS_SECRET_ACCESS_KEY=your_secret_key_here
+
+# S3 Configuration
+# S3_BUCKET_NAME=your-s3-bucket-name
 
 # Other Configuration
 # STRIPE_SECRET_KEY=your_stripe_secret_key
