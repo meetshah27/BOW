@@ -42,6 +42,8 @@ const EventDetailsPage = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [ticketInfo, setTicketInfo] = useState(null);
   const [copiedTicket, setCopiedTicket] = useState(false);
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
+  const [existingRegistration, setExistingRegistration] = useState(null);
 
   // Mock event data - in a real app, this would come from your backend
   const mockEvents = [
@@ -145,6 +147,51 @@ const EventDetailsPage = () => {
     }
   }, [currentUser]);
 
+  // Check if user is already registered for this event
+  useEffect(() => {
+    const checkExistingRegistration = async () => {
+      if (!event) return;
+      
+      if (currentUser) {
+        // For logged-in users, check from backend
+        try {
+          const userId = currentUser.uid || currentUser.id;
+          const response = await fetch(`http://localhost:3000/api/events/user/${userId}/registrations`);
+          if (response.ok) {
+            const registrations = await response.json();
+            const existingReg = registrations.find(reg => reg.eventId === event.id || reg.eventId === event._id);
+            
+            if (existingReg) {
+              setIsAlreadyRegistered(true);
+              setExistingRegistration(existingReg);
+              setTicketInfo({
+                ticketNumber: existingReg.ticketNumber,
+                registration: existingReg
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error checking existing registration:', error);
+        }
+      } else {
+        // For guest users, check localStorage
+        const guestRegistrations = JSON.parse(localStorage.getItem('guestRegistrations') || '[]');
+        const existingReg = guestRegistrations.find(reg => reg.eventId === event.id || reg.eventId === event._id);
+        
+        if (existingReg) {
+          setIsAlreadyRegistered(true);
+          setExistingRegistration(existingReg);
+          setTicketInfo({
+            ticketNumber: existingReg.ticketNumber,
+            registration: existingReg
+          });
+        }
+      }
+    };
+    
+    checkExistingRegistration();
+  }, [currentUser, event]);
+
   const handleRegistration = async (e) => {
     e.preventDefault();
     setIsRegistering(true);
@@ -203,6 +250,16 @@ const EventDetailsPage = () => {
         const result = await response.json();
         setTicketInfo(result);
         setShowRegistrationModal(false);
+        setIsAlreadyRegistered(true);
+        setExistingRegistration(result.registration);
+        
+        // Save guest registration to localStorage if not logged in
+        if (!currentUser && result.registration) {
+          const guestRegistrations = JSON.parse(localStorage.getItem('guestRegistrations') || '[]');
+          guestRegistrations.push(result.registration);
+          localStorage.setItem('guestRegistrations', JSON.stringify(guestRegistrations));
+        }
+        
         toast.success('Registration successful! Check your email for ticket details.');
         triggerConfetti();
         
@@ -220,7 +277,21 @@ const EventDetailsPage = () => {
         }
       } else {
         const errorData = await response.json();
-        toast.error(errorData.message || 'Registration failed');
+        
+        // Check if user is already registered
+        if (errorData.message && errorData.message.includes('already registered')) {
+          setIsAlreadyRegistered(true);
+          if (errorData.registration) {
+            setExistingRegistration(errorData.registration);
+            setTicketInfo({
+              ticketNumber: errorData.registration.ticketNumber,
+              registration: errorData.registration
+            });
+          }
+          toast.info('You are already registered for this event!');
+        } else {
+          toast.error(errorData.message || 'Registration failed');
+        }
       }
     } catch (error) {
       console.error('[Registration] Network or other error:', error);
@@ -395,7 +466,23 @@ const EventDetailsPage = () => {
                     </div>
                   </div>
                   
-                  {event.isLive ? (
+                  {isAlreadyRegistered ? (
+                    <div className="text-center py-4">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center justify-center mb-2">
+                          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                          <span className="text-green-800 font-medium">Already Registered</span>
+                        </div>
+                        <p className="text-green-700 text-sm">You have successfully registered for this event!</p>
+                        {ticketInfo?.ticketNumber && (
+                          <div className="mt-3 p-3 bg-white rounded border">
+                            <p className="text-sm text-gray-600 mb-1">Your Ticket Number:</p>
+                            <p className="font-mono text-sm text-green-700">{ticketInfo.ticketNumber}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : event.isLive ? (
                     <button 
                       onClick={() => setShowRegistrationModal(true)}
                       className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
