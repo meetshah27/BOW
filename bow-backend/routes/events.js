@@ -85,24 +85,62 @@ const sampleRegistrations = [
     status: 'confirmed',
     checkedIn: false,
     checkInTime: null
+  },
+  {
+    id: 'reg_2',
+    eventId: 'event_2',
+    userId: 'sample_user_2',
+    userEmail: 'jane@example.com',
+    userName: 'Jane Smith',
+    phone: '(206) 555-0002',
+    dietaryRestrictions: 'Vegetarian',
+    specialRequests: '',
+    ticketNumber: 'TKT-20240712-DEF456',
+    registrationDate: new Date().toISOString(),
+    status: 'pending',
+    checkedIn: false,
+    checkInTime: null
+  },
+  {
+    id: 'reg_3',
+    eventId: 'event_1',
+    userId: 'sample_user_3',
+    userEmail: 'bob@example.com',
+    userName: 'Bob Wilson',
+    phone: '(206) 555-0003',
+    dietaryRestrictions: '',
+    specialRequests: 'Wheelchair accessible seating',
+    ticketNumber: 'TKT-20240712-GHI789',
+    registrationDate: new Date().toISOString(),
+    status: 'confirmed',
+    checkedIn: true,
+    checkInTime: new Date().toISOString()
   }
 ];
 
 // GET all registrations (for admin)
 router.get('/registrations', async (req, res) => {
   try {
-    if (Registration) {
+    if (Registration && Event) {
       const registrations = await Registration.findAll();
+      const events = await Event.findAll();
+      
+      // Create a map of eventId to event title for quick lookup
+      const eventMap = {};
+      events.forEach(event => {
+        eventMap[event.id || event._id] = event.title;
+      });
+      
       const result = registrations.map(r => ({
         ...r,
-        eventTitle: r.eventTitle || 'Event'
+        eventTitle: eventMap[r.eventId] || 'Unknown Event'
       }));
       res.json(result);
     } else {
       // Fallback to sample data
       const result = sampleRegistrations.map(r => ({
         ...r,
-        eventTitle: sampleEvents.find(e => e.id === r.eventId)?.title || 'Event'
+        eventTitle: sampleEvents.find(e => e.id === r.eventId)?.title || 'Unknown Event'
       }));
       res.json(result);
     }
@@ -111,7 +149,7 @@ router.get('/registrations', async (req, res) => {
     // Fallback to sample data
     const result = sampleRegistrations.map(r => ({
       ...r,
-      eventTitle: sampleEvents.find(e => e.id === r.eventId)?.title || 'Event'
+      eventTitle: sampleEvents.find(e => e.id === r.eventId)?.title || 'Unknown Event'
     }));
     res.json(result);
   }

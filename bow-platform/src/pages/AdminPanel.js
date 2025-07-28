@@ -1249,6 +1249,7 @@ const RegistrationManagement = () => {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ event: 'all', status: 'all', date: 'all' });
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
@@ -1265,6 +1266,7 @@ const RegistrationManagement = () => {
       const response = await fetch('http://localhost:3000/api/events/registrations');
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched registrations:', data);
         setRegistrations(data);
       }
     } catch (error) {
@@ -1280,6 +1282,7 @@ const RegistrationManagement = () => {
       const response = await fetch('http://localhost:3000/api/events');
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched events:', data);
         setEvents(data);
       }
     } catch (error) {
@@ -1329,8 +1332,29 @@ const RegistrationManagement = () => {
   };
 
   const filteredRegistrations = registrations.filter(reg => {
-    if (filter.event !== 'all' && reg.eventTitle !== filter.event) return false;
-    if (filter.status !== 'all' && reg.status !== filter.status) return false;
+    // Event filter
+    if (filter.event !== 'all' && reg.eventTitle !== filter.event) {
+      console.log(`Filtering out registration ${reg.ticketNumber}: eventTitle "${reg.eventTitle}" doesn't match filter "${filter.event}"`);
+      return false;
+    }
+    // Status filter
+    if (filter.status !== 'all' && reg.status !== filter.status) {
+      console.log(`Filtering out registration ${reg.ticketNumber}: status "${reg.status}" doesn't match filter "${filter.status}"`);
+      return false;
+    }
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        (reg.userName && reg.userName.toLowerCase().includes(searchLower)) ||
+        (reg.userEmail && reg.userEmail.toLowerCase().includes(searchLower)) ||
+        (reg.ticketNumber && reg.ticketNumber.toLowerCase().includes(searchLower)) ||
+        (reg.eventTitle && reg.eventTitle.toLowerCase().includes(searchLower));
+      if (!matchesSearch) {
+        console.log(`Filtering out registration ${reg.ticketNumber}: doesn't match search term "${searchTerm}"`);
+        return false;
+      }
+    }
     return true;
   });
 
@@ -1452,17 +1476,31 @@ const RegistrationManagement = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by name, email, ticket number, or event..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Event</label>
             <select
               value={filter.event}
               onChange={(e) => setFilter({...filter, event: e.target.value})}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent min-w-[200px]"
             >
               <option value="all">All Events</option>
               {events.map(event => (
-                <option key={event._id} value={event.title}>{event.title}</option>
+                <option key={event._id || event.id} value={event.title}>{event.title}</option>
               ))}
             </select>
           </div>
@@ -1480,11 +1518,30 @@ const RegistrationManagement = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
+
+          <div>
+            <button
+              onClick={() => {
+                setFilter({ event: 'all', status: 'all', date: 'all' });
+                setSearchTerm('');
+              }}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              Clear Filters
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Registrations Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Registrations ({filteredRegistrations.length} of {registrations.length})
+            </h3>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
