@@ -67,6 +67,7 @@ app.use('/api/events', eventsRouter);
 app.use('/api/volunteers', volunteersRouter);
 app.use('/api/stories', storiesRouter);
 app.use('/api/gallery', galleryRouter);
+app.use('/api/upload', require('./routes/upload'));
 
 // Handle missing sponsor images gracefully
 app.get('/sponsors/*', (req, res) => {

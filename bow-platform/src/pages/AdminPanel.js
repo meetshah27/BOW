@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import FileUpload from '../components/common/FileUpload';
 
 import { 
   Users, 
@@ -205,6 +206,7 @@ const EventManagement = () => {
     featured: false,
     tags: []
   });
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const filterDropdownRef = React.useRef();
   const navigate = useNavigate();
@@ -289,6 +291,9 @@ const EventManagement = () => {
   const handleCreateEvent = async (e) => {
     e.preventDefault();
     try {
+      // Use uploaded image URL if available, otherwise use default
+      const imageUrl = uploadedImage ? uploadedImage.fileUrl : 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+      
       const response = await fetch('http://localhost:3000/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -301,7 +306,7 @@ const EventManagement = () => {
           location: newEvent.location,
           address: newEvent.location, // Use location as address for simplicity
           category: newEvent.category,
-          image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          image: imageUrl,
           capacity: newEvent.capacity,
           price: newEvent.price,
           organizer: newEvent.organizer || 'Beats of Washington',
@@ -342,6 +347,7 @@ const EventManagement = () => {
         featured: false,
         tags: []
       });
+      setUploadedImage(null);
     } catch (err) {
       toast.error('Error creating event: ' + err.message);
     }
@@ -516,6 +522,30 @@ const EventManagement = () => {
                   <input type="checkbox" id="isLive" className="mr-2" checked={newEvent.isLive} onChange={e => setNewEvent({ ...newEvent, isLive: e.target.checked })} />
                   <label htmlFor="isLive" className="text-sm font-medium">Event Live (Allow Registration)</label>
                 </div>
+              </div>
+              
+              {/* Event Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Event Image</label>
+                <FileUpload
+                  onUpload={(fileData) => setUploadedImage(fileData)}
+                  onRemove={() => setUploadedImage(null)}
+                  folder="events"
+                  accept="image/*"
+                  multiple={false}
+                  maxFiles={1}
+                  showPreview={true}
+                  className="mb-4"
+                />
+                {uploadedImage && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center text-green-800">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <span className="text-sm font-medium">Image uploaded successfully!</span>
+                    </div>
+                    <p className="text-xs text-green-600 mt-1">This image will be used for the event.</p>
+                  </div>
+                )}
               </div>
               
               <div className="flex space-x-3 pt-4 border-t">
@@ -739,14 +769,24 @@ const EventManagement = () => {
 function EditEventForm({ event, onSave, onCancel }) {
   const [form, setForm] = React.useState({ ...event });
   const [saving, setSaving] = React.useState(false);
+  const [uploadedImage, setUploadedImage] = React.useState(null);
+  
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
+  
   const handleSubmit = async e => {
     e.preventDefault();
     setSaving(true);
-    await onSave(form);
+    
+    // Use uploaded image URL if available, otherwise keep existing image
+    const updatedForm = {
+      ...form,
+      image: uploadedImage ? uploadedImage.fileUrl : form.image
+    };
+    
+    await onSave(updatedForm);
     setSaving(false);
   };
   return (
@@ -782,6 +822,38 @@ function EditEventForm({ event, onSave, onCancel }) {
       <div style={{ marginBottom: 8 }}>
         <label>Live: <input name="isLive" type="checkbox" checked={form.isLive} onChange={handleChange} /> Event Live</label>
       </div>
+      
+      {/* Event Image Upload */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Event Image</label>
+        <div style={{ marginBottom: 8 }}>
+          {form.image && (
+            <div style={{ marginBottom: 8 }}>
+              <img src={form.image} alt="Current event image" style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover', borderRadius: 4 }} />
+              <p style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>Current image</p>
+            </div>
+          )}
+        </div>
+        <FileUpload
+          onUpload={(fileData) => setUploadedImage(fileData)}
+          onRemove={() => setUploadedImage(null)}
+          folder="events"
+          accept="image/*"
+          multiple={false}
+          maxFiles={1}
+          showPreview={true}
+        />
+        {uploadedImage && (
+          <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', color: '#0c4a6e' }}>
+              <CheckCircle style={{ width: 16, height: 16, marginRight: 8 }} />
+              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>New image uploaded!</span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#0c4a6e', marginTop: 4 }}>This image will replace the current one.</p>
+          </div>
+        )}
+      </div>
+      
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, background: '#fff', padding: 16, display: 'flex', gap: 12, borderTop: '1px solid #eee', justifyContent: 'flex-end'
       }}>
@@ -901,36 +973,46 @@ const GalleryManager = () => {
     { id: 3, name: 'Community Drum Circle', count: 28, date: '2024-09-15' }
   ]);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadType, setUploadType] = useState('photo');
-  const [uploadData, setUploadData] = useState({
+  const [uploadedMedia, setUploadedMedia] = useState([]);
+  const [mediaData, setMediaData] = useState({
     title: '',
     description: '',
-    album: '',
-    file: null
+    album: ''
   });
 
-  const handleFileUpload = async (e) => {
-    e.preventDefault();
+  const handleMediaUpload = (fileData) => {
+    setUploadedMedia(prev => [...prev, fileData]);
+  };
+
+  const handleMediaRemove = (fileData) => {
+    setUploadedMedia(prev => prev.filter(f => f.fileName !== fileData.fileName));
+  };
+
+  const handleSaveGallery = async () => {
     try {
-      const formData = new FormData();
-      formData.append('file', uploadData.file);
-      formData.append('title', uploadData.title);
-      formData.append('description', uploadData.description);
-      formData.append('album', uploadData.album);
-      formData.append('type', uploadType);
+      // Save media data to gallery database
+      for (const media of uploadedMedia) {
+        const response = await fetch('http://localhost:3000/api/gallery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: mediaData.title || media.originalName,
+            description: mediaData.description || '',
+            album: mediaData.album || 'General',
+            imageUrl: media.fileUrl,
+            type: media.mimetype.startsWith('image/') ? 'image' : 'video'
+          })
+        });
 
-      const response = await fetch('http://localhost:3000/api/gallery/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
+        if (!response.ok) throw new Error('Failed to save media data');
+      }
       
-      alert('Media uploaded successfully!');
+      toast.success('Gallery media saved successfully!');
       setShowUploadModal(false);
-      setUploadData({ title: '', description: '', album: '', file: null });
+      setUploadedMedia([]);
+      setMediaData({ title: '', description: '', album: '' });
     } catch (err) {
-      alert('Error uploading media: ' + err.message);
+      toast.error('Error saving gallery media: ' + err.message);
     }
   };
 
@@ -947,87 +1029,82 @@ const GalleryManager = () => {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
-            <h3 className="text-xl font-bold mb-6">Upload Media</h3>
-            <form onSubmit={handleFileUpload} className="space-y-4">
+          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg px-4 py-2 inline-block">Upload Gallery Media</h3>
+            
+            <div className="space-y-6">
+              {/* Media Upload */}
               <div>
-                <label className="block text-sm font-medium mb-2">Media Type</label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="uploadType"
-                      value="photo"
-                      checked={uploadType === 'photo'}
-                      onChange={(e) => setUploadType(e.target.value)}
-                      className="mr-2"
+                <label className="block text-sm font-medium mb-2">Upload Media Files</label>
+                <FileUpload
+                  onUpload={handleMediaUpload}
+                  onRemove={handleMediaRemove}
+                  folder="gallery"
+                  accept="image/*,video/*"
+                  multiple={true}
+                  maxFiles={10}
+                  showPreview={true}
+                />
+              </div>
+
+              {/* Media Details */}
+              {uploadedMedia.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-900">Media Details</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Title (for all media)</label>
+                      <input 
+                        type="text" 
+                        className="w-full border rounded px-3 py-2" 
+                        value={mediaData.title} 
+                        onChange={e => setMediaData({ ...mediaData, title: e.target.value })} 
+                        placeholder="Enter title for uploaded media"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Album</label>
+                      <input 
+                        type="text" 
+                        className="w-full border rounded px-3 py-2" 
+                        value={mediaData.album} 
+                        onChange={e => setMediaData({ ...mediaData, album: e.target.value })} 
+                        placeholder="Enter album name"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Description (for all media)</label>
+                    <textarea 
+                      className="w-full border rounded px-3 py-2" 
+                      rows="3"
+                      value={mediaData.description} 
+                      onChange={e => setMediaData({ ...mediaData, description: e.target.value })} 
+                      placeholder="Enter description for uploaded media"
                     />
-                    Photo
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="uploadType"
-                      value="video"
-                      checked={uploadType === 'video'}
-                      onChange={(e) => setUploadType(e.target.value)}
-                      className="mr-2"
-                    />
-                    Video
-                  </label>
+                  </div>
                 </div>
-              </div>
+              )}
               
-              <div>
-                <label className="block text-sm font-medium mb-1">Title</label>
-                <input 
-                  type="text" 
-                  className="w-full border rounded px-3 py-2" 
-                  required 
-                  value={uploadData.title} 
-                  onChange={e => setUploadData({ ...uploadData, title: e.target.value })} 
-                />
+              <div className="flex space-x-3 pt-4 border-t">
+                <button type="button" className="btn-outline flex-1" onClick={() => {
+                  setShowUploadModal(false);
+                  setUploadedMedia([]);
+                  setMediaData({ title: '', description: '', album: '' });
+                }}>Cancel</button>
+                <button 
+                  type="button" 
+                  className="btn-primary flex-1" 
+                  onClick={handleSaveGallery}
+                  disabled={uploadedMedia.length === 0}
+                >
+                  Save to Gallery ({uploadedMedia.length} files)
+                </button>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea 
-                  className="w-full border rounded px-3 py-2" 
-                  rows="3"
-                  value={uploadData.description} 
-                  onChange={e => setUploadData({ ...uploadData, description: e.target.value })} 
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Album</label>
-                <input 
-                  type="text" 
-                  className="w-full border rounded px-3 py-2" 
-                  value={uploadData.album} 
-                  onChange={e => setUploadData({ ...uploadData, album: e.target.value })} 
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">File</label>
-                <input 
-                  type="file" 
-                  className="w-full border rounded px-3 py-2" 
-                  required
-                  accept={uploadType === 'photo' ? 'image/*' : 'video/*'}
-                  onChange={e => setUploadData({ ...uploadData, file: e.target.files[0] })} 
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {uploadType === 'photo' ? 'Supported: JPG, PNG, GIF (max 10MB)' : 'Supported: MP4, MOV, AVI (max 100MB)'}
-                </p>
-              </div>
-              
-              <div className="flex space-x-3 pt-2">
-                <button type="button" className="btn-outline flex-1" onClick={() => setShowUploadModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary flex-1">Upload</button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
