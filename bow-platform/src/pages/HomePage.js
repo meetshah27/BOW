@@ -334,12 +334,12 @@ const HomePage = () => {
                     <span className="mr-2">/</span>
                     <span className="font-medium text-green-700">{liveEvent.registeredCount || 0}{liveEvent.capacity ? ` / ${liveEvent.capacity}` : ''} registered</span>
                   </div>
-                  <a
-                    href={`/events/${liveEvent.id}`}
+                  <Link
+                    to={`/events/${liveEvent.id}`}
                     className="mt-2 w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
                   >
                     Register Now
-                  </a>
+                  </Link>
                 </div>
               ) : null}
             </div>
