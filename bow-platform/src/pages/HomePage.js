@@ -312,34 +312,36 @@ const HomePage = () => {
                   Loading event...
                 </div>
               ) : eventsError ? null : liveEvent ? (
-                <div className="bg-white rounded-2xl shadow-2xl border-2 border-orange-200 px-5 py-5 min-w-[240px] max-w-[280px] flex flex-col items-start hover:shadow-2xl transition-all duration-200 text-left text-base">
-                  <div className="flex items-center mb-3">
+                <div className="bg-white rounded-2xl shadow-2xl border-2 border-orange-200 px-5 py-5 min-w-[240px] max-w-[280px] h-[280px] flex flex-col items-start hover:shadow-2xl transition-all duration-200 text-left text-base">
+                  <div className="flex items-center mb-3 w-full">
                     <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 mr-2">Live</span>
-                    <span className="text-xs text-gray-500 font-medium">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
+                    <span className="text-xs text-gray-500 font-medium truncate">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
                   </div>
                   <div className="font-bold text-gray-900 text-base truncate w-full mb-2">{liveEvent.title}</div>
-                  <div className="flex items-center text-gray-600 mb-2 text-sm">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {liveEvent.date}
+                  <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
+                    <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{liveEvent.date}</span>
                   </div>
                   {/* Countdown Timer */}
-                  <div className="mb-2">
+                  <div className="mb-2 w-full">
                     <CountdownTimer targetDate={liveEvent.date} />
                   </div>
-                  <div className="flex items-center text-gray-600 mb-2 text-sm">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {liveEvent.location || '—'}
+                  <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
+                    <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{liveEvent.location || '—'}</span>
                   </div>
-                  <div className="flex items-center text-gray-600 mb-3 text-sm">
+                  <div className="flex items-center text-gray-600 mb-3 text-sm w-full">
                     <span className="mr-2">/</span>
-                    <span className="font-medium text-green-700">{liveEvent.registeredCount || 0}{liveEvent.capacity ? ` / ${liveEvent.capacity}` : ''} registered</span>
+                    <span className="font-medium text-green-700 truncate">{liveEvent.registeredCount || 0}{liveEvent.capacity ? ` / ${liveEvent.capacity}` : ''} registered</span>
                   </div>
-                  <Link
-                    to={`/events/${liveEvent.id}`}
-                    className="mt-2 w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
-                  >
-                    Register Now
-                  </Link>
+                  <div className="mt-auto w-full">
+                    <Link
+                      to={`/events/${liveEvent.id}`}
+                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
+                    >
+                      Register Now
+                    </Link>
+                  </div>
                 </div>
               ) : null}
             </div>
