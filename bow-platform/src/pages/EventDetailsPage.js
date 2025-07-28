@@ -22,7 +22,6 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
 import toast from 'react-hot-toast';
-import { fetchAuthSession } from 'aws-amplify/auth';
 
 const EventDetailsPage = () => {
   const { id } = useParams();
@@ -225,10 +224,11 @@ const EventDetailsPage = () => {
           specialRequests: registrationData.specialRequests,
           cardNumber: registrationData.cardNumber
         };
-        // Add Cognito token if logged in
-        const { tokens } = await fetchAuthSession();
-        const idToken = tokens?.idToken?.toString();
-        headers['Authorization'] = `Bearer ${idToken}`;
+        // Add auth token if available
+        const authToken = localStorage.getItem('authToken');
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`;
+        }
       } else {
         const tempUserId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         requestBody = {
