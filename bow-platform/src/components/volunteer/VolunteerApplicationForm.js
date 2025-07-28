@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -12,13 +12,16 @@ import {
   AlertCircle,
   Loader
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 
 const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
+  const { currentUser } = useAuth();
+  
   const [formData, setFormData] = useState({
-    applicantName: '',
-    applicantEmail: '',
-    applicantPhone: '',
+    applicantName: currentUser ? (currentUser.displayName || currentUser.email || '') : '',
+    applicantEmail: currentUser ? (currentUser.email || '') : '',
+    applicantPhone: currentUser ? (currentUser.phone || '') : '',
     applicantAge: '',
     applicantAddress: {
       street: '',
@@ -51,6 +54,18 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Update form data when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        applicantName: currentUser.displayName || currentUser.email || '',
+        applicantEmail: currentUser.email || '',
+        applicantPhone: currentUser.phone || ''
+      }));
+    }
+  }, [currentUser]);
 
   const timeCommitmentOptions = [
     '2-4 hours/week',
@@ -203,9 +218,14 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4 my-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Volunteer Application
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Volunteer Application
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Applying for: <span className="font-medium text-primary-600">{opportunity.title}</span>
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -253,6 +273,15 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Personal Information
                 </h3>
+                {currentUser && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center text-green-800">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <span className="text-sm font-medium">Logged in as: {currentUser.displayName || currentUser.email}</span>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -262,9 +291,16 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
                       type="text"
                       value={formData.applicantName}
                       onChange={(e) => handleInputChange('applicantName', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                        currentUser ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'
+                      }`}
                       required
+                      readOnly={!!currentUser}
+                      disabled={!!currentUser}
                     />
+                    {currentUser && (
+                      <p className="text-xs text-gray-500 mt-1">Pre-filled from your account</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -274,9 +310,16 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
                       type="email"
                       value={formData.applicantEmail}
                       onChange={(e) => handleInputChange('applicantEmail', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                        currentUser ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'
+                      }`}
                       required
+                      readOnly={!!currentUser}
+                      disabled={!!currentUser}
                     />
+                    {currentUser && (
+                      <p className="text-xs text-gray-500 mt-1">Pre-filled from your account</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -286,9 +329,16 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
                       type="tel"
                       value={formData.applicantPhone}
                       onChange={(e) => handleInputChange('applicantPhone', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                        currentUser ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'
+                      }`}
                       required
+                      readOnly={!!currentUser}
+                      disabled={!!currentUser}
                     />
+                    {currentUser && (
+                      <p className="text-xs text-gray-500 mt-1">Pre-filled from your account</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
