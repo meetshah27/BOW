@@ -426,18 +426,30 @@ router.post('/:uid/reactivate', async (req, res) => {
 // GET - User statistics (admin only)
 router.get('/stats/overview', async (req, res) => {
   try {
+    if (!User) {
+      // Fallback to sample data
+      return res.json({
+        totalUsers: sampleUsers.length,
+        activeUsers: sampleUsers.filter(u => u.isActive).length,
+        adminUsers: sampleUsers.filter(u => u.role === 'admin' && u.isActive).length,
+        memberUsers: sampleUsers.filter(u => u.role === 'member' && u.isActive).length,
+        newUsersThisMonth: sampleUsers.filter(u => u.isActive).length,
+        inactiveUsers: sampleUsers.filter(u => !u.isActive).length
+      });
+    }
+
     const totalUsers = await User.countDocuments();
-    const activeUsers = await User.countDocuments({ isActive: true });
-    const adminUsers = await User.countDocuments({ role: 'admin', isActive: true });
-    const memberUsers = await User.countDocuments({ role: 'member', isActive: true });
+    const activeUsers = await User.countDocumentsWithFilter({ isActive: true });
+    const adminUsers = await User.countDocumentsWithFilter({ role: 'admin', isActive: true });
+    const memberUsers = await User.countDocumentsWithFilter({ role: 'member', isActive: true });
     
     // Users registered this month
     const thisMonth = new Date();
     thisMonth.setDate(1);
     thisMonth.setHours(0, 0, 0, 0);
     
-    const newUsersThisMonth = await User.countDocuments({
-      createdAt: { $gte: thisMonth },
+    const newUsersThisMonth = await User.countDocumentsWithFilter({
+      createdAt: { $gte: thisMonth.toISOString() },
       isActive: true
     });
 
