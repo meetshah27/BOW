@@ -30,7 +30,8 @@ import {
   ClipboardList,
   UserPlus,
   Ticket,
-  Clock
+  Clock,
+  X
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
 import StoriesManagement from '../components/admin/StoriesManagement';
