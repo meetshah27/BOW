@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Image, 
@@ -14,7 +14,8 @@ import {
   X,
   Copy,
   ExternalLink,
-  MessageCircle
+  MessageCircle,
+  Loader
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -25,102 +26,71 @@ const GalleryPage = () => {
   const [likedItems, setLikedItems] = useState(new Set());
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const categories = [
-    { value: 'all', label: 'All Media', count: 156 },
-    { value: 'events', label: 'Events', count: 89 },
-    { value: 'workshops', label: 'Workshops', count: 34 },
-    { value: 'community', label: 'Community', count: 23 },
-    { value: 'performances', label: 'Performances', count: 45 }
+    { value: 'all', label: 'All Media', count: 0 },
+    { value: 'events', label: 'Events', count: 0 },
+    { value: 'workshops', label: 'Workshops', count: 0 },
+    { value: 'community', label: 'Community', count: 0 },
+    { value: 'performances', label: 'Performances', count: 0 }
   ];
 
-  // Mock gallery data
-  const [galleryItems, setGalleryItems] = useState([
-    {
-      id: 1,
-      title: "Summer Music Festival 2023",
-      type: "image",
-      category: "events",
-      url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      date: "2023-07-15",
-      location: "Seattle Center",
-      description: "Our biggest event of the year brought together thousands of community members for three days of music and celebration.",
-      tags: ["festival", "summer", "community", "music"],
-      likes: 234,
-      views: 1247
-    },
-    {
-      id: 2,
-      title: "Community Drum Circle",
-      type: "video",
-      category: "workshops",
-      url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      date: "2023-06-22",
-      location: "Gas Works Park",
-      description: "Monthly community drum circle brings people together through rhythm and music.",
-      tags: ["drumming", "workshop", "community", "rhythm"],
-      likes: 156,
-      views: 892
-    },
-    {
-      id: 3,
-      title: "Youth Music Workshop",
-      type: "image",
-      category: "workshops",
-      url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      thumbnail: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      date: "2023-06-29",
-      location: "Community Center",
-      description: "Young musicians learning and growing together in our educational programs.",
-      tags: ["youth", "education", "workshop", "learning"],
-      likes: 189,
-      views: 567
-    },
-    {
-      id: 4,
-      title: "Cultural Music Showcase",
-      type: "image",
-      category: "performances",
-      url: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      date: "2023-07-20",
-      location: "Seattle Town Hall",
-      description: "Celebrating diverse musical traditions from around the world.",
-      tags: ["cultural", "showcase", "diverse", "performance"],
-      likes: 267,
-      views: 1456
-    },
-    {
-      id: 5,
-      title: "Volunteer Appreciation Day",
-      type: "image",
-      category: "community",
-      url: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      date: "2023-05-15",
-      location: "BOW Headquarters",
-      description: "Celebrating our amazing volunteers who make everything possible.",
-      tags: ["volunteers", "appreciation", "community", "celebration"],
-      likes: 312,
-      views: 789
-    },
-    {
-      id: 6,
-      title: "Jazz in the Park",
-      type: "video",
-      category: "performances",
-      url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4",
-      thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      date: "2023-07-08",
-      location: "Volunteer Park",
-      description: "An evening of smooth jazz under the stars with local musicians.",
-      tags: ["jazz", "outdoor", "concert", "local"],
-      likes: 198,
-      views: 1123
-    }
-  ]);
+  // Fetch gallery data from backend
+  useEffect(() => {
+    const fetchGalleryItems = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/gallery');
+        if (!response.ok) {
+          throw new Error('Failed to fetch gallery items');
+        }
+        const data = await response.json();
+        
+        // Transform the data to match the expected format
+        const transformedData = data.map(item => ({
+          id: item.id,
+          title: item.title || 'Untitled',
+          type: item.imageUrl?.includes('.mp4') || item.imageUrl?.includes('.mov') || item.imageUrl?.includes('.avi') ? 'video' : 'image',
+          category: item.album || 'general',
+          url: item.imageUrl,
+          thumbnail: item.imageUrl, // Use the same URL for thumbnail
+          date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          location: 'BOW Community',
+          description: item.description || 'No description available',
+          tags: item.album ? [item.album] : ['general'],
+          likes: 0,
+          views: 0
+        }));
+        
+        setGalleryItems(transformedData);
+        
+        // Update category counts
+        const categoryCounts = {};
+        transformedData.forEach(item => {
+          categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+        });
+        
+        categories.forEach(cat => {
+          if (cat.value !== 'all') {
+            cat.count = categoryCounts[cat.value] || 0;
+          }
+        });
+        categories[0].count = transformedData.length; // All Media count
+        
+      } catch (err) {
+        console.error('Error fetching gallery items:', err);
+        setError(err.message);
+        toast.error('Failed to load gallery items');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGalleryItems();
+  }, []);
 
   const filteredItems = galleryItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
@@ -310,21 +280,75 @@ const GalleryPage = () => {
         <div className="container-custom">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {filteredItems.length} Items Found
+              {loading ? 'Loading...' : `${filteredItems.length} Items Found`}
             </h2>
             <p className="text-gray-600">
-              {searchTerm && `Searching for "${searchTerm}"`}
+              {loading ? 'Fetching gallery items...' : (searchTerm && `Searching for "${searchTerm}"`)}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredItems.map((item) => (
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <Loader className="w-12 h-12 animate-spin text-primary-600 mx-auto mb-4" />
+                <p className="text-gray-600">Loading gallery items...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <X className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Gallery</h3>
+                <p className="text-gray-600 mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="btn-primary"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && filteredItems.length === 0 && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Image className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Gallery Items Found</h3>
+                <p className="text-gray-600 mb-4">
+                  {searchTerm 
+                    ? `No items match your search for "${searchTerm}"`
+                    : 'No images or videos have been uploaded to the gallery yet.'
+                  }
+                </p>
+                {!searchTerm && (
+                  <p className="text-sm text-gray-500">
+                    Check back later or contact an administrator to upload content.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Gallery Items Grid */}
+          {!loading && !error && filteredItems.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredItems.map((item) => (
               <div key={item.id} className="card group cursor-pointer" onClick={() => openModal(item)}>
                 <div className="relative overflow-hidden rounded-t-xl">
                   <img
                     src={item.thumbnail}
                     alt={item.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
                   />
                   
                   {/* Media Type Badge */}
@@ -434,29 +458,7 @@ const GalleryPage = () => {
               </div>
             ))}
           </div>
-
-          {filteredItems.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Image className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No media found
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Try adjusting your search criteria or check back later for new content.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('all');
-                }}
-                className="btn-primary"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
+        )}
         </div>
       </section>
 
@@ -485,7 +487,7 @@ const GalleryPage = () => {
                   <img
                     src={selectedMedia.url}
                     alt={selectedMedia.title}
-                    className="w-full h-96 object-cover rounded-t-2xl"
+                    className="w-full h-96 object-contain bg-gray-100 rounded-t-2xl"
                   />
                 )}
               </div>
