@@ -527,6 +527,19 @@ const EventManagement = () => {
               {/* Event Image Upload */}
               <div>
                 <label className="block text-sm font-medium mb-2">Event Image</label>
+                {!uploadedImage && (
+                  <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center text-gray-600">
+                      <div className="w-16 h-12 bg-gray-200 rounded border flex items-center justify-center mr-3">
+                        <span className="text-xs text-gray-500">No Image</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">No image selected</p>
+                        <p className="text-xs text-gray-500">Upload an image below to use for this event</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <FileUpload
                   onUpload={(fileData) => setUploadedImage(fileData)}
                   onRemove={() => setUploadedImage(null)}
@@ -539,11 +552,31 @@ const EventManagement = () => {
                 />
                 {uploadedImage && (
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center text-green-800">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">Image uploaded successfully!</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center text-green-800">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        <span className="text-sm font-medium">Image uploaded successfully!</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setUploadedImage(null)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium flex items-center"
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Remove Image
+                      </button>
                     </div>
-                    <p className="text-xs text-green-600 mt-1">This image will be used for the event.</p>
+                    <div className="flex items-center space-x-3">
+                      <img 
+                        src={uploadedImage.fileUrl} 
+                        alt="Uploaded preview" 
+                        className="w-20 h-16 object-cover rounded border"
+                      />
+                      <div>
+                        <p className="text-xs text-green-600">This image will be used for the event.</p>
+                        <p className="text-xs text-gray-500 mt-1">{uploadedImage.originalName}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -827,10 +860,76 @@ function EditEventForm({ event, onSave, onCancel }) {
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>Event Image</label>
         <div style={{ marginBottom: 8 }}>
-          {form.image && (
-            <div style={{ marginBottom: 8 }}>
+          {form.image ? (
+            <div style={{ marginBottom: 8, position: 'relative', display: 'inline-block' }}>
               <img src={form.image} alt="Current event image" style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover', borderRadius: 4 }} />
-              <p style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>Current image</p>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, image: '' }))}
+                style={{
+                  position: 'absolute',
+                  top: 4,
+                  right: 4,
+                  background: '#dc2626',
+                  color: 'white',
+                  border: '2px solid white',
+                  borderRadius: '50%',
+                  width: '28px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  zIndex: 10
+                }}
+                title="Remove current image"
+                onMouseOver={(e) => {
+                  e.target.style.background = '#b91c1c';
+                  e.target.style.transform = 'scale(1.1)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = '#dc2626';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                ×
+              </button>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Current image</p>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, image: '' }))}
+                  style={{
+                    background: '#dc2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                  onMouseOver={(e) => e.target.style.background = '#b91c1c'}
+                  onMouseOut={(e) => e.target.style.background = '#dc2626'}
+                >
+                  DELETE IMAGE
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 8, padding: 8, backgroundColor: '#f9fafb', border: '1px solid #d1d5db', borderRadius: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', color: '#6b7280' }}>
+                <div style={{ width: '64px', height: '48px', backgroundColor: '#e5e7eb', border: '1px solid #d1d5db', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                  <span style={{ fontSize: '10px', color: '#6b7280' }}>No Image</span>
+                </div>
+                <div>
+                  <p style={{ fontSize: '12px', fontWeight: 'bold', margin: 0 }}>No image set</p>
+                  <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Upload an image below to add one</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -845,9 +944,28 @@ function EditEventForm({ event, onSave, onCancel }) {
         />
         {uploadedImage && (
           <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', color: '#0c4a6e' }}>
-              <CheckCircle style={{ width: 16, height: 16, marginRight: 8 }} />
-              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>New image uploaded!</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', color: '#0c4a6e' }}>
+                <CheckCircle style={{ width: 16, height: 16, marginRight: 8 }} />
+                <span style={{ fontSize: '14px', fontWeight: 'bold' }}>New image uploaded!</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUploadedImage(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#dc2626',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <X style={{ width: 14, height: 14, marginRight: 4 }} />
+                Remove
+              </button>
             </div>
             <p style={{ fontSize: '12px', color: '#0c4a6e', marginTop: 4 }}>This image will replace the current one.</p>
           </div>
