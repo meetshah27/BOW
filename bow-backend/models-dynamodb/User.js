@@ -162,6 +162,71 @@ class User {
       throw error;
     }
   }
+
+  // Count all users
+  static async countDocuments(filter = {}) {
+    const command = new ScanCommand({
+      TableName: TABLES.USERS,
+      Select: 'COUNT'
+    });
+
+    try {
+      const result = await docClient.send(command);
+      return result.Count || 0;
+    } catch (error) {
+      console.error('Error counting users:', error);
+      throw error;
+    }
+  }
+
+  // Count users with filter (simplified version for common use cases)
+  static async countDocumentsWithFilter(filter = {}) {
+    let filterExpression = '';
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    // Handle common filter cases
+    if (filter.isActive !== undefined) {
+      filterExpression += '#isActive = :isActive';
+      expressionAttributeNames['#isActive'] = 'isActive';
+      expressionAttributeValues[':isActive'] = filter.isActive;
+    }
+
+    if (filter.role) {
+      if (filterExpression) filterExpression += ' AND ';
+      filterExpression += '#role = :role';
+      expressionAttributeNames['#role'] = 'role';
+      expressionAttributeValues[':role'] = filter.role;
+    }
+
+    if (filter.createdAt && filter.createdAt.$gte) {
+      if (filterExpression) filterExpression += ' AND ';
+      filterExpression += '#createdAt >= :createdAt';
+      expressionAttributeNames['#createdAt'] = 'createdAt';
+      expressionAttributeValues[':createdAt'] = filter.createdAt.$gte;
+    }
+
+    const scanParams = {
+      TableName: TABLES.USERS,
+      Select: 'COUNT'
+    };
+
+    if (filterExpression) {
+      scanParams.FilterExpression = filterExpression;
+      scanParams.ExpressionAttributeNames = expressionAttributeNames;
+      scanParams.ExpressionAttributeValues = expressionAttributeValues;
+    }
+
+    const command = new ScanCommand(scanParams);
+
+    try {
+      const result = await docClient.send(command);
+      return result.Count || 0;
+    } catch (error) {
+      console.error('Error counting users with filter:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = User; 

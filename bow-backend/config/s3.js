@@ -81,7 +81,7 @@ const uploadToS3 = async (file, folder) => {
       Key: fileName,
       Body: file.buffer,
       ContentType: file.mimetype,
-      ACL: 'public-read', // Make files publicly accessible
+      // Removed ACL parameter since bucket has ACLs disabled
       Metadata: {
         originalName: file.originalname,
         uploadedBy: 'bow-application',

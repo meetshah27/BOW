@@ -219,9 +219,9 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4 my-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Volunteer Application
-            </h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Volunteer Application
+          </h2>
             <p className="text-sm text-gray-600 mt-1">
               Applying for: <span className="font-medium text-primary-600">{opportunity.title}</span>
             </p>
