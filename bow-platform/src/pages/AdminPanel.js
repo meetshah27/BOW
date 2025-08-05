@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
 import StoriesManagement from '../components/admin/StoriesManagement';
+import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // SimpleModal component for modals
 function SimpleModal({ open, onClose, children }) {
@@ -254,7 +255,7 @@ const EventManagement = () => {
         title: "Sample Event - Edit Me",
         description: "This is a placeholder event. Please edit the details to create your actual event.",
         longDescription: "This is a sample event created as a placeholder. You can edit all the details including the title, description, date, location, and other information to match your actual event requirements.\n\nTo customize this event:\n• Change the title to your event name\n• Update the description with your event details\n• Set the correct date and time\n• Add the actual location and address\n• Update contact information\n• Add relevant tags\n• Upload a proper event image",
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+        date: getFutureDateString(7), // 7 days from now
         time: "18:00",
         location: "Sample Location",
         address: "123 Sample Street, Seattle, WA 98101",
@@ -1253,12 +1254,8 @@ const GalleryManager = () => {
     setShowUploadModal(true);
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
+  const formatDateLocal = (dateString) => {
+    return formatDate(dateString, 'short');
   };
 
   return (
@@ -1358,7 +1355,7 @@ const GalleryManager = () => {
                   <span className="bg-gray-100 px-2 py-1 rounded">
                     {item.album || 'General'}
                   </span>
-                  <span>{formatDate(item.createdAt)}</span>
+                  <span>{formatDateLocal(item.createdAt)}</span>
                 </div>
               </div>
             </div>
