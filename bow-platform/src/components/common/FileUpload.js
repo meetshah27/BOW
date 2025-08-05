@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../config/api';
 
 const FileUpload = ({ 
   onUpload, 
@@ -30,10 +31,7 @@ const FileUpload = ({
         formData.append('file', file);
         formData.append('folder', folder);
 
-        const response = await fetch('http://localhost:3000/api/upload/single', {
-          method: 'POST',
-          body: formData,
-        });
+        const response = await api.upload('/upload/single', formData);
 
         if (!response.ok) {
           throw new Error(`Failed to upload ${file.name}`);
@@ -71,9 +69,7 @@ const FileUpload = ({
     try {
       if (fileData.fileName) {
         // Delete from S3
-        const response = await fetch(`http://localhost:3000/api/upload/${fileData.fileName}`, {
-          method: 'DELETE',
-        });
+        const response = await api.delete(`/upload/${fileData.fileName}`);
 
         if (!response.ok) {
           console.warn('Failed to delete file from S3');
