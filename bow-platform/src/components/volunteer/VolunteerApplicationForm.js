@@ -160,11 +160,11 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/volunteers/apply', {
+      const response = await fetch('/api/volunteers/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          opportunityId: opportunity.id.toString(),
+          opportunityId: opportunity.opportunityId || opportunity.id,
           opportunityTitle: opportunity.title,
           opportunityCategory: opportunity.category,
           ...formData,

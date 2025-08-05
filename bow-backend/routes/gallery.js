@@ -47,8 +47,9 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     await Gallery.delete(req.params.id);
-    res.json({ message: 'Image deleted' });
+    res.json({ message: 'Image deleted successfully from database and S3' });
   } catch (error) {
+    console.error('Gallery delete error:', error);
     res.status(500).json({ message: 'Failed to delete image' });
   }
 });

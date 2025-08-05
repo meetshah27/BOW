@@ -11,7 +11,8 @@ import {
   MapPin,
   Star,
   Filter,
-  Search
+  Search,
+  Download
 } from 'lucide-react';
 
 const VolunteerManagement = () => {
@@ -99,6 +100,55 @@ const VolunteerManagement = () => {
     updateApplicationStatus(application, status);
   };
 
+  const handleExportCSV = async () => {
+    try {
+      console.log('🔄 Starting CSV export...');
+      const response = await fetch('/api/volunteers/export-csv');
+      
+      console.log(`📊 Response status: ${response.status}`);
+      console.log(`📊 Response ok: ${response.ok}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        console.log(`📄 Blob size: ${blob.size} bytes`);
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `volunteer-applications-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        // Show success message
+        setSuccessMessage('CSV file exported successfully!');
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setSuccessMessage('');
+        }, 3000);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Failed to export CSV:', response.status, errorText);
+        setSuccessMessage(`Failed to export CSV: ${response.status} - ${errorText}`);
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setSuccessMessage('');
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('❌ Error exporting CSV:', error);
+      setSuccessMessage(`Network error: ${error.message}`);
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        setSuccessMessage('');
+      }, 5000);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
@@ -160,12 +210,13 @@ const VolunteerManagement = () => {
           <div className="text-sm text-gray-600">
             {applications.length} total applications
           </div>
-          {/* Showcase Enable/Disable Button */}
+          {/* CSV Export Button */}
           <button
-            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
-            disabled
+            onClick={handleExportCSV}
+            className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2"
           >
-            Enable/Disable Volunteer Opportunities
+            <Download className="w-4 h-4" />
+            <span>Export CSV</span>
           </button>
         </div>
       </div>

@@ -3,6 +3,73 @@ const router = express.Router();
 const verifyCognito = require('../middleware/verifyCognito');
 const syncUserToDynamoDB = require('../middleware/syncUserToDynamoDB');
 
+// CSV export functionality
+const createCSV = (applications) => {
+  const headers = [
+    'Application ID',
+    'Applicant Name',
+    'Applicant Email',
+    'Applicant Phone',
+    'Applicant Age',
+    'Opportunity Title',
+    'Opportunity Category',
+    'Status',
+    'Application Date',
+    'Time Commitment',
+    'Experience',
+    'Skills',
+    'Motivation',
+    'Availability',
+    'Emergency Contact Name',
+    'Emergency Contact Phone',
+    'Emergency Contact Relationship',
+    'Review Notes',
+    'Review Date'
+  ];
+
+  const csvRows = [headers.join(',')];
+
+  applications.forEach(app => {
+    // Helper function to safely convert any value to string and escape quotes
+    const safeString = (value) => {
+      if (value === null || value === undefined) return '';
+      if (Array.isArray(value)) return value.join(', ');
+      return String(value);
+    };
+
+    // Helper function to safely escape and quote CSV values
+    const csvValue = (value) => {
+      const str = safeString(value);
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
+    const row = [
+      app.id || app._id || '',
+      csvValue(app.applicantName),
+      app.applicantEmail || '',
+      app.applicantPhone || '',
+      app.applicantAge || '',
+      csvValue(app.opportunityTitle),
+      app.opportunityCategory || '',
+      app.status || '',
+      app.applicationDate ? new Date(app.applicationDate).toISOString().split('T')[0] : '',
+      csvValue(app.timeCommitment),
+      csvValue(app.experience),
+      csvValue(app.skills),
+      csvValue(app.motivation),
+      csvValue(app.availability),
+      csvValue(app.emergencyContact?.name),
+      app.emergencyContact?.phone || '',
+      csvValue(app.emergencyContact?.relationship),
+      csvValue(app.reviewNotes),
+      app.reviewDate ? new Date(app.reviewDate).toISOString().split('T')[0] : ''
+    ];
+    csvRows.push(row.join(','));
+  });
+
+  return csvRows.join('\n');
+};
+
 // Try to use DynamoDB Volunteer model, fallback to sample data if not available
 let Volunteer;
 try {
@@ -386,6 +453,49 @@ router.get('/opportunities/:opportunityId/applications', async (req, res) => {
   } catch (error) {
     console.error('Error fetching applications for opportunity:', error);
     res.status(500).json({ error: 'Failed to fetch applications' });
+  }
+});
+
+// Export volunteer applications to CSV
+router.get('/export-csv', async (req, res) => {
+  try {
+    console.log('🔄 CSV Export Request Received');
+    
+    let applications;
+    
+    if (Volunteer) {
+      console.log('📊 Using DynamoDB Volunteer model');
+      applications = await Volunteer.findAll();
+      console.log(`📊 Found ${applications.length} applications from DynamoDB`);
+    } else {
+      console.log('📊 Using sample data (DynamoDB not available)');
+      applications = sampleApplications;
+      console.log(`📊 Using ${applications.length} sample applications`);
+    }
+
+    if (!applications || applications.length === 0) {
+      console.log('❌ No applications found to export');
+      return res.status(404).json({ error: 'No applications found to export' });
+    }
+
+    console.log('📄 Generating CSV content...');
+    const csvContent = createCSV(applications);
+    console.log(`📄 CSV content generated: ${csvContent.length} characters`);
+    
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `volunteer-applications-${timestamp}.csv`;
+    
+    console.log(`📄 Setting headers for file: ${filename}`);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    console.log('📄 Sending CSV response...');
+    res.send(csvContent);
+    console.log('✅ CSV export completed successfully');
+
+  } catch (error) {
+    console.error('❌ Error exporting volunteer applications to CSV:', error);
+    res.status(500).json({ error: 'Failed to export applications to CSV' });
   }
 });
 
