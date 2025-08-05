@@ -12,6 +12,7 @@ import {
   Star,
   Tag
 } from 'lucide-react';
+import { formatDate, parseDateString, isFuture } from '../utils/dateUtils';
 
 // Fallback events data
 const FALLBACK_EVENTS = [
@@ -134,14 +135,8 @@ const EventsPage = () => {
     return matchesSearch && matchesCategory && matchesDate;
   });
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+  const formatDateLocal = (dateString) => {
+    return formatDate(dateString, 'full');
   };
 
   const getRegistrationStatus = (event) => {
@@ -304,7 +299,7 @@ const EventsPage = () => {
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center text-gray-600">
                             <Calendar className="w-4 h-4 mr-2" />
-                            {formatDate(event.date)}
+                            {formatDateLocal(event.date)}
                           </div>
                           <div className="flex items-center text-gray-600">
                             <Clock className="w-4 h-4 mr-2" />

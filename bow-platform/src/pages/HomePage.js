@@ -11,6 +11,7 @@ import {
   MapPin,
   Clock
 } from 'lucide-react';
+import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 
 
 // CountUpNumber component with Intersection Observer
@@ -150,21 +151,21 @@ const HomePage = () => {
   }, []);
 
   // Find the nearest (soonest) live event by date, only if date is today or in the future
-  const now = new Date();
-  now.setHours(0,0,0,0);
   const liveEvents = events.filter(e => {
     if (!e.isLive || !e.date) return false;
-    const eventDate = new Date(e.date);
-    eventDate.setHours(0,0,0,0);
-    return eventDate >= now;
+    return isFuture(e.date) || parseDateString(e.date)?.getTime() === parseDateString(new Date())?.getTime();
   });
-  liveEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+  liveEvents.sort((a, b) => {
+    const dateA = parseDateString(a.date);
+    const dateB = parseDateString(b.date);
+    return dateA - dateB;
+  });
   const liveEvent = liveEvents[0];
 
   // DEBUG: Log the live event date and parsed date
   if (typeof window !== 'undefined' && liveEvent && liveEvent.date) {
     // eslint-disable-next-line no-console
-    console.log('Live Event Date:', liveEvent.date, 'Parsed:', new Date(liveEvent.date));
+    console.log('Live Event Date:', liveEvent.date, 'Parsed:', parseDateString(liveEvent.date));
   }
 
   const stats = [
