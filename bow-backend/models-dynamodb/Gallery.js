@@ -1,5 +1,6 @@
 const { PutCommand, GetCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { docClient, TABLES } = require('../config/dynamodb');
+const { deleteFromS3 } = require('../config/s3');
 const { v4: uuidv4 } = require('uuid');
 
 class Gallery {
@@ -58,9 +59,37 @@ class Gallery {
   }
 
   static async delete(id) {
-    const command = new DeleteCommand({ TableName: TABLES.GALLERY, Key: { id } });
-    await docClient.send(command);
-    return true;
+    try {
+      // First, get the image to find the S3 file path
+      const image = await this.findById(id);
+      if (!image) {
+        throw new Error('Image not found');
+      }
+
+      // Delete from DynamoDB
+      const command = new DeleteCommand({ TableName: TABLES.GALLERY, Key: { id } });
+      await docClient.send(command);
+
+      // Delete from S3 if imageUrl exists
+      if (image.imageUrl) {
+        try {
+          // Extract the file path from the S3 URL
+          const url = new URL(image.imageUrl);
+          const filePath = url.pathname.substring(1); // Remove leading slash
+          
+          await deleteFromS3(filePath);
+          console.log(`✅ S3 file deleted: ${filePath}`);
+        } catch (s3Error) {
+          console.error('⚠️ S3 deletion failed:', s3Error.message);
+          // Don't throw error here, as DynamoDB deletion was successful
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Gallery delete error:', error);
+      throw error;
+    }
   }
 }
 

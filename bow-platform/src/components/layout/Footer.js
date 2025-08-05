@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const footerLinks = {
     organization: [
@@ -68,6 +71,47 @@ const Footer = () => {
       )
     }
   ];
+
+  const handleNewsletterSubscribe = async (e) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setIsSubscribing(true);
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || 'Successfully subscribed to newsletter!');
+        setEmail('');
+      } else {
+        toast.error(data.message || 'Failed to subscribe to newsletter');
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      toast.error('Failed to subscribe. Please try again later.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -182,16 +226,23 @@ const Footer = () => {
             {/* Newsletter Signup */}
             <div className="flex items-center space-x-4">
               <span className="text-gray-300 font-medium">Stay updated:</span>
-              <div className="flex">
+              <form onSubmit={handleNewsletterSubscribe} className="flex">
                 <input
                   type="email"
                   placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={isSubscribing}
                 />
-                <button className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-lg transition-colors duration-200">
-                  Subscribe
+                <button 
+                  type="submit"
+                  disabled={isSubscribing}
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-r-lg transition-colors duration-200"
+                >
+                  {isSubscribing ? 'Subscribing...' : 'Subscribe'}
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>

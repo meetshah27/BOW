@@ -14,6 +14,9 @@ const eventsRouter = require('./routes/events');
 const volunteersRouter = require('./routes/volunteers');
 const storiesRouter = require('./routes/stories');
 const galleryRouter = require('./routes/gallery');
+const newsletterRouter = require('./routes/newsletter');
+const newsletterCampaignRouter = require('./routes/newsletter-campaigns');
+const volunteerOpportunitiesRouter = require('./routes/volunteer-opportunities');
 
 const app = express();
 
@@ -48,7 +51,9 @@ app.use(logger('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve only essential static files (not uploaded content)
+app.use('/sponsors', express.static(path.join(__dirname, 'public/sponsors')));
+app.use('/favicon.ico', express.static(path.join(__dirname, 'public/favicon.ico')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -67,6 +72,9 @@ app.use('/api/events', eventsRouter);
 app.use('/api/volunteers', volunteersRouter);
 app.use('/api/stories', storiesRouter);
 app.use('/api/gallery', galleryRouter);
+app.use('/api/newsletter', newsletterRouter);
+app.use('/api/newsletter', newsletterCampaignRouter);
+app.use('/api/volunteer-opportunities', volunteerOpportunitiesRouter);
 app.use('/api/upload', require('./routes/upload'));
 
 // Handle missing sponsor images gracefully

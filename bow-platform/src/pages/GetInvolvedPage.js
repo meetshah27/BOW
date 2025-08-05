@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { 
@@ -23,8 +23,30 @@ const GetInvolvedPage = () => {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
+  const [volunteerOpportunities, setVolunteerOpportunities] = useState([]);
+  const [loadingOpportunities, setLoadingOpportunities] = useState(true);
 
-  const volunteerOpportunities = [
+  // Fetch volunteer opportunities from API
+  useEffect(() => {
+    const fetchOpportunities = async () => {
+      try {
+        const response = await fetch('/api/volunteer-opportunities/opportunities/active');
+        if (response.ok) {
+          const data = await response.json();
+          setVolunteerOpportunities(data.opportunities);
+        }
+      } catch (error) {
+        console.error('Error fetching volunteer opportunities:', error);
+      } finally {
+        setLoadingOpportunities(false);
+      }
+    };
+
+    fetchOpportunities();
+  }, []);
+
+  // Fallback opportunities if API fails
+  const fallbackOpportunities = [
     {
       id: 1,
       title: "Event Coordinator",
@@ -278,8 +300,20 @@ const GetInvolvedPage = () => {
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8">
-                  {volunteerOpportunities.map((opportunity) => (
-                    <div key={opportunity.id} className="bg-white rounded-xl shadow-lg p-8">
+                  {loadingOpportunities ? (
+                    // Loading skeleton
+                    Array.from({ length: 4 }).map((_, index) => (
+                      <div key={index} className="bg-white rounded-xl shadow-lg p-8 animate-pulse">
+                        <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded mb-6"></div>
+                        <div className="h-20 bg-gray-200 rounded mb-6"></div>
+                        <div className="h-8 bg-gray-200 rounded"></div>
+                      </div>
+                    ))
+                  ) : volunteerOpportunities.length > 0 ? (
+                    volunteerOpportunities.map((opportunity) => (
+                      <div key={opportunity.opportunityId} className="bg-white rounded-xl shadow-lg p-8">
                       <div className="flex items-start justify-between mb-4">
                         <h4 className="text-xl font-semibold text-gray-900">
                           {opportunity.title}
@@ -342,7 +376,14 @@ const GetInvolvedPage = () => {
                         </button>
                       </div>
                     </div>
-                  ))}
+                  ))
+                  ) : (
+                    <div className="col-span-2 text-center py-12">
+                      <Users className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">No Volunteer Opportunities</h4>
+                      <p className="text-gray-600">Check back soon for new volunteer opportunities!</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

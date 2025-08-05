@@ -33,10 +33,13 @@ import {
   UserPlus,
   Ticket,
   Clock,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
+import VolunteerOpportunityManager from '../components/admin/VolunteerOpportunityManager';
 import StoriesManagement from '../components/admin/StoriesManagement';
+import NewsletterManagement from '../components/admin/NewsletterManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // SimpleModal component for modals
@@ -1214,12 +1217,12 @@ const GalleryManager = () => {
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm(`Are you sure you want to delete "${item.title}"? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to delete "${item.title}"? This will permanently remove the item and its media from S3.`)) {
       try {
         const response = await api.delete(`/gallery/${item.id}`);
         if (!response.ok) throw new Error('Failed to delete gallery item');
         
-        toast.success('Gallery item deleted successfully!');
+        toast.success('Gallery item deleted successfully from database and S3!');
         fetchGalleryItems(); // Refresh the list
       } catch (err) {
         toast.error('Error deleting gallery item: ' + err.message);
@@ -1228,7 +1231,7 @@ const GalleryManager = () => {
   };
 
   const handleRemoveImage = async (item) => {
-    if (window.confirm(`Are you sure you want to remove the image from "${item.title}"?`)) {
+    if (window.confirm(`Are you sure you want to remove the image from "${item.title}"? This will delete the media file from S3.`)) {
       try {
         const response = await api.put(`/gallery/${item.id}`, {
           ...item,
@@ -1236,7 +1239,7 @@ const GalleryManager = () => {
         });
         if (!response.ok) throw new Error('Failed to remove image');
         
-        toast.success('Image removed successfully!');
+        toast.success('Image removed successfully from S3!');
         fetchGalleryItems(); // Refresh the list
       } catch (err) {
         toast.error('Error removing image: ' + err.message);
@@ -2330,6 +2333,8 @@ const AdminPanel = () => {
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Volunteers', href: '/admin/volunteers', icon: Users },
+    { name: 'Volunteer Opportunities', href: '/admin/volunteer-opportunities', icon: Users },
+    { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
     { name: 'Gallery', href: '/admin/gallery', icon: Image },
     { name: 'Stories', href: '/admin/stories', icon: MessageSquare },
     { name: 'Donations', href: '/admin/donations', icon: CreditCard },
@@ -2346,6 +2351,10 @@ const AdminPanel = () => {
         return <UserManagement />;
       case 'volunteers':
         return <VolunteerManagement />;
+      case 'volunteer opportunities':
+        return <VolunteerOpportunityManager />;
+      case 'newsletter':
+        return <NewsletterManagement />;
       case 'events':
         return <EventManagement />;
       case 'registrations':
