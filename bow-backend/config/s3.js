@@ -5,7 +5,7 @@ const path = require('path');
 
 // S3 Configuration
 const s3Config = {
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.AWS_REGION || 'us-west-2', // Updated to us-west-2
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -18,7 +18,7 @@ const s3Client = new S3Client(s3Config);
 // S3 bucket configuration
 const S3_CONFIG = {
   BUCKET_NAME: process.env.S3_BUCKET_NAME || 'bow-media-bucket',
-  REGION: process.env.AWS_REGION || 'us-east-1',
+  REGION: process.env.AWS_REGION || 'us-west-2', // Updated to us-west-2
   FOLDERS: {
     EVENTS: 'events',
     GALLERY: 'gallery',
