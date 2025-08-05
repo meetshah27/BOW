@@ -3,6 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/common/FileUpload';
+import ImagePlaceholder from '../components/common/ImagePlaceholder';
+import api from '../config/api';
 
 import { 
   Users, 
@@ -1086,17 +1088,54 @@ const UserManagement = () => {
 };
 
 const GalleryManager = () => {
-  const [albums] = useState([
-    { id: 1, name: 'Diwali 2024', count: 45, date: '2024-11-15' },
-    { id: 2, name: 'Youth Fest', count: 32, date: '2024-10-20' },
-    { id: 3, name: 'Community Drum Circle', count: 28, date: '2024-09-15' }
-  ]);
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [uploadedMedia, setUploadedMedia] = useState([]);
   const [mediaData, setMediaData] = useState({
     title: '',
     description: '',
     album: ''
+  });
+  const [editData, setEditData] = useState({
+    title: '',
+    description: '',
+    album: ''
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAlbum, setSelectedAlbum] = useState('all');
+
+  // Fetch gallery items
+  const fetchGalleryItems = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/gallery');
+      if (!response.ok) throw new Error('Failed to fetch gallery items');
+      const data = await response.json();
+      setGalleryItems(data);
+    } catch (err) {
+      toast.error('Error fetching gallery items: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGalleryItems();
+  }, []);
+
+  // Get unique albums for filtering
+  const albums = ['all', ...new Set(galleryItems.map(item => item.album).filter(Boolean))];
+
+  // Filter items based on search and album
+  const filteredItems = galleryItems.filter(item => {
+    const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.album?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesAlbum = selectedAlbum === 'all' || item.album === selectedAlbum;
+    return matchesSearch && matchesAlbum;
   });
 
   const handleMediaUpload = (fileData) => {
@@ -1109,30 +1148,117 @@ const GalleryManager = () => {
 
   const handleSaveGallery = async () => {
     try {
-      // Save media data to gallery database
-      for (const media of uploadedMedia) {
-        const response = await fetch('http://localhost:3000/api/gallery', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      if (selectedItem && uploadedMedia.length > 0) {
+        // Replacing existing item
+        const media = uploadedMedia[0]; // Take first uploaded file
+        const response = await api.put(`/gallery/${selectedItem.id}`, {
+          title: mediaData.title || selectedItem.title,
+          description: mediaData.description || selectedItem.description,
+          album: mediaData.album || selectedItem.album,
+          imageUrl: media.fileUrl,
+          type: media.mimetype.startsWith('image/') ? 'image' : 'video'
+        });
+
+        if (!response.ok) throw new Error('Failed to update gallery item');
+        toast.success('Gallery item updated successfully!');
+      } else {
+        // Creating new items
+        for (const media of uploadedMedia) {
+          const response = await api.post('/gallery', {
             title: mediaData.title || media.originalName,
             description: mediaData.description || '',
             album: mediaData.album || 'General',
             imageUrl: media.fileUrl,
             type: media.mimetype.startsWith('image/') ? 'image' : 'video'
-          })
-        });
+          });
 
-        if (!response.ok) throw new Error('Failed to save media data');
+          if (!response.ok) throw new Error('Failed to save media data');
+        }
+        toast.success('Gallery media saved successfully!');
       }
       
-      toast.success('Gallery media saved successfully!');
       setShowUploadModal(false);
       setUploadedMedia([]);
       setMediaData({ title: '', description: '', album: '' });
+      setSelectedItem(null);
+      fetchGalleryItems(); // Refresh the list
     } catch (err) {
       toast.error('Error saving gallery media: ' + err.message);
     }
+  };
+
+  const handleEdit = (item) => {
+    setSelectedItem(item);
+    setEditData({
+      title: item.title || '',
+      description: item.description || '',
+      album: item.album || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const response = await api.put(`/gallery/${selectedItem.id}`, editData);
+      if (!response.ok) throw new Error('Failed to update gallery item');
+      
+      toast.success('Gallery item updated successfully!');
+      setShowEditModal(false);
+      setSelectedItem(null);
+      setEditData({ title: '', description: '', album: '' });
+      fetchGalleryItems(); // Refresh the list
+    } catch (err) {
+      toast.error('Error updating gallery item: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (item) => {
+    if (window.confirm(`Are you sure you want to delete "${item.title}"? This action cannot be undone.`)) {
+      try {
+        const response = await api.delete(`/gallery/${item.id}`);
+        if (!response.ok) throw new Error('Failed to delete gallery item');
+        
+        toast.success('Gallery item deleted successfully!');
+        fetchGalleryItems(); // Refresh the list
+      } catch (err) {
+        toast.error('Error deleting gallery item: ' + err.message);
+      }
+    }
+  };
+
+  const handleRemoveImage = async (item) => {
+    if (window.confirm(`Are you sure you want to remove the image from "${item.title}"?`)) {
+      try {
+        const response = await api.put(`/gallery/${item.id}`, {
+          ...item,
+          imageUrl: null
+        });
+        if (!response.ok) throw new Error('Failed to remove image');
+        
+        toast.success('Image removed successfully!');
+        fetchGalleryItems(); // Refresh the list
+      } catch (err) {
+        toast.error('Error removing image: ' + err.message);
+      }
+    }
+  };
+
+  const handleReplaceImage = (item) => {
+    setSelectedItem(item);
+    setEditData({
+      title: item.title || '',
+      description: item.description || '',
+      album: item.album || ''
+    });
+    setShowUploadModal(true);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
   };
 
   return (
@@ -1145,11 +1271,133 @@ const GalleryManager = () => {
         </button>
       </div>
 
+      {/* Search and Filter */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="md:col-span-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search gallery items..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div>
+          <select
+            value={selectedAlbum}
+            onChange={(e) => setSelectedAlbum(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            {albums.map(album => (
+              <option key={album} value={album}>
+                {album === 'all' ? 'All Albums' : album}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Gallery Items Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading gallery items...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredItems.map(item => (
+            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="relative">
+                <ImagePlaceholder
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-48 object-cover"
+                  showActions={true}
+                  onRemove={() => handleRemoveImage(item)}
+                  onReplace={() => handleReplaceImage(item)}
+                >
+                  <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                    {item.imageUrl?.includes('.mp4') || item.imageUrl?.includes('.mov') || item.imageUrl?.includes('.avi') ? 'Video' : 'Image'}
+                  </div>
+                </ImagePlaceholder>
+              </div>
+              
+              <div className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate flex-1 mr-2">
+                    {item.title || 'Untitled'}
+                  </h3>
+                  <div className="flex space-x-1">
+                    <button 
+                      onClick={() => handleEdit(item)}
+                      className="text-blue-600 hover:text-blue-900 p-1"
+                      title="Edit"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item)}
+                      className="text-red-600 hover:text-red-900 p-1"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                  {item.description || 'No description'}
+                </p>
+                
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className="bg-gray-100 px-2 py-1 rounded">
+                    {item.album || 'General'}
+                  </span>
+                  <span>{formatDate(item.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && filteredItems.length === 0 && (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Image className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Gallery Items Found</h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm || selectedAlbum !== 'all'
+                ? 'No items match your current filters.'
+                : 'No images or videos have been uploaded to the gallery yet.'
+              }
+            </p>
+            <button 
+              onClick={() => setShowUploadModal(true)}
+              className="btn-primary"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload First Item
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg px-4 py-2 inline-block">Upload Gallery Media</h3>
+            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg px-4 py-2 inline-block">
+              {selectedItem ? 'Replace Gallery Media' : 'Upload Gallery Media'}
+            </h3>
             
             <div className="space-y-6">
               {/* Media Upload */}
@@ -1213,6 +1461,7 @@ const GalleryManager = () => {
                   setShowUploadModal(false);
                   setUploadedMedia([]);
                   setMediaData({ title: '', description: '', album: '' });
+                  setSelectedItem(null);
                 }}>Cancel</button>
                 <button 
                   type="button" 
@@ -1220,7 +1469,7 @@ const GalleryManager = () => {
                   onClick={handleSaveGallery}
                   disabled={uploadedMedia.length === 0}
                 >
-                  Save to Gallery ({uploadedMedia.length} files)
+                  {selectedItem ? 'Replace Media' : `Save to Gallery (${uploadedMedia.length} files)`}
                 </button>
               </div>
             </div>
@@ -1228,25 +1477,80 @@ const GalleryManager = () => {
         </div>
       )}
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {albums.map(album => (
-          <div key={album.id} className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{album.name}</h3>
-              <div className="flex space-x-2">
-                <button className="text-blue-600 hover:text-blue-900">
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button className="text-red-600 hover:text-red-900">
-                  <Trash2 className="w-4 h-4" />
+      {/* Edit Modal */}
+      {showEditModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg px-4 py-2 inline-block">Edit Gallery Item</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Title</label>
+                <input 
+                  type="text" 
+                  className="w-full border rounded px-3 py-2" 
+                  value={editData.title} 
+                  onChange={e => setEditData({ ...editData, title: e.target.value })} 
+                  placeholder="Enter title"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Album</label>
+                <input 
+                  type="text" 
+                  className="w-full border rounded px-3 py-2" 
+                  value={editData.album} 
+                  onChange={e => setEditData({ ...editData, album: e.target.value })} 
+                  placeholder="Enter album name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <textarea 
+                  className="w-full border rounded px-3 py-2" 
+                  rows="3"
+                  value={editData.description} 
+                  onChange={e => setEditData({ ...editData, description: e.target.value })} 
+                  placeholder="Enter description"
+                />
+              </div>
+
+              {/* Preview */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Preview</label>
+                <div className="border rounded p-3 bg-gray-50">
+                  <ImagePlaceholder
+                    src={selectedItem.imageUrl}
+                    alt={selectedItem.title}
+                    className="w-full h-32 object-cover rounded mb-2"
+                    placeholderClassName="w-full h-32 bg-gray-100 flex items-center justify-center rounded mb-2"
+                  />
+                  <p className="text-sm text-gray-600">
+                    <strong>Current URL:</strong> {selectedItem.imageUrl || 'No image'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 pt-4 border-t">
+                <button type="button" className="btn-outline flex-1" onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedItem(null);
+                  setEditData({ title: '', description: '', album: '' });
+                }}>Cancel</button>
+                <button 
+                  type="button" 
+                  className="btn-primary flex-1" 
+                  onClick={handleSaveEdit}
+                >
+                  Save Changes
                 </button>
               </div>
             </div>
-            <p className="text-gray-600 mb-4">{album.count} items</p>
-            <p className="text-sm text-gray-500">{album.date}</p>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1259,6 +1563,7 @@ const DonationsManagement = () => {
     monthlyStats: []
   });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchDonations();
@@ -1267,7 +1572,7 @@ const DonationsManagement = () => {
 
   const fetchDonations = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/payment/donations?limit=10');
+      const response = await api.get('/payment/donations?limit=100');
       if (response.ok) {
         const data = await response.json();
         setDonations(data.donations);
@@ -1279,7 +1584,7 @@ const DonationsManagement = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/payment/donations/stats');
+      const response = await api.get('/payment/donations/stats');
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -1291,13 +1596,69 @@ const DonationsManagement = () => {
     }
   };
 
+  const exportDonations = async () => {
+    if (exporting) return;
+    
+    setExporting(true);
+    try {
+      // Fetch all donations for export (not just the limited view)
+      const response = await api.get('/payment/donations?limit=1000');
+      if (response.ok) {
+        const data = await response.json();
+        const allDonations = data.donations || donations;
+        
+        const csvContent = [
+          ['Donor Name', 'Donor Email', 'Amount ($)', 'Status', 'Date', 'Transaction ID'],
+          ...allDonations.map(donation => [
+            donation.donorName || 'Anonymous',
+            donation.donorEmail || 'N/A',
+            (donation.amount / 100).toFixed(2),
+            donation.status,
+            new Date(donation.createdAt).toLocaleDateString(),
+            donation.paymentIntentId || 'N/A'
+          ])
+        ].map(row => row.join(',')).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `donations-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('Donations report exported successfully!');
+      } else {
+        toast.error('Failed to fetch donations for export');
+      }
+    } catch (error) {
+      console.error('Error exporting donations:', error);
+      toast.error('Failed to export donations report');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Donations & Payment Logs</h2>
-        <button className="btn-outline">
-          <Download className="w-4 h-4 mr-2" />
-          Export Report
+        <button 
+          onClick={exportDonations}
+          disabled={exporting}
+          className="btn-outline"
+        >
+          {exporting ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+              Exporting...
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              Export Report
+            </>
+          )}
         </button>
       </div>
 

@@ -18,6 +18,8 @@ import {
   Loader
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ImagePlaceholder from '../components/common/ImagePlaceholder';
+import api from '../config/api';
 
 const GalleryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -43,7 +45,7 @@ const GalleryPage = () => {
     const fetchGalleryItems = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/gallery');
+        const response = await api.get('/gallery');
         if (!response.ok) {
           throw new Error('Failed to fetch gallery items');
         }
@@ -345,10 +347,11 @@ const GalleryPage = () => {
               {filteredItems.map((item) => (
               <div key={item.id} className="card group cursor-pointer" onClick={() => openModal(item)}>
                 <div className="relative overflow-hidden rounded-t-xl">
-                  <img
+                  <ImagePlaceholder
                     src={item.thumbnail}
                     alt={item.title}
                     className="w-full h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
+                    placeholderClassName="w-full h-48 bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
                   />
                   
                   {/* Media Type Badge */}
@@ -484,10 +487,11 @@ const GalleryPage = () => {
                     className="w-full h-96 object-cover rounded-t-2xl"
                   />
                 ) : (
-                  <img
+                  <ImagePlaceholder
                     src={selectedMedia.url}
                     alt={selectedMedia.title}
                     className="w-full h-96 object-contain bg-gray-100 rounded-t-2xl"
+                    placeholderClassName="w-full h-96 bg-gray-100 flex items-center justify-center rounded-t-2xl"
                   />
                 )}
               </div>
