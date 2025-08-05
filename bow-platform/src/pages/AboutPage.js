@@ -12,29 +12,7 @@ import {
 } from 'lucide-react';
 
 const AboutPage = () => {
-  const leadership = [
-    {
-      name: "Dr. Sarah Johnson",
-      role: "Executive Director",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      bio: "Dr. Johnson has over 15 years of experience in community development and music education. She holds a PhD in Community Psychology and has dedicated her career to fostering inclusive communities through the arts.",
-      email: "sarah.johnson@beatsofwashington.org"
-    },
-    {
-      name: "Michael Chen",
-      role: "Program Director",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      bio: "Michael brings 12 years of experience in event planning and community engagement. He specializes in creating accessible music programs for diverse communities.",
-      email: "michael.chen@beatsofwashington.org"
-    },
-    {
-      name: "Maria Rodriguez",
-      role: "Community Outreach Coordinator",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      bio: "Maria has been instrumental in building partnerships with local organizations and expanding BOW's reach to underserved communities across Washington State.",
-      email: "maria.rodriguez@beatsofwashington.org"
-    }
-  ];
+
 
   const boardMembers = [
     {
@@ -236,55 +214,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Leadership Section */}
-      <section id="leadership" className="py-20 bg-gray-50">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Leadership Team
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Meet the dedicated professionals who guide our organization and ensure 
-              we fulfill our mission every day.
-            </p>
-          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {leadership.map((leader, index) => (
-              <div
-                key={index}
-                className="group bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl shadow-xl overflow-hidden border-l-4 border-primary-400 hover:border-secondary-400 transition-all duration-300 hover:-translate-y-2 animate-fade-in"
-              >
-                <div className="relative">
-                  <img
-                    src={leader.image}
-                    alt={leader.name}
-                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-primary-700 mb-1 tracking-tight group-hover:text-secondary-700 transition-colors">
-                    {leader.name}
-                  </h3>
-                  <span className="inline-block bg-primary-100 text-primary-700 font-semibold px-3 py-1 rounded-full text-xs mb-3 group-hover:bg-secondary-100 group-hover:text-secondary-700 transition-colors">
-                    {leader.role}
-                  </span>
-                  <p className="text-gray-700 mb-4 leading-relaxed bg-white/70 rounded-lg p-4 shadow-inner">
-                    {leader.bio}
-                  </p>
-                  <a
-                    href={`mailto:${leader.email}`}
-                    className="text-primary-600 hover:text-secondary-600 font-medium underline underline-offset-2"
-                  >
-                    {leader.email}
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Founders Section */}
       <section id="founders" className="py-20 bg-white">
