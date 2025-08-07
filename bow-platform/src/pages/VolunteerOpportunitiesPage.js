@@ -15,6 +15,7 @@ import {
   Calendar
 } from 'lucide-react';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
+import api from '../config/api';
 
 const VolunteerOpportunitiesPage = () => {
   const [opportunities, setOpportunities] = useState([]);
@@ -30,7 +31,7 @@ const VolunteerOpportunitiesPage = () => {
 
   const fetchOpportunities = async () => {
     try {
-      const response = await fetch('/api/volunteers/opportunities');
+      const response = await api.get('/volunteers/opportunities');
       if (response.ok) {
         const data = await response.json();
         setOpportunities(data);

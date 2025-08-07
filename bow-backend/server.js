@@ -22,8 +22,26 @@ const app = express();
 
 // Enable CORS for all routes
 app.use(cors({
-  origin:'http://localhost:3001',
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin === 'http://localhost:3001' || origin === 'http://localhost:3000') {
+      return callback(null, true);
+    }
+    
+    // Allow Amplify domains
+    if (origin.includes('amplifyapp.com') || origin.includes('amplify.amazonaws.com')) {
+      return callback(null, true);
+    }
+    
+    // Allow any other domains (you can restrict this in production)
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // DynamoDB Configuration

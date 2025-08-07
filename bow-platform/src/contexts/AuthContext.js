@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../config/api';
 
 const AuthContext = createContext();
 
@@ -39,11 +40,7 @@ export const AuthProvider = ({ children }) => {
   const signInWithEmail = async (email, password) => {
     setLoading(true);
     try {
-      const res = await fetch('/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const res = await api.user.post('/users/login', { email, password });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Login failed');
@@ -69,11 +66,7 @@ export const AuthProvider = ({ children }) => {
   const registerWithEmail = async ({ email, password, firstName, lastName, phone }) => {
     setLoading(true);
     try {
-      const res = await fetch('/users/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, firstName, lastName, phone })
-      });
+      const res = await api.user.post('/users/register', { email, password, firstName, lastName, phone });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Registration failed');

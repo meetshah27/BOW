@@ -13,6 +13,7 @@ import {
   Tag
 } from 'lucide-react';
 import { formatDate, parseDateString, isFuture } from '../utils/dateUtils';
+import api from '../config/api';
 
 // Fallback events data
 const FALLBACK_EVENTS = [
@@ -82,7 +83,7 @@ const EventsPage = () => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('http://localhost:3000/api/events');
+        const response = await api.get('/events');
         if (!response.ok) {
           console.log('API not available, using fallback data');
           setEvents(FALLBACK_EVENTS);

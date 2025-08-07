@@ -144,8 +144,8 @@ router.delete('/opportunities/:opportunityId', async (req, res) => {
   }
 });
 
-// PATCH - Toggle opportunity active status
-router.patch('/opportunities/:opportunityId/toggle', async (req, res) => {
+// PUT - Toggle opportunity active status
+router.put('/opportunities/:opportunityId/toggle', async (req, res) => {
   try {
     const { opportunityId } = req.params;
     

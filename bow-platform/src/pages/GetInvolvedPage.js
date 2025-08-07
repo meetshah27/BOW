@@ -16,6 +16,7 @@ import {
   Phone
 } from 'lucide-react';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
+import api from '../config/api';
 
 
 const GetInvolvedPage = () => {
@@ -30,7 +31,7 @@ const GetInvolvedPage = () => {
   useEffect(() => {
     const fetchOpportunities = async () => {
       try {
-        const response = await fetch('/api/volunteer-opportunities/opportunities/active');
+        const response = await api.get('/volunteer-opportunities/opportunities/active');
         if (response.ok) {
           const data = await response.json();
           setVolunteerOpportunities(data.opportunities);

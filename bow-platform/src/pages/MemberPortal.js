@@ -21,6 +21,7 @@ import {
   Award,
   Gift
 } from 'lucide-react';
+import api from '../config/api';
 
 // Member Portal Sub-components
 const Dashboard = () => {
@@ -38,14 +39,14 @@ const Dashboard = () => {
         let userId = currentUser?.uid || currentUser?.id || '';
         let userEmail = currentUser?.email || '';
         // Fetch registered events
-        let eventsRes = await fetch(`/api/events/user/${userId}/registrations`);
+        let eventsRes = await api.get(`/events/user/${userId}/registrations`);
         let eventsData = eventsRes.ok ? await eventsRes.json() : [];
         // Fetch payments/donations
-        let paymentsRes = await fetch(`/api/payment/donations/user/${userId}`);
+        let paymentsRes = await api.get(`/payment/donations/user/${userId}`);
         let paymentsData = paymentsRes.ok ? await paymentsRes.json() : [];
         // If no payments by userId, try by email
         if (paymentsData.length === 0 && userEmail) {
-          let paymentsEmailRes = await fetch(`/api/payment/donations/user/${userEmail}`);
+          let paymentsEmailRes = await api.get(`/payment/donations/user/${userEmail}`);
           paymentsData = paymentsEmailRes.ok ? await paymentsEmailRes.json() : [];
         }
         setEvents(eventsData);
@@ -257,7 +258,7 @@ const MyEvents = () => {
       setError('');
       try {
         let userId = currentUser?.uid || currentUser?.id || '';
-        let res = await fetch(`/api/events/user/${userId}/registrations`);
+        let res = await api.get(`/events/user/${userId}/registrations`);
         let data = res.ok ? await res.json() : [];
         setEvents(data);
       } catch (err) {
@@ -662,11 +663,11 @@ const MyPayments = () => {
       setError('');
       try {
         let userId = currentUser?.uid || currentUser?.id || '';
-        let res = await fetch(`/api/payment/donations/user/${userId}`);
+        let res = await api.get(`/payment/donations/user/${userId}`);
         let data = res.ok ? await res.json() : [];
         // If no payments by userId, try by email
         if (data.length === 0 && currentUser?.email) {
-          let resEmail = await fetch(`/api/payment/donations/user/${currentUser.email}`);
+          let resEmail = await api.get(`/payment/donations/user/${currentUser.email}`);
           data = resEmail.ok ? await resEmail.json() : [];
         }
         setPayments(data);
@@ -851,16 +852,16 @@ const MemberPortal = () => {
         let userEmail = currentUser?.email || '';
         
         // Fetch events
-        let eventsRes = await fetch(`/api/events/user/${userId}/registrations`);
+        let eventsRes = await api.get(`/events/user/${userId}/registrations`);
         let eventsData = eventsRes.ok ? await eventsRes.json() : [];
         
         // Fetch payments
-        let paymentsRes = await fetch(`/api/payment/donations/user/${userId}`);
+        let paymentsRes = await api.get(`/payment/donations/user/${userId}`);
         let paymentsData = paymentsRes.ok ? await paymentsRes.json() : [];
         
         // If no payments by userId, try by email
         if (paymentsData.length === 0 && userEmail) {
-          let paymentsEmailRes = await fetch(`/api/payment/donations/user/${userEmail}`);
+          let paymentsEmailRes = await api.get(`/payment/donations/user/${userEmail}`);
           paymentsData = paymentsEmailRes.ok ? await paymentsEmailRes.json() : [];
         }
         

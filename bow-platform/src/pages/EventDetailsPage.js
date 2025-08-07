@@ -22,6 +22,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
 import toast from 'react-hot-toast';
+import api from '../config/api';
 
 const EventDetailsPage = () => {
   const { id } = useParams();
@@ -121,7 +122,7 @@ const EventDetailsPage = () => {
     const fetchEvent = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:3000/api/events/${id}`);
+        const response = await api.get(`/events/${id}`);
         if (!response.ok) throw new Error('Event not found');
         const data = await response.json();
         setEvent(data);
@@ -155,7 +156,7 @@ const EventDetailsPage = () => {
         // For logged-in users, check from backend
         try {
           const userId = currentUser.uid || currentUser.id;
-          const response = await fetch(`http://localhost:3000/api/events/user/${userId}/registrations`);
+          const response = await api.get(`/events/user/${userId}/registrations`);
           if (response.ok) {
             const registrations = await response.json();
             const existingReg = registrations.find(reg => reg.eventId === event.id || reg.eventId === event._id);
@@ -241,7 +242,7 @@ const EventDetailsPage = () => {
           cardNumber: registrationData.cardNumber
         };
       }
-      const response = await fetch(`http://localhost:3000/api/events/${id}/register`, {
+      const response = await api.post(`/events/${id}/register`, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestBody),
@@ -265,7 +266,7 @@ const EventDetailsPage = () => {
         
         // Refetch the event to get the updated registration count
         console.log('[Frontend] Refetching event data after registration...');
-        const eventResponse = await fetch(`http://localhost:3000/api/events/${id}`);
+        const eventResponse = await api.get(`/events/${id}`);
         if (eventResponse.ok) {
           const updatedEvent = await eventResponse.json();
           console.log('[Frontend] Updated event data:', updatedEvent);

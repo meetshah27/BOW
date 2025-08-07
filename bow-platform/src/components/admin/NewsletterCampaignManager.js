@@ -16,6 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../config/api';
 
 const NewsletterCampaignManager = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -39,7 +40,7 @@ const NewsletterCampaignManager = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/newsletter/campaigns');
+      const response = await api.get('/newsletter/campaigns');
       const data = await response.json();
       
       if (response.ok) {
@@ -85,12 +86,14 @@ const NewsletterCampaignManager = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/newsletter/campaigns', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      const response = await api.post('/newsletter/campaigns', {
+        title: formData.title,
+        subject: formData.subject,
+        content: formData.content,
+        author: formData.author,
+        targetAudience: formData.targetAudience,
+        template: formData.template,
+        scheduledDate: formData.scheduledDate || null
       });
 
       const data = await response.json();
@@ -115,13 +118,15 @@ const NewsletterCampaignManager = () => {
     if (!editingCampaign) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/newsletter/campaigns/${editingCampaign.campaignId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await api.put(`/newsletter/campaigns/${editingCampaign.campaignId}`, {
+        title: formData.title,
+        subject: formData.subject,
+        content: formData.content,
+        author: formData.author,
+        targetAudience: formData.targetAudience,
+        template: formData.template,
+        scheduledDate: formData.scheduledDate || null
+              });
 
       const data = await response.json();
 
@@ -159,9 +164,7 @@ const NewsletterCampaignManager = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/newsletter/campaigns/${campaignId}`, {
-        method: 'DELETE',
-      });
+      const response = await api.delete(`/newsletter/campaigns/${campaignId}`);
 
       const data = await response.json();
 
@@ -182,12 +185,8 @@ const NewsletterCampaignManager = () => {
     if (!scheduledDate) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/newsletter/campaigns/${campaignId}/schedule`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ scheduledDate }),
+      const response = await api.post(`/newsletter/campaigns/${campaignId}/schedule`, {
+        scheduledDate: scheduledDate
       });
 
       const data = await response.json();
@@ -210,9 +209,7 @@ const NewsletterCampaignManager = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/newsletter/campaigns/${campaignId}/send`, {
-        method: 'POST',
-      });
+      const response = await api.post(`/newsletter/campaigns/${campaignId}/send`);
 
       const data = await response.json();
 

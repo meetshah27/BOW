@@ -327,41 +327,8 @@ router.get('/applications', async (req, res) => {
   }
 });
 
-// Admin: Get application by ID (protected)
-router.get('/applications/:id', async (req, res) => {
-  try {
-    if (Volunteer) {
-      const application = await Volunteer.findById(req.params.id);
-      
-      if (!application) {
-        return res.status(404).json({ error: 'Application not found' });
-      }
-
-      res.json(application);
-    } else {
-      // Fallback to sample data
-      const application = sampleApplications.find(a => a.id === req.params.id);
-      
-      if (!application) {
-        return res.status(404).json({ error: 'Application not found' });
-      }
-
-      res.json(application);
-    }
-  } catch (error) {
-    console.error('Error fetching volunteer application:', error);
-    // Fallback to sample data
-    const application = sampleApplications.find(a => a.id === req.params.id);
-    if (application) {
-      res.json(application);
-    } else {
-      res.status(404).json({ error: 'Application not found' });
-    }
-  }
-});
-
 // Update volunteer application status (admin only)
-router.patch('/applications/update-status', async (req, res) => {
+router.put('/applications/update-status', async (req, res) => {
   try {
     const { key, status, reviewNotes } = req.body;
     
@@ -394,6 +361,109 @@ router.patch('/applications/update-status', async (req, res) => {
   } catch (error) {
     console.error('Error updating volunteer application status:', error);
     res.status(500).json({ error: 'Failed to update application status' });
+  }
+});
+
+// Delete volunteer application (admin only)
+router.delete('/applications/delete', async (req, res) => {
+  try {
+    console.log('[Backend] Delete request received');
+    console.log('[Backend] Request body type:', typeof req.body);
+    console.log('[Backend] Request body:', req.body);
+    
+    // Handle case where body might be a string or nested object
+    let bodyData = req.body;
+    
+    // If body is an object with a 'body' property that's a string, parse it
+    if (req.body && typeof req.body === 'object' && req.body.body && typeof req.body.body === 'string') {
+      try {
+        bodyData = JSON.parse(req.body.body);
+        console.log('[Backend] Parsed nested body:', bodyData);
+      } catch (parseError) {
+        console.error('[Backend] Failed to parse nested body:', parseError);
+        return res.status(400).json({ error: 'Invalid JSON in request body' });
+      }
+    }
+    
+    // If body is a string, try to parse it
+    if (typeof bodyData === 'string') {
+      try {
+        bodyData = JSON.parse(bodyData);
+        console.log('[Backend] Parsed string body:', bodyData);
+      } catch (parseError) {
+        console.error('[Backend] Failed to parse string body:', parseError);
+        return res.status(400).json({ error: 'Invalid JSON in request body' });
+      }
+    }
+    
+    const { key } = bodyData;
+    
+    if (!key || !key.opportunityId || !key.applicantEmail) {
+      console.error('[Backend] Missing required key data:', key);
+      return res.status(400).json({ error: 'Missing required key data' });
+    }
+    
+    console.log('[Backend] Deleting application with key:', key);
+    
+    if (Volunteer) {
+      // Use the composite key to find and delete the application
+      const application = await Volunteer.findByOpportunityAndEmail(key.opportunityId, key.applicantEmail);
+      
+      if (!application) {
+        console.log('[Backend] Application not found for key:', key);
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      await application.delete();
+      console.log('[Backend] Application deleted successfully');
+
+      res.json({
+        message: 'Application deleted successfully'
+      });
+    } else {
+      // Fallback demo response
+      console.log('[Backend] Demo mode - application would be deleted');
+      res.json({
+        message: 'Application deleted successfully (demo mode)',
+        key: key
+      });
+    }
+  } catch (error) {
+    console.error('Error deleting volunteer application:', error);
+    res.status(500).json({ error: 'Failed to delete application' });
+  }
+});
+
+// Admin: Get application by ID (protected)
+router.get('/applications/:id', async (req, res) => {
+  try {
+    if (Volunteer) {
+      const application = await Volunteer.findById(req.params.id);
+      
+      if (!application) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      res.json(application);
+    } else {
+      // Fallback to sample data
+      const application = sampleApplications.find(a => a.id === req.params.id);
+      
+      if (!application) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      res.json(application);
+    }
+  } catch (error) {
+    console.error('Error fetching volunteer application:', error);
+    // Fallback to sample data
+    const application = sampleApplications.find(a => a.id === req.params.id);
+    if (application) {
+      res.json(application);
+    } else {
+      res.status(404).json({ error: 'Application not found' });
+    }
   }
 });
 

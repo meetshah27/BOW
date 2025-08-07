@@ -14,6 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../config/api';
 
 const VolunteerOpportunityManager = () => {
   const [opportunities, setOpportunities] = useState([]);
@@ -51,7 +52,7 @@ const VolunteerOpportunityManager = () => {
 
   const fetchOpportunities = async () => {
     try {
-      const response = await fetch('/api/volunteer-opportunities/opportunities');
+      const response = await api.get('/volunteer-opportunities/opportunities');
       if (response.ok) {
         const data = await response.json();
         setOpportunities(data.opportunities);
@@ -126,19 +127,12 @@ const VolunteerOpportunityManager = () => {
     };
 
     try {
-      const url = editingOpportunity 
-        ? `/api/volunteer-opportunities/opportunities/${editingOpportunity.opportunityId}`
-        : '/api/volunteer-opportunities/opportunities';
-      
-      const method = editingOpportunity ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cleanData),
-      });
+      let response;
+      if (editingOpportunity) {
+        response = await api.put(`/volunteer-opportunities/opportunities/${editingOpportunity.opportunityId}`, cleanData);
+      } else {
+        response = await api.post('/volunteer-opportunities/opportunities', cleanData);
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -184,9 +178,7 @@ const VolunteerOpportunityManager = () => {
     try {
       const loadingToast = toast.loading('Deleting opportunity...');
       
-      const response = await fetch(`/api/volunteer-opportunities/opportunities/${opportunityId}`, {
-        method: 'DELETE',
-      });
+      const response = await api.delete(`/volunteer-opportunities/opportunities/${opportunityId}`);
 
       if (response.ok) {
         toast.dismiss(loadingToast);
@@ -220,9 +212,7 @@ const VolunteerOpportunityManager = () => {
       // Show loading toast
       const loadingToast = toast.loading('Updating opportunity status...');
       
-      const response = await fetch(`/api/volunteer-opportunities/opportunities/${opportunityId}/toggle`, {
-        method: 'PATCH',
-      });
+      const response = await api.put(`/volunteer-opportunities/opportunities/${opportunityId}/toggle`);
 
       if (response.ok) {
         const data = await response.json();

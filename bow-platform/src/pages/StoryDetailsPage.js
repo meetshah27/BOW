@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Tag, ArrowLeft } from 'lucide-react';
+import api from '../config/api';
 
 const FALLBACK_STORY = {
   id: '',
@@ -21,7 +22,7 @@ const StoryDetailsPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:3000/api/stories/${id}`)
+    api.get(`/stories/${id}`)
       .then(res => res.ok ? res.json() : Promise.resolve(FALLBACK_STORY))
       .then(data => {
         setStory(data);
