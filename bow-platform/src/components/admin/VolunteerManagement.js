@@ -110,9 +110,7 @@ const VolunteerManagement = () => {
         applicantEmail: application.applicantEmail
       };
       
-      const response = await api.delete(`/volunteers/applications/delete`, { 
-        body: JSON.stringify({ key })
-      });
+      const response = await api.delete(`/volunteers/applications/delete`, { key });
 
       if (response.ok) {
         // Show success message
@@ -195,9 +193,7 @@ const VolunteerManagement = () => {
           applicantEmail: app.applicantEmail
         };
         
-        const response = await api.delete(`/volunteers/applications/delete`, { 
-          body: JSON.stringify({ key })
-        });
+        const response = await api.delete(`/volunteers/applications/delete`, { key });
         
         return { app, success: response.ok };
       });
