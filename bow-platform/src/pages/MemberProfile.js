@@ -48,16 +48,12 @@ const MemberProfile = () => {
       const { tokens } = await fetchAuthSession();
       const idToken = tokens?.idToken?.toString();
       headers['Authorization'] = `Bearer ${idToken}`;
-      const res = await api.user.get(`/users/${userData.uid}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          phone: form.phone,
-          ...(form.password ? { password: form.password } : {})
-        })
-      });
+      const res = await api.user.put(`/users/${userData.uid}`, {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        phone: form.phone,
+        ...(form.password ? { password: form.password } : {})
+      }, { headers });
       if (res.ok) {
         toast.success('Profile updated!');
         setEditMode(false);

@@ -242,11 +242,7 @@ const EventDetailsPage = () => {
           cardNumber: registrationData.cardNumber
         };
       }
-      const response = await api.post(`/events/${id}/register`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-      });
+      const response = await api.post(`/events/${id}/register`, requestBody, { headers });
       if (response.ok) {
         const result = await response.json();
         setTicketInfo(result);
