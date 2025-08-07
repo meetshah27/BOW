@@ -153,11 +153,12 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
+if (require.main === module) {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 BOW backend server running on http://localhost:${PORT}`);
   console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+})};
 
 module.exports = app;
