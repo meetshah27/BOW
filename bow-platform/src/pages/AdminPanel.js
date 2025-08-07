@@ -77,16 +77,16 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         // Fetch total members
-        const usersRes = await fetch('/users/stats/overview');
+        const usersRes = await api.user.get('/users/stats/overview');
         const usersData = usersRes.ok ? await usersRes.json() : {};
         // Fetch active events
-        const eventsRes = await fetch('/api/events');
+        const eventsRes = await api.get('/events');
         const eventsData = eventsRes.ok ? await eventsRes.json() : [];
         // Fetch monthly donations
-        const donationsRes = await fetch('/api/payment/donations/stats');
+        const donationsRes = await api.get('/payment/donations/stats');
         const donationsData = donationsRes.ok ? await donationsRes.json() : {};
         // Fetch volunteer hours (use totalApplications as proxy)
-        const volunteersRes = await fetch('/api/volunteers/stats');
+        const volunteersRes = await api.get('/volunteers/stats');
         const volunteersData = volunteersRes.ok ? await volunteersRes.json() : {};
 
         setStats({
@@ -239,7 +239,7 @@ const EventManagement = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/events');
+      const response = await api.get('/events');
       if (!response.ok) throw new Error('Failed to fetch events');
       const data = await response.json();
       setEvents(data);
@@ -279,11 +279,7 @@ const EventManagement = () => {
         registeredCount: 0
       };
 
-      const response = await fetch('http://localhost:3000/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(placeholderEvent)
-      });
+      const response = await api.post('/events', placeholderEvent);
       
       if (!response.ok) throw new Error('Failed to create placeholder event');
       const created = await response.json();
@@ -301,33 +297,29 @@ const EventManagement = () => {
       // Use uploaded image URL if available, otherwise use default
       const imageUrl = uploadedImage ? uploadedImage.fileUrl : 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
       
-      const response = await fetch('http://localhost:3000/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newEvent.title,
-          description: newEvent.description,
-          longDescription: newEvent.description, // Use description as longDescription for simplicity
-          date: newEvent.date,
-          time: newEvent.time,
-          location: newEvent.location,
-          address: newEvent.location, // Use location as address for simplicity
-          category: newEvent.category,
-          image: imageUrl,
-          capacity: newEvent.capacity,
-          price: newEvent.price,
-          organizer: newEvent.organizer || 'Beats of Washington',
-          contact: { 
-            phone: '(206) 555-0123', 
-            email: 'events@beatsofwashington.org', 
-            website: 'https://beatsofwashington.org' 
-          },
-          tags: ['Event'],
-          featured: newEvent.featured,
-          isLive: newEvent.isLive,
-          isActive: true,
-          registeredCount: 0
-        })
+      const response = await api.post('/events', {
+        title: newEvent.title,
+        description: newEvent.description,
+        longDescription: newEvent.description, // Use description as longDescription for simplicity
+        date: newEvent.date,
+        time: newEvent.time,
+        location: newEvent.location,
+        address: newEvent.location, // Use location as address for simplicity
+        category: newEvent.category,
+        image: imageUrl,
+        capacity: newEvent.capacity,
+        price: newEvent.price,
+        organizer: newEvent.organizer || 'Beats of Washington',
+        contact: { 
+          phone: '(206) 555-0123', 
+          email: 'events@beatsofwashington.org', 
+          website: 'https://beatsofwashington.org' 
+        },
+        tags: ['Event'],
+        featured: newEvent.featured,
+        isLive: newEvent.isLive,
+        isActive: true,
+        registeredCount: 0
       });
       console.log(response);
       if (!response.ok) throw new Error('Failed to create event');
@@ -378,9 +370,7 @@ const EventManagement = () => {
   const confirmDelete = async () => {
     if (!selectedEvent) return;
     try {
-      const response = await fetch(`http://localhost:3000/api/events/${selectedEvent.id}`, {
-        method: 'DELETE',
-      });
+      const response = await api.delete(`/events/${selectedEvent.id}`);
       if (!response.ok) throw new Error('Failed to delete event');
       await fetchEvents();
       setShowDeleteModal(false);
@@ -393,11 +383,7 @@ const EventManagement = () => {
 
   const handleEditSave = async (updatedEvent) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/events/${updatedEvent.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedEvent),
-      });
+      const response = await api.put(`/events/${updatedEvent.id}`, updatedEvent);
       if (!response.ok) throw new Error('Failed to update event');
       await fetchEvents();
       setShowEditModal(false);
@@ -413,7 +399,7 @@ const EventManagement = () => {
     setShowRegistrationsModal(true);
     setLoadingRegistrations(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/events/${event._id}/registrations`);
+      const response = await api.get(`/events/${event._id}/registrations`);
       if (!response.ok) throw new Error('Failed to fetch registrations');
       const data = await response.json();
       setRegistrations(data);
@@ -443,7 +429,7 @@ const EventManagement = () => {
           <button className="bg-gradient-to-r from-red-500 to-orange-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-red-600 hover:to-orange-700 transition-all duration-200 flex items-center" onClick={async () => {
             if (window.confirm('Are you sure you want to delete ALL events? This action cannot be undone.')) {
               try {
-                const response = await fetch('http://localhost:3000/api/events/all', { method: 'DELETE' });
+                const response = await api.delete('/events/all');
                 if (!response.ok) throw new Error('Failed to delete all events');
                 await fetchEvents();
                 toast.success('All events deleted successfully!');
@@ -1811,6 +1797,8 @@ const RegistrationManagement = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [events, setEvents] = useState([]);
+  const [selectedRegistrations, setSelectedRegistrations] = useState(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     fetchRegistrations();
@@ -1820,7 +1808,7 @@ const RegistrationManagement = () => {
   const fetchRegistrations = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/events/registrations');
+      const response = await api.get('/events/registrations');
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched registrations:', data);
@@ -1836,7 +1824,7 @@ const RegistrationManagement = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/events');
+      const response = await api.get('/events');
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched events:', data);
@@ -1849,11 +1837,7 @@ const RegistrationManagement = () => {
 
   const handleCheckIn = async (registration) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/events/registrations/${registration.eventId}/${registration.userId}/checkin`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ checkedIn: true, checkInTime: new Date() })
-      });
+      const response = await api.put(`/events/registrations/${registration.eventId}/${registration.userId}/checkin`, { checkedIn: true, checkInTime: new Date() });
 
       if (response.ok) {
         toast.success('Check-in successful!');
@@ -1870,11 +1854,7 @@ const RegistrationManagement = () => {
 
   const handleStatusUpdate = async (registrationId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/events/registrations/${registrationId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
+      const response = await api.put(`/events/registrations/${registrationId}/status`, { status: newStatus });
 
       if (response.ok) {
         toast.success('Status updated successfully!');
@@ -1885,6 +1865,101 @@ const RegistrationManagement = () => {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Status update failed');
+    }
+  };
+
+  // Bulk delete functionality
+  const handleSelectRegistration = (registration) => {
+    const key = `${registration.eventId}-${registration.userId}`;
+    setSelectedRegistrations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedRegistrations(new Set());
+      setSelectAll(false);
+    } else {
+      const allKeys = filteredRegistrations.map(reg => `${reg.eventId}-${reg.userId}`);
+      setSelectedRegistrations(new Set(allKeys));
+      setSelectAll(true);
+    }
+  };
+
+  const deleteRegistration = async (registration) => {
+    if (!window.confirm(`Are you sure you want to delete the registration for ${registration.userName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await api.delete(`/events/registrations/${registration.eventId}/${registration.userId}`);
+
+      if (response.ok) {
+        toast.success('Registration deleted successfully!');
+        fetchRegistrations(); // Refresh the list
+      } else {
+        toast.error('Failed to delete registration');
+      }
+    } catch (error) {
+      console.error('Error deleting registration:', error);
+      toast.error('Error deleting registration');
+    }
+  };
+
+  const bulkDeleteRegistrations = async () => {
+    if (selectedRegistrations.size === 0) {
+      toast.error('Please select at least one registration to delete.');
+      return;
+    }
+
+    const selectedRegs = filteredRegistrations.filter(reg => 
+      selectedRegistrations.has(`${reg.eventId}-${reg.userId}`)
+    );
+
+    const confirmMessage = selectedRegs.length === 1 
+      ? `Are you sure you want to delete the registration for ${selectedRegs[0].userName}?`
+      : `Are you sure you want to delete ${selectedRegs.length} registrations? This action cannot be undone.`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      // Delete registrations one by one
+      const deletePromises = selectedRegs.map(async (reg) => {
+        const response = await api.delete(`/events/registrations/${reg.eventId}/${reg.userId}`);
+        return { reg, success: response.ok };
+      });
+
+      const results = await Promise.all(deletePromises);
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+
+      // Show success message
+      if (successful.length > 0) {
+        toast.success(`Successfully deleted ${successful.length} registration(s)!`);
+        fetchRegistrations(); // Refresh the list
+      }
+
+      // Show error message for failed deletions
+      if (failed.length > 0) {
+        toast.error(`Failed to delete ${failed.length} registration(s). Please try again.`);
+      }
+
+      // Clear selections
+      setSelectedRegistrations(new Set());
+      setSelectAll(false);
+      
+    } catch (error) {
+      console.error('Error bulk deleting registrations:', error);
+      toast.error('Error deleting registrations. Please try again.');
     }
   };
 
@@ -1964,6 +2039,16 @@ const RegistrationManagement = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Registration Management</h2>
         <div className="flex space-x-2">
+          {/* Bulk Delete Button */}
+          {selectedRegistrations.size > 0 && (
+            <button
+              onClick={bulkDeleteRegistrations}
+              className="bg-gradient-to-r from-red-500 to-red-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center space-x-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete Selected ({selectedRegistrations.size})</span>
+            </button>
+          )}
           <button 
             onClick={exportRegistrations}
             className="btn-outline"
@@ -2104,6 +2189,14 @@ const RegistrationManagement = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ticket
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2128,7 +2221,22 @@ const RegistrationManagement = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredRegistrations.map((registration) => (
-                <tr key={registration._id} className="hover:bg-gray-50">
+                <tr 
+                  key={`${registration.eventId}-${registration.userId}`} 
+                  className={`hover:bg-gray-50 ${
+                    selectedRegistrations.has(`${registration.eventId}-${registration.userId}`) 
+                      ? 'bg-blue-50 border-l-4 border-blue-500' 
+                      : ''
+                  }`}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedRegistrations.has(`${registration.eventId}-${registration.userId}`)}
+                      onChange={() => handleSelectRegistration(registration)}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{registration.ticketNumber}</div>
                     <div className="text-sm text-gray-500">
@@ -2171,6 +2279,7 @@ const RegistrationManagement = () => {
                           setShowDetailsModal(true);
                         }}
                         className="text-primary-600 hover:text-primary-900"
+                        title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -2181,10 +2290,18 @@ const RegistrationManagement = () => {
                             setShowCheckInModal(true);
                           }}
                           className="text-green-600 hover:text-green-900"
+                          title="Check In"
                         >
                           <UserCheck className="w-4 h-4" />
                         </button>
                       )}
+                      <button
+                        onClick={() => deleteRegistration(registration)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete Registration"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -2244,6 +2361,23 @@ const RegistrationManagement = () => {
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  deleteRegistration(selectedRegistration);
+                }}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                Delete Registration
+              </button>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}

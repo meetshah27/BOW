@@ -293,8 +293,33 @@ router.get('/:id', async (req, res) => {
 router.post('/:id/register', async (req, res) => {
   try {
     console.log('[Backend] Registration request received for event:', req.params.id);
+    console.log('[Backend] Request body type:', typeof req.body);
     console.log('[Backend] Request body:', req.body);
-    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests } = req.body;
+    console.log('[Backend] Request headers:', req.headers);
+    
+    // Handle case where body might be a string or nested object
+    let bodyData = req.body;
+    
+    // If body is an object with a 'body' property that's a string, parse it
+    if (req.body && typeof req.body === 'object' && req.body.body && typeof req.body.body === 'string') {
+      try {
+        bodyData = JSON.parse(req.body.body);
+        console.log('[Backend] Parsed nested body:', bodyData);
+      } catch (parseError) {
+        console.error('[Backend] Failed to parse nested request body:', parseError);
+        return res.status(400).json({ message: 'Invalid JSON in request body' });
+      }
+    } else if (typeof req.body === 'string') {
+      try {
+        bodyData = JSON.parse(req.body);
+      } catch (parseError) {
+        console.error('[Backend] Failed to parse request body:', parseError);
+        return res.status(400).json({ message: 'Invalid JSON in request body' });
+      }
+    }
+    
+    console.log('[Backend] Final parsed body data:', bodyData);
+    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests } = bodyData;
     
     // Validate required fields
     if (!userId) {
@@ -578,6 +603,46 @@ router.put('/registrations/:id/status', async (req, res) => {
     }
   } catch (error) {
     console.error('Error updating registration status:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// DELETE registration by composite key
+router.delete('/registrations/:eventId/:userId', async (req, res) => {
+  try {
+    console.log('[Backend] Delete registration request received for eventId:', req.params.eventId, 'userId:', req.params.userId);
+    
+    if (Registration) {
+      const registration = await Registration.findByEventAndUser(req.params.eventId, req.params.userId);
+      
+      if (!registration) {
+        console.log('[Backend] Registration not found for eventId:', req.params.eventId, 'userId:', req.params.userId);
+        return res.status(404).json({ message: 'Registration not found' });
+      }
+
+      await registration.delete();
+      console.log('[Backend] Registration deleted successfully');
+
+      res.json({ message: 'Registration deleted successfully' });
+    } else {
+      // Fallback demo response - remove from sample data
+      const registrationIndex = sampleRegistrations.findIndex(r => 
+        r.eventId === req.params.eventId && r.userId === req.params.userId
+      );
+      
+      if (registrationIndex !== -1) {
+        sampleRegistrations.splice(registrationIndex, 1);
+        console.log('[Backend] Demo mode - registration deleted from sample data');
+      }
+      
+      res.json({ 
+        message: 'Registration deleted successfully (demo mode)',
+        eventId: req.params.eventId,
+        userId: req.params.userId
+      });
+    }
+  } catch (error) {
+    console.error('Error deleting registration:', error);
     res.status(500).json({ message: error.message });
   }
 });

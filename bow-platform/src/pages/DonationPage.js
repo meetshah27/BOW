@@ -15,6 +15,7 @@ import {Elements, CardElement, useStripe, useElements} from '@stripe/react-strip
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
 import DonorTicker from '../components/common/DonorTicker';
+import api from '../config/api';
 
 // Live Stripe publishable key
 const stripePromise = loadStripe('pk_live_YOUR_ACTUAL_LIVE_PUBLISHABLE_KEY');
@@ -31,17 +32,13 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
     
     try {
       // Create payment intent
-      const res = await fetch('http://localhost:3000/api/payment/create-payment-intent', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          amount: Math.round(amount * 100), 
-          currency: 'usd',
-          donorEmail: donorEmail,
-          donorName: donorName,
-          isRecurring: isMonthly,
-          frequency: isMonthly ? 'monthly' : 'one-time'
-        }),
+      const res = await api.post('/payment/create-payment-intent', {
+        amount: Math.round(amount * 100), 
+        currency: 'usd',
+        donorEmail: donorEmail,
+        donorName: donorName,
+        isRecurring: isMonthly,
+        frequency: isMonthly ? 'monthly' : 'one-time'
       });
       
       if (!res.ok) {

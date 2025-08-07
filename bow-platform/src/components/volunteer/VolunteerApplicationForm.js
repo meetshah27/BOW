@@ -13,6 +13,7 @@ import {
   Loader
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../config/api';
 
 
 const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
@@ -160,16 +161,12 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('/api/volunteers/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          opportunityId: opportunity.opportunityId || opportunity.id,
-          opportunityTitle: opportunity.title,
-          opportunityCategory: opportunity.category,
-          ...formData,
-          skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill)
-        }),
+      const response = await api.post('/volunteers/apply', {
+        opportunityId: opportunity.opportunityId || opportunity.id,
+        opportunityTitle: opportunity.title,
+        opportunityCategory: opportunity.category,
+        ...formData,
+        skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill)
       });
 
       const data = await response.json();

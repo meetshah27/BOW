@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import api from '../config/api';
 
 const MemberProfile = () => {
   const { userData, loading } = useAuth();
@@ -47,7 +48,7 @@ const MemberProfile = () => {
       const { tokens } = await fetchAuthSession();
       const idToken = tokens?.idToken?.toString();
       headers['Authorization'] = `Bearer ${idToken}`;
-      const res = await fetch(`http://localhost:3000/users/${userData.uid}`, {
+      const res = await api.user.get(`/users/${userData.uid}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({

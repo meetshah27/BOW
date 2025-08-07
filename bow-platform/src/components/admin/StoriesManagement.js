@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Tag, Edit, Trash2, Plus, Save, X } from 'lucide-react';
+import api from '../../config/api';
 
 const initialForm = {
   title: '',
@@ -22,7 +23,7 @@ const StoriesManagement = () => {
   // Fetch stories
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:3000/api/stories')
+    api.get('/stories')
       .then(res => res.json())
       .then(data => {
         setStories(data);
@@ -67,21 +68,13 @@ const StoriesManagement = () => {
     try {
       let res;
       if (editId) {
-        res = await fetch(`http://localhost:3000/api/stories/${editId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        res = await api.put(`/stories/${editId}`, payload);
       } else {
-        res = await fetch('http://localhost:3000/api/stories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        res = await api.post('/stories', payload);
       }
       if (res.ok) {
         // Refresh list
-        const updated = await fetch('http://localhost:3000/api/stories').then(r => r.json());
+        const updated = await api.get('/stories').then(r => r.json());
         setStories(updated);
         setShowForm(false);
       } else {
@@ -98,7 +91,7 @@ const StoriesManagement = () => {
     if (!window.confirm('Delete this story?')) return;
     setSaving(true);
     try {
-      await fetch(`http://localhost:3000/api/stories/${id}`, { method: 'DELETE' });
+      await api.delete(`/stories/${id}`);
       setStories(stories.filter(s => s.id !== id));
     } catch {
       setError('Failed to delete story');

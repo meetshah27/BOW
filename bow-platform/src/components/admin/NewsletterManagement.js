@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import NewsletterCampaignManager from './NewsletterCampaignManager';
+import api from '../../config/api';
 
 const NewsletterManagement = () => {
   const [activeTab, setActiveTab] = useState('subscribers');
@@ -31,7 +32,7 @@ const NewsletterManagement = () => {
   const fetchSubscribers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/newsletter/subscribers');
+      const response = await api.get('/newsletter/subscribers');
       const data = await response.json();
       
       if (response.ok) {
@@ -53,9 +54,7 @@ const NewsletterManagement = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/newsletter/subscribers/${encodeURIComponent(email)}`, {
-        method: 'DELETE',
-      });
+      const response = await api.delete(`/newsletter/subscribers/${encodeURIComponent(email)}`);
 
       const data = await response.json();
 
@@ -73,9 +72,7 @@ const NewsletterManagement = () => {
 
   const handleResubscribe = async (email) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/newsletter/subscribers/${encodeURIComponent(email)}/resubscribe`, {
-        method: 'POST',
-      });
+      const response = await api.post(`/newsletter/subscribers/${encodeURIComponent(email)}/resubscribe`);
 
       const data = await response.json();
 
@@ -103,9 +100,7 @@ const NewsletterManagement = () => {
 
     try {
       const deletePromises = selectedSubscribers.map(email =>
-        fetch(`http://localhost:3000/api/newsletter/subscribers/${encodeURIComponent(email)}`, {
-          method: 'DELETE',
-        })
+        api.delete(`/newsletter/subscribers/${encodeURIComponent(email)}`)
       );
 
       await Promise.all(deletePromises);

@@ -12,6 +12,7 @@ import {
   Clock
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
+import api from '../config/api';
 
 
 // CountUpNumber component with Intersection Observer
@@ -136,7 +137,7 @@ const HomePage = () => {
       setLoadingEvents(true);
       setEventsError(null);
       try {
-        const res = await fetch('/api/events');
+        const res = await api.get('/events');
         if (!res.ok) throw new Error('Failed to fetch events');
         const data = await res.json();
         setEvents(Array.isArray(data) ? data : []);

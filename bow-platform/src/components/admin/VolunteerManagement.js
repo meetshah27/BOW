@@ -12,8 +12,10 @@ import {
   Star,
   Filter,
   Search,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react';
+import api from '../../config/api';
 
 const VolunteerManagement = () => {
   const [applications, setApplications] = useState([]);
@@ -24,6 +26,8 @@ const VolunteerManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [selectedApplications, setSelectedApplications] = useState(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -31,7 +35,7 @@ const VolunteerManagement = () => {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch('/api/volunteers/applications');
+      const response = await api.get('/volunteers/applications');
       if (response.ok) {
         const data = await response.json();
         setApplications(data);
@@ -51,16 +55,10 @@ const VolunteerManagement = () => {
         applicantEmail: application.applicantEmail
       };
       
-      const response = await fetch(`/api/volunteers/applications/update-status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          key,
-          status, 
-          reviewNotes: notes 
-        }),
+      const response = await api.put(`/volunteers/applications/update-status`, { 
+        key,
+        status, 
+        reviewNotes: notes 
       });
 
       if (response.ok) {
@@ -100,10 +98,155 @@ const VolunteerManagement = () => {
     updateApplicationStatus(application, status);
   };
 
+  const deleteApplication = async (application) => {
+    if (!window.confirm(`Are you sure you want to delete the application from ${application.applicantName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // Use the composite key for DynamoDB
+      const key = {
+        opportunityId: application.opportunityId,
+        applicantEmail: application.applicantEmail
+      };
+      
+      const response = await api.delete(`/volunteers/applications/delete`, { 
+        body: JSON.stringify({ key })
+      });
+
+      if (response.ok) {
+        // Show success message
+        setSuccessMessage('Application deleted successfully!');
+        setShowSuccessMessage(true);
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setSuccessMessage('');
+        }, 3000);
+        
+        // Remove the application from local state
+        setApplications(prevApplications => 
+          prevApplications.filter(app => 
+            !(app.opportunityId === application.opportunityId && 
+              app.applicantEmail === application.applicantEmail)
+          )
+        );
+      } else {
+        console.error('Failed to delete application');
+        alert('Failed to delete application. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      alert('Error deleting application. Please try again.');
+    }
+  };
+
+  // Bulk delete functionality
+  const handleSelectApplication = (application) => {
+    const key = `${application.opportunityId}-${application.applicantEmail}`;
+    setSelectedApplications(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedApplications(new Set());
+      setSelectAll(false);
+    } else {
+      const allKeys = filteredApplications.map(app => 
+        `${app.opportunityId}-${app.applicantEmail}`
+      );
+      setSelectedApplications(new Set(allKeys));
+      setSelectAll(true);
+    }
+  };
+
+  const bulkDeleteApplications = async () => {
+    if (selectedApplications.size === 0) {
+      alert('Please select at least one application to delete.');
+      return;
+    }
+
+    const selectedApps = filteredApplications.filter(app => 
+      selectedApplications.has(`${app.opportunityId}-${app.applicantEmail}`)
+    );
+
+    const confirmMessage = selectedApps.length === 1 
+      ? `Are you sure you want to delete the application from ${selectedApps[0].applicantName}?`
+      : `Are you sure you want to delete ${selectedApps.length} applications? This action cannot be undone.`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      // Delete applications one by one
+      const deletePromises = selectedApps.map(async (app) => {
+        const key = {
+          opportunityId: app.opportunityId,
+          applicantEmail: app.applicantEmail
+        };
+        
+        const response = await api.delete(`/volunteers/applications/delete`, { 
+          body: JSON.stringify({ key })
+        });
+        
+        return { app, success: response.ok };
+      });
+
+      const results = await Promise.all(deletePromises);
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+
+      // Show success message
+      if (successful.length > 0) {
+        setSuccessMessage(`Successfully deleted ${successful.length} application(s)!`);
+        setShowSuccessMessage(true);
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setSuccessMessage('');
+        }, 3000);
+        
+        // Remove successful deletions from local state
+        setApplications(prevApplications => 
+          prevApplications.filter(app => 
+            !successful.some(result => 
+              result.app.opportunityId === app.opportunityId && 
+              result.app.applicantEmail === app.applicantEmail
+            )
+          )
+        );
+      }
+
+      // Show error message for failed deletions
+      if (failed.length > 0) {
+        alert(`Failed to delete ${failed.length} application(s). Please try again.`);
+      }
+
+      // Clear selections
+      setSelectedApplications(new Set());
+      setSelectAll(false);
+      
+    } catch (error) {
+      console.error('Error bulk deleting applications:', error);
+      alert('Error deleting applications. Please try again.');
+    }
+  };
+
   const handleExportCSV = async () => {
     try {
       console.log('🔄 Starting CSV export...');
-      const response = await fetch('/api/volunteers/export-csv');
+      const response = await api.get('/volunteers/export-csv');
       
       console.log(`📊 Response status: ${response.status}`);
       console.log(`📊 Response ok: ${response.ok}`);
@@ -204,22 +347,32 @@ const VolunteerManagement = () => {
         </div>
       )}
       
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Volunteer Applications</h2>
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-600">
-            {applications.length} total applications
-          </div>
-          {/* CSV Export Button */}
-          <button
-            onClick={handleExportCSV}
-            className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV</span>
-          </button>
-        </div>
-      </div>
+             <div className="flex justify-between items-center">
+         <h2 className="text-2xl font-bold text-gray-900">Volunteer Applications</h2>
+         <div className="flex items-center space-x-4">
+           <div className="text-sm text-gray-600">
+             {applications.length} total applications
+           </div>
+           {/* Bulk Delete Button */}
+           {selectedApplications.size > 0 && (
+             <button
+               onClick={bulkDeleteApplications}
+               className="bg-gradient-to-r from-red-500 to-red-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center space-x-2"
+             >
+               <Trash2 className="w-4 h-4" />
+               <span>Delete Selected ({selectedApplications.size})</span>
+             </button>
+           )}
+           {/* CSV Export Button */}
+           <button
+             onClick={handleExportCSV}
+             className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2"
+           >
+             <Download className="w-4 h-4" />
+             <span>Export CSV</span>
+           </button>
+         </div>
+       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -259,6 +412,14 @@ const VolunteerManagement = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Applicant
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -277,7 +438,22 @@ const VolunteerManagement = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredApplications.map((application) => (
-                <tr key={application._id} className="hover:bg-gray-50">
+                <tr 
+                  key={application._id} 
+                  className={`hover:bg-gray-50 ${
+                    selectedApplications.has(`${application.opportunityId}-${application.applicantEmail}`) 
+                      ? 'bg-blue-50 border-l-4 border-blue-500' 
+                      : ''
+                  }`}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedApplications.has(`${application.opportunityId}-${application.applicantEmail}`)}
+                      onChange={() => handleSelectApplication(application)}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
@@ -307,33 +483,43 @@ const VolunteerManagement = () => {
                     {formatDate(application.applicationDate)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => {
-                        setSelectedApplication(application);
-                        setShowDetails(true);
-                      }}
-                      className="text-primary-600 hover:text-primary-900 mr-3"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    {application.status === 'pending' && (
-                      <div className="inline-flex space-x-1">
-                        <button
-                          onClick={() => handleStatusUpdate(application, 'approved')}
-                          className="text-green-600 hover:text-green-900"
-                          title="Approve"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleStatusUpdate(application, 'rejected')}
-                          className="text-red-600 hover:text-red-900"
-                          title="Reject"
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedApplication(application);
+                          setShowDetails(true);
+                        }}
+                        className="text-primary-600 hover:text-primary-900"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      {application.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleStatusUpdate(application, 'approved')}
+                            className="text-green-600 hover:text-green-900"
+                            title="Approve"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleStatusUpdate(application, 'rejected')}
+                            className="text-red-600 hover:text-red-900"
+                            title="Reject"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => deleteApplication(application)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete Application"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -488,6 +674,15 @@ const VolunteerManagement = () => {
                   </button>
                 </>
               )}
+              <button
+                onClick={() => {
+                  setShowDetails(false);
+                  deleteApplication(selectedApplication);
+                }}
+                className="btn-outline text-red-600 border-red-600 hover:bg-red-50"
+              >
+                Delete Application
+              </button>
               <button
                 onClick={() => setShowDetails(false)}
                 className="btn-outline"

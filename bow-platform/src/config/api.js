@@ -8,14 +8,14 @@ const API_CONFIG = {
   // Production environment
   production: {
     baseURL: 'https://z1rt2gxnei.execute-api.us-west-2.amazonaws.com/default/bow-backend-clean',
-    apiPath: ''
+    apiPath: '/api'
   }
 };
 
 // Get current environment
 const getEnvironment = () => {
   if (process.env.NODE_ENV === 'production') return 'production';
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'development';
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'production';
   return 'production'; // Default to production for deployed environments
 };
 
@@ -82,7 +82,7 @@ const api = {
   },
 
   // DELETE request
-  delete: async (endpoint, options = {}) => {
+  delete: async (endpoint, data = {}, options = {}) => {
     const url = buildApiUrl(endpoint);
     const response = await fetch(url, {
       method: 'DELETE',
@@ -90,6 +90,7 @@ const api = {
         'Content-Type': 'application/json',
         ...options.headers
       },
+      body: JSON.stringify(data),
       ...options
     });
     return response;

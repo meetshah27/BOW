@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../config/api';
 
 
 const Footer = () => {
@@ -89,13 +90,7 @@ const Footer = () => {
     setIsSubscribing(true);
     
     try {
-      const response = await fetch('http://localhost:3000/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim() }),
-      });
+      const response = await api.post('/newsletter/subscribe', { email: email.trim() });
 
       const data = await response.json();
 
