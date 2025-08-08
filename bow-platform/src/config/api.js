@@ -2,26 +2,45 @@
 const API_CONFIG = {
   // Development environment
   development: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000',
     apiPath: '/api'
   },
   // Production environment
   production: {
-    baseURL: 'https://z1rt2gxnei.execute-api.us-west-2.amazonaws.com/default/bow-backend-clean',
+    baseURL: process.env.REACT_APP_API_URL || 'https://z1rt2gxnei.execute-api.us-west-2.amazonaws.com/default/bow-backend-clean',
     apiPath: '/api'
   }
 };
 
 // Get current environment
 const getEnvironment = () => {
-  // Force development for now since Lambda is missing routes
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'development';
-  if (process.env.NODE_ENV === 'production') return 'development'; // Temporarily use local for production too
-  return 'development'; // Default to development for now
+  if (process.env.NODE_ENV === 'production') return 'production';
+  return 'development';
 };
 
 const getApiConfig = () => {
   return API_CONFIG[getEnvironment()];
+};
+
+// Get authentication token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem('authToken') || localStorage.getItem('cognitoToken');
+};
+
+// Build headers with authentication
+const buildHeaders = (customHeaders = {}) => {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...customHeaders
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 const buildApiUrl = (endpoint) => {
@@ -43,12 +62,17 @@ const api = {
     const url = buildApiUrl(endpoint);
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
+      headers: buildHeaders(options.headers),
       ...options
     });
+    
+    // Handle 401 responses by clearing invalid tokens
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('cognitoToken');
+      localStorage.removeItem('currentUser');
+    }
+    
     return response;
   },
 
@@ -57,13 +81,18 @@ const api = {
     const url = buildApiUrl(endpoint);
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
+      headers: buildHeaders(options.headers),
       body: JSON.stringify(data),
       ...options
     });
+    
+    // Handle 401 responses by clearing invalid tokens
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('cognitoToken');
+      localStorage.removeItem('currentUser');
+    }
+    
     return response;
   },
 
@@ -72,13 +101,18 @@ const api = {
     const url = buildApiUrl(endpoint);
     const response = await fetch(url, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
+      headers: buildHeaders(options.headers),
       body: JSON.stringify(data),
       ...options
     });
+    
+    // Handle 401 responses by clearing invalid tokens
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('cognitoToken');
+      localStorage.removeItem('currentUser');
+    }
+    
     return response;
   },
 
@@ -87,27 +121,42 @@ const api = {
     const url = buildApiUrl(endpoint);
     const response = await fetch(url, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
+      headers: buildHeaders(options.headers),
       body: JSON.stringify(data),
       ...options
     });
+    
+    // Handle 401 responses by clearing invalid tokens
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('cognitoToken');
+      localStorage.removeItem('currentUser');
+    }
+    
     return response;
   },
 
   // Upload request (for file uploads)
   upload: async (endpoint, formData, options = {}) => {
     const url = buildApiUrl(endpoint);
+    const headers = buildHeaders(options.headers);
+    // Remove Content-Type for file uploads to let browser set it with boundary
+    delete headers['Content-Type'];
+    
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        ...options.headers
-      },
+      headers,
       body: formData,
       ...options
     });
+    
+    // Handle 401 responses by clearing invalid tokens
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('cognitoToken');
+      localStorage.removeItem('currentUser');
+    }
+    
     return response;
   },
 
@@ -118,12 +167,17 @@ const api = {
       const url = buildUserUrl(endpoint);
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        },
+        headers: buildHeaders(options.headers),
         ...options
       });
+      
+      // Handle 401 responses by clearing invalid tokens
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('cognitoToken');
+        localStorage.removeItem('currentUser');
+      }
+      
       return response;
     },
 
@@ -132,13 +186,18 @@ const api = {
       const url = buildUserUrl(endpoint);
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        },
+        headers: buildHeaders(options.headers),
         body: JSON.stringify(data),
         ...options
       });
+      
+      // Handle 401 responses by clearing invalid tokens
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('cognitoToken');
+        localStorage.removeItem('currentUser');
+      }
+      
       return response;
     },
 
@@ -147,17 +206,22 @@ const api = {
       const url = buildUserUrl(endpoint);
       const response = await fetch(url, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        },
+        headers: buildHeaders(options.headers),
         body: JSON.stringify(data),
         ...options
       });
+      
+      // Handle 401 responses by clearing invalid tokens
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('cognitoToken');
+        localStorage.removeItem('currentUser');
+      }
+      
       return response;
     }
   }
 };
 
 export default api;
-export { buildApiUrl, getApiConfig, getEnvironment }; 
+export { buildApiUrl, getApiConfig, getEnvironment, getAuthToken }; 
