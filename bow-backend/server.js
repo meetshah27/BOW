@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
+const securityMiddleware = require('./middleware/security');
 
 require('dotenv').config();
 
@@ -19,6 +20,9 @@ const newsletterCampaignRouter = require('./routes/newsletter-campaigns');
 const volunteerOpportunitiesRouter = require('./routes/volunteer-opportunities');
 
 const app = express();
+
+// Apply security middleware
+securityMiddleware(app);
 
 // Enable CORS for all routes
 app.use(cors({
@@ -46,7 +50,7 @@ app.use(cors({
 
 // DynamoDB Configuration
 console.log('🔍 Environment check:');
-console.log('   AWS_REGION:', process.env.AWS_REGION || 'us-east-1');
+console.log('   AWS_REGION:', process.env.AWS_REGION || 'us-west-2');
 console.log('   AWS_ACCESS_KEY_ID set:', !!process.env.AWS_ACCESS_KEY_ID);
 console.log('   AWS_SECRET_ACCESS_KEY set:', !!process.env.AWS_SECRET_ACCESS_KEY);
 
@@ -54,7 +58,7 @@ console.log('   AWS_SECRET_ACCESS_KEY set:', !!process.env.AWS_SECRET_ACCESS_KEY
 try {
   const { docClient } = require('./config/dynamodb');
   console.log('✅ DynamoDB client initialized');
-  console.log('📊 Using AWS Region:', process.env.AWS_REGION || 'us-east-1');
+  console.log('📊 Using AWS Region:', process.env.AWS_REGION || 'us-west-2');
   console.log('🎯 All models connected to DynamoDB');
 } catch (error) {
   console.log('⚠️  DynamoDB not configured, using fallback mode');
