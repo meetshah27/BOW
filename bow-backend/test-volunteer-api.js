@@ -1,80 +1,58 @@
-// Using built-in fetch (available in Node.js 18+)
-// If you get an error, install node-fetch: npm install node-fetch
+const fetch = require('node-fetch');
 
 async function testVolunteerAPI() {
+  console.log('🔍 Testing Volunteer Opportunities API...\n');
+
+  const baseUrl = 'http://localhost:3000/api';
+
   try {
-    console.log('🧪 Testing Volunteer API...');
+    // Test 1: GET all opportunities
+    console.log('1. Testing GET /volunteer-opportunities/opportunities');
+    const getResponse = await fetch(`${baseUrl}/volunteer-opportunities/opportunities`);
+    console.log(`   Status: ${getResponse.status}`);
     
-    // Test the health endpoint first
-    const healthResponse = await fetch('http://localhost:3000/health');
-    if (healthResponse.ok) {
-      console.log('✅ Backend server is running');
+    if (getResponse.ok) {
+      const data = await getResponse.json();
+      console.log(`   ✅ Success - Found ${data.opportunities ? data.opportunities.length : data.length} opportunities`);
     } else {
-      console.log('❌ Backend server is not responding');
-      return;
+      console.log(`   ❌ Failed - ${getResponse.statusText}`);
     }
-    
-    // Test the volunteer apply endpoint
-    const testData = {
-      opportunityId: 'test-opp-123',
-      opportunityTitle: 'Test Opportunity',
-      opportunityCategory: 'Test',
-      applicantName: 'Test User',
-      applicantEmail: 'test@example.com',
-      applicantPhone: '555-1234',
-      applicantAge: '25',
-      applicantAddress: {
-        street: '123 Test St',
-        city: 'Seattle',
-        state: 'WA',
-        zipCode: '98101'
-      },
-      availability: {
-        weekdays: true,
-        weekends: false,
-        evenings: true,
-        flexible: true
-      },
-      experience: 'Some experience',
-      skills: ['Skill 1', 'Skill 2'],
-      motivation: 'Want to help',
-      timeCommitment: '2-4 hours/week',
-      references: [
-        {
-          name: 'John Doe',
-          relationship: 'Friend',
-          phone: '555-5678',
-          email: 'john@example.com'
-        }
-      ],
-      emergencyContact: {
-        name: 'Jane Doe',
-        relationship: 'Spouse',
-        phone: '555-9999'
-      },
-      backgroundCheckConsent: true
+
+    // Test 2: POST create new opportunity
+    console.log('\n2. Testing POST /volunteer-opportunities/opportunities');
+    const testOpportunity = {
+      title: 'Test Volunteer Opportunity',
+      category: 'Events',
+      location: 'Seattle',
+      timeCommitment: '2 hours per week',
+      description: 'This is a test volunteer opportunity',
+      requirements: ['No experience needed'],
+      benefits: ['Make a difference'],
+      maxVolunteers: 5
     };
-    
-    const response = await fetch('http://localhost:3000/api/volunteers/apply', {
+
+    const postResponse = await fetch(`${baseUrl}/volunteer-opportunities/opportunities`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(testData)
+      body: JSON.stringify(testOpportunity)
     });
+
+    console.log(`   Status: ${postResponse.status}`);
     
-    const data = await response.json();
-    
-    if (response.ok) {
-      console.log('✅ Volunteer API is working');
-      console.log('📝 Response:', data);
+    if (postResponse.ok) {
+      const data = await postResponse.json();
+      console.log(`   ✅ Success - Created opportunity: ${data.opportunity?.title}`);
+      console.log(`   ID: ${data.opportunity?.opportunityId}`);
     } else {
-      console.log('❌ Volunteer API error:', data);
+      const error = await postResponse.text();
+      console.log(`   ❌ Failed - ${postResponse.statusText}`);
+      console.log(`   Error details: ${error}`);
     }
-    
+
   } catch (error) {
-    console.error('💥 Error testing volunteer API:', error.message);
-    console.log('🔧 Make sure the backend server is running on port 3000');
+    console.error('❌ Network error:', error.message);
   }
 }
 

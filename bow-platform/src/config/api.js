@@ -14,9 +14,10 @@ const API_CONFIG = {
 
 // Get current environment
 const getEnvironment = () => {
-  if (process.env.NODE_ENV === 'production') return 'production';
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'production';
-  return 'production'; // Default to production for deployed environments
+  // Force development for now since Lambda is missing routes
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'development';
+  if (process.env.NODE_ENV === 'production') return 'development'; // Temporarily use local for production too
+  return 'development'; // Default to development for now
 };
 
 const getApiConfig = () => {
