@@ -346,9 +346,8 @@ router.get('/api/events', async (req, res) => {
   }
 });
 
-// API: Create new event
-const eventsRouter = require('./events');
-router.post('/api/events', eventsRouter);
+// Note: Event creation is handled in routes/events.js
+// This route is mounted at /api/events in server.js
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -356,3 +355,42 @@ router.get('/', function(req, res, next) {
 });
 
 module.exports = router;
+
+// Lambda handler for AWS
+exports.handler = async (event, context) => {
+  try {
+    const path = event.path || event.rawPath || '/';
+    const method = event.httpMethod || event.requestContext?.http?.method || 'GET';
+    
+    console.log(`Lambda request: ${method} ${path}`);
+    
+    // For API routes, return basic success
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        message: 'BOW API is working!',
+        path: path,
+        method: method,
+        timestamp: new Date().toISOString()
+      })
+    };
+    
+  } catch (error) {
+    console.error('Lambda error:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        error: 'Internal server error',
+        timestamp: new Date().toISOString()
+      })
+    };
+  }
+};
