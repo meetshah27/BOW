@@ -7,14 +7,14 @@ const API_CONFIG = {
   },
   // Production environment
   production: {
-    baseURL: process.env.REACT_APP_API_URL || 'https://z1rt2gxnei.execute-api.us-west-2.amazonaws.com/default/bow-backend-clean',
+    baseURL: process.env.REACT_APP_API_URL || 'https://jzggm21wjh.execute-api.us-west-2.amazonaws.com/default/backend-clean',
     apiPath: '/api'
   }
 };
 
 // Get current environment
 const getEnvironment = () => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'development';
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'production';
   if (process.env.NODE_ENV === 'production') return 'production';
   return 'development';
 };
