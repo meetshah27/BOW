@@ -29,6 +29,7 @@ const LoginPage = () => {
     try {
       setLoading(true);
       const userData = await signInWithGoogle();
+      toast.success('Successfully signed in with Google!');
       // Redirect based on user role
       if (userData.role === 'admin') {
         navigate('/admin', { replace: true });
@@ -36,7 +37,20 @@ const LoginPage = () => {
         navigate(from, { replace: true });
       }
     } catch (error) {
-      console.error('Sign in failed:', error);
+      console.error('Google sign-in failed:', error);
+      let errorMessage = 'Google sign-in failed. Please try again.';
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in was cancelled. Please try again.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Pop-up was blocked. Please allow pop-ups for this site.';
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = 'This domain is not authorized for Google sign-in.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

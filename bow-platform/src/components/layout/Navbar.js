@@ -126,6 +126,7 @@ const Navbar = () => {
             {/* If user is logged in, show profile dropdown */}
             {currentUser ? (
               <div className="relative" ref={dropdownRef}>
+                {console.log('Navbar currentUser:', currentUser, 'photoURL:', currentUser.photoURL)}
                 <button
                   onClick={() => setDropdownOpen((open) => !open)}
                   className="flex items-center space-x-2 focus:outline-none group"
@@ -135,25 +136,39 @@ const Navbar = () => {
                       src={currentUser.photoURL}
                       alt={currentUser.displayName || currentUser.email}
                       className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
+                      onError={(e) => {
+                        console.error('Failed to load image:', currentUser.photoURL);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
                       <span className="text-primary-700 font-bold">
                         {(currentUser.displayName && currentUser.displayName[0]) ||
+                         (currentUser.firstName && currentUser.firstName[0]) ||
                          (currentUser.email && currentUser.email[0]) ||
                          "?"}
                       </span>
                     </div>
                   )}
                   <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600">
-                    {currentUser.displayName || currentUser.email}
+                    {currentUser.displayName || 
+                     (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                     currentUser.firstName ||
+                     currentUser.email}
                   </span>
                   <svg className="w-4 h-4 ml-1 text-gray-400 group-hover:text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-2 animate-fade-in">
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <div className="font-semibold text-gray-900">{currentUser.displayName || currentUser.email}</div>
+                      <div className="font-semibold text-gray-900">
+                        {currentUser.displayName || 
+                         (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                         currentUser.firstName ||
+                         currentUser.email}
+                      </div>
                       <div className="text-xs text-gray-500">{currentUser.email}</div>
                     </div>
                     <button
@@ -273,7 +288,10 @@ const Navbar = () => {
                         </div>
                       )}
                       <span className="text-sm text-gray-700">
-                        {currentUser.displayName || currentUser.email}
+                        {currentUser.displayName || 
+                         (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                         currentUser.firstName ||
+                         currentUser.email}
                       </span>
                     </div>
                     

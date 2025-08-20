@@ -334,10 +334,7 @@ router.post('/:id/register', async (req, res) => {
       console.error('[Backend] Missing userName');
       return res.status(400).json({ message: 'Missing userName' });
     }
-    if (!phone) {
-      console.error('[Backend] Missing phone');
-      return res.status(400).json({ message: 'Missing phone' });
-    }
+    // Phone number is now optional
 
     if (Event && Registration) {
       // Check if event exists and has capacity
@@ -377,7 +374,7 @@ router.post('/:id/register', async (req, res) => {
         userId: userId,
         userEmail: userEmail,
         userName: userName,
-        phone: phone,
+        phone: phone || '', // Ensure phone is always a string
         dietaryRestrictions: dietaryRestrictions || '',
         specialRequests: specialRequests || '',
         ticketNumber: ticketNumber,
@@ -410,7 +407,7 @@ router.post('/:id/register', async (req, res) => {
         userId: userId,
         userEmail: userEmail,
         userName: userName,
-        phone: phone,
+        phone: phone || '', // Ensure phone is always a string
         dietaryRestrictions: dietaryRestrictions || '',
         specialRequests: specialRequests || '',
         ticketNumber: ticketNumber,
