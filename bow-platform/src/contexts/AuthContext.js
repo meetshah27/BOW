@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, googleProvider } from '../config/firebase';
 import api from '../config/api';
 
 const AuthContext = createContext();
@@ -13,28 +15,115 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); // Start with loading true
 
-  // Load user from localStorage on app start
+  // Listen for Firebase auth state changes
   useEffect(() => {
-    const loadUserFromStorage = () => {
-      try {
-        const storedUser = localStorage.getItem('currentUser');
-        
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          setCurrentUser(userData);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        console.log('Firebase user photoURL:', firebaseUser.photoURL);
+        try {
+          // Sync with backend to get complete user data
+          const backendUser = await syncUserWithBackend(firebaseUser);
+          console.log('Backend user response:', backendUser);
+          if (backendUser && backendUser.user) {
+            console.log('Setting user from backend, photoURL:', backendUser.user.photoURL);
+            setCurrentUser(backendUser.user);
+            localStorage.setItem('currentUser', JSON.stringify(backendUser.user));
+          } else {
+            // Fallback to basic user data if backend sync fails
+            const basicUser = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email,
+              firstName: firebaseUser.displayName?.split(' ')[0] || '',
+              lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+              photoURL: firebaseUser.photoURL,
+              provider: 'google',
+              role: 'member' // Default role
+            };
+            console.log('Setting basic user, photoURL:', basicUser.photoURL);
+            setCurrentUser(basicUser);
+            localStorage.setItem('currentUser', JSON.stringify(basicUser));
+          }
+        } catch (error) {
+          console.error('Error syncing user with backend:', error);
+          // Fallback to basic user data
+          const basicUser = {
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            firstName: firebaseUser.displayName?.split(' ')[0] || '',
+            lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+            photoURL: firebaseUser.photoURL,
+            provider: 'google',
+            role: 'member' // Default role
+          };
+          console.log('Setting fallback user, photoURL:', basicUser.photoURL);
+          setCurrentUser(basicUser);
+          localStorage.setItem('currentUser', JSON.stringify(basicUser));
         }
-      } catch (error) {
-        console.error('Error loading user from storage:', error);
-        // Clear invalid data
+      } else {
+        setCurrentUser(null);
         localStorage.removeItem('currentUser');
         localStorage.removeItem('authToken');
-      } finally {
-        setLoading(false);
       }
-    };
+      setLoading(false);
+    });
 
-    loadUserFromStorage();
+    return () => unsubscribe();
   }, []);
+
+  // Sync Firebase user with your backend
+  const syncUserWithBackend = async (firebaseUser) => {
+    try {
+      // Try to get existing user from backend
+      const res = await api.user.get(`/users/email/${firebaseUser.email}`);
+      if (res.ok) {
+        const userData = await res.json();
+        return userData;
+      }
+    } catch (error) {
+      console.log('User not found in backend, will create new one');
+    }
+
+    // Create new user in backend via Google auth endpoint
+    try {
+      const googleUserData = {
+        firebaseUid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName || '',
+        firstName: firebaseUser.displayName?.split(' ')[0] || '',
+        lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+        phone: firebaseUser.phoneNumber || '',
+        photoURL: firebaseUser.photoURL || '',
+        provider: 'google'
+      };
+
+      const res = await api.user.post('/users/google', googleUserData);
+      if (res.ok) {
+        const data = await res.json();
+        return data.user;
+      } else {
+        throw new Error('Failed to create user in backend');
+      }
+    } catch (error) {
+      console.error('Error creating user in backend:', error);
+      throw error;
+    }
+  };
+
+  // Google Sign-In
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      // The user will be automatically set via the auth state listener
+      return result.user;
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setCurrentUser(null);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Email/password login
   const signInWithEmail = async (email, password) => {
@@ -89,16 +178,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Sign out function
-  const signOut = () => {
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('Firebase sign out error:', error);
+    }
+    
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authToken');
   };
 
-  // Dummy Google for now
   const value = {
     currentUser,
-    signInWithGoogle: () => Promise.reject('Google sign-in not implemented'),
+    signInWithGoogle,
     signInWithEmail,
     registerWithEmail,
     signOut,

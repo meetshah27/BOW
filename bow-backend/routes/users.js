@@ -250,40 +250,52 @@ router.post('/login', async (req, res) => {
 // POST - Google Sign-in/Sign-up
 router.post('/google', async (req, res) => {
   try {
-    const { uid, email, displayName, photoURL } = req.body;
+    const { firebaseUid, email, displayName, firstName, lastName, phone, photoURL, provider = 'google' } = req.body;
     
     // Validate required fields
-    if (!uid || !email) {
-      return res.status(400).json({ message: 'UID and email are required' });
+    if (!firebaseUid || !email) {
+      return res.status(400).json({ message: 'Firebase UID and email are required' });
     }
     
     if (User) {
-      // Check if user already exists
-      let user = await User.findByUid(uid);
+      // Check if user already exists by Firebase UID
+      let user = await User.findByFirebaseUid(firebaseUid);
       
       if (user) {
-        // User exists - update last sign in
-        await User.update(uid, { lastSignIn: Date.now() });
+        // User exists - update last sign in and any new info
+        await user.updateLastSignIn();
+        if (photoURL && photoURL !== user.photoURL) {
+          await user.update({ photoURL });
+        }
+        if (displayName && displayName !== user.displayName) {
+          await user.update({ displayName });
+        }
+        // Refresh user data
+        user = await User.findByFirebaseUid(firebaseUid);
       } else {
-        // Check if email already exists
+        // Check if email already exists (user might have signed up with email first)
         const existingUserByEmail = await User.findByEmail(email.toLowerCase());
         
         if (existingUserByEmail) {
-          // Email exists but with different UID - update the existing user
-          await User.update(existingUserByEmail.uid, {
-            uid: uid,
-            displayName: displayName || existingUserByEmail.displayName,
-            photoURL: photoURL,
-            lastSignIn: Date.now()
+          // Email exists but with different provider - link the accounts
+          await existingUserByEmail.update({
+            firebaseUid: firebaseUid,
+            provider: provider,
+            photoURL: photoURL || existingUserByEmail.photoURL,
+            lastSignIn: new Date().toISOString()
           });
-          user = await User.findByUid(uid);
+          user = await User.findByFirebaseUid(firebaseUid);
         } else {
           // Create new user
           const userData = {
-            uid,
             email: email.toLowerCase(),
             displayName: displayName || email,
-            photoURL,
+            firstName: firstName || displayName?.split(' ')[0] || '',
+            lastName: lastName || displayName?.split(' ').slice(1).join(' ') || '',
+            phone: phone || null,
+            photoURL: photoURL || null,
+            provider: provider,
+            firebaseUid: firebaseUid,
             role: 'member',
             isActive: true
           };
@@ -291,7 +303,7 @@ router.post('/google', async (req, res) => {
         }
       }
 
-      // Don't send password in response
+      // Don't send sensitive data in response
       const userResponse = {
         uid: user.uid,
         email: user.email,
@@ -302,6 +314,7 @@ router.post('/google', async (req, res) => {
         photoURL: user.photoURL,
         role: user.role,
         isActive: user.isActive,
+        provider: user.provider,
         lastSignIn: user.lastSignIn,
         createdAt: user.createdAt
       };
@@ -313,13 +326,18 @@ router.post('/google', async (req, res) => {
     } else {
       // Fallback demo response
       const demoUser = {
-        uid: uid,
+        uid: `google_${Date.now()}`,
         email: email.toLowerCase(),
         displayName: displayName || email,
-        photoURL,
+        firstName: firstName || displayName?.split(' ')[0] || '',
+        lastName: lastName || displayName?.split(' ').slice(1).join(' ') || '',
+        phone: phone || null,
+        photoURL: photoURL || null,
+        provider: provider,
+        firebaseUid: firebaseUid,
         role: 'member',
         isActive: true,
-        lastSignIn: Date.now(),
+        lastSignIn: new Date().toISOString(),
         createdAt: new Date().toISOString()
       };
       

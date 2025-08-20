@@ -138,9 +138,15 @@ const EventDetailsPage = () => {
   // Keep registrationData in sync with currentUser
   useEffect(() => {
     if (currentUser) {
+      console.log('Current user data:', currentUser);
+      const userName = currentUser.displayName || 
+                      (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                      currentUser.firstName ||
+                      currentUser.email || '';
+      console.log('Setting userName to:', userName);
       setRegistrationData(data => ({
         ...data,
-        name: currentUser.displayName || '',
+        name: userName,
         email: currentUser.email || '',
         phone: currentUser.phone || ''
       }));
@@ -202,11 +208,7 @@ const EventDetailsPage = () => {
         setIsRegistering(false);
         return;
       }
-      if (!registrationData.phone) {
-        toast.error('Phone number is required.');
-        setIsRegistering(false);
-        return;
-      }
+      // Phone number is now optional
       if ((event.price && event.price !== 'Free' && event.price !== 0) && !registrationData.cardNumber) {
         toast.error('Card number is required for paid events.');
         setIsRegistering(false);
@@ -219,12 +221,16 @@ const EventDetailsPage = () => {
         requestBody = {
           userId: currentUser.uid || currentUser.id,
           userEmail: currentUser.email,
-          userName: currentUser.displayName || currentUser.email,
-          phone: currentUser.phone || registrationData.phone,
+          userName: currentUser.displayName || 
+                   (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                   currentUser.firstName ||
+                   currentUser.email,
+          phone: currentUser.phone || registrationData.phone || '',
           dietaryRestrictions: registrationData.dietaryRestrictions,
           specialRequests: registrationData.specialRequests,
           cardNumber: registrationData.cardNumber
         };
+        console.log('Registration data for logged-in user:', requestBody);
         // Add auth token if available
         const authToken = localStorage.getItem('authToken');
         if (authToken) {
@@ -236,11 +242,12 @@ const EventDetailsPage = () => {
           userId: tempUserId,
           userEmail: registrationData.email,
           userName: registrationData.name,
-          phone: registrationData.phone,
+          phone: registrationData.phone || '',
           dietaryRestrictions: registrationData.dietaryRestrictions,
           specialRequests: registrationData.specialRequests,
           cardNumber: registrationData.cardNumber
         };
+        console.log('Registration data for guest user:', requestBody);
       }
       const response = await api.post(`/events/${id}/register`, requestBody, { headers });
       if (response.ok) {
@@ -647,16 +654,15 @@ const EventDetailsPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number *
+                    Phone Number
                   </label>
                   <input
                     type="tel"
-                    required
-                    value={registrationData.phone}
+                    value={registrationData.phone || ''}
                     onChange={currentUser ? undefined : (e) => setRegistrationData({...registrationData, phone: e.target.value})}
                     disabled={!!currentUser}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${currentUser ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-300'}`}
-                    placeholder="Enter your phone number"
+                    placeholder="Enter your phone number (optional)"
                   />
                 </div>
 

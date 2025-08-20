@@ -17,6 +17,9 @@ class User {
     this.lastSignIn = data.lastSignIn || new Date().toISOString();
     this.createdAt = data.createdAt || new Date().toISOString();
     this.updatedAt = data.updatedAt || new Date().toISOString();
+    // Google Sign-In support
+    this.provider = data.provider || 'email'; // 'email' or 'google'
+    this.firebaseUid = data.firebaseUid || null;
   }
 
   // Create a new user
@@ -72,6 +75,28 @@ class User {
     }
   }
 
+  // Get user by Firebase UID
+  static async findByFirebaseUid(firebaseUid) {
+    const command = new ScanCommand({
+      TableName: TABLES.USERS,
+      FilterExpression: '#firebaseUid = :firebaseUid',
+      ExpressionAttributeNames: {
+        '#firebaseUid': 'firebaseUid'
+      },
+      ExpressionAttributeValues: {
+        ':firebaseUid': firebaseUid
+      }
+    });
+
+    try {
+      const result = await docClient.send(command);
+      return result.Items.length > 0 ? new User(result.Items[0]) : null;
+    } catch (error) {
+      console.error('Error finding user by Firebase UID:', error);
+      throw error;
+    }
+  }
+
   // Update user
   async update(updateData) {
     const updateExpressions = [];
@@ -108,6 +133,11 @@ class User {
       console.error('Error updating user:', error);
       throw error;
     }
+  }
+
+  // Update last sign in
+  async updateLastSignIn() {
+    return this.update({ lastSignIn: new Date().toISOString() });
   }
 
   // Delete user
@@ -163,6 +193,28 @@ class User {
     }
   }
 
+  // Find users by provider
+  static async findByProvider(provider) {
+    const command = new ScanCommand({
+      TableName: TABLES.USERS,
+      FilterExpression: '#provider = :provider',
+      ExpressionAttributeNames: {
+        '#provider': 'provider'
+      },
+      ExpressionAttributeValues: {
+        ':provider': provider
+      }
+    });
+
+    try {
+      const result = await docClient.send(command);
+      return result.Items.map(item => new User(item));
+    } catch (error) {
+      console.error('Error finding users by provider:', error);
+      throw error;
+    }
+  }
+
   // Count all users
   static async countDocuments(filter = {}) {
     const command = new ScanCommand({
@@ -197,6 +249,13 @@ class User {
       filterExpression += '#role = :role';
       expressionAttributeNames['#role'] = 'role';
       expressionAttributeValues[':role'] = filter.role;
+    }
+
+    if (filter.provider) {
+      if (filterExpression) filterExpression += ' AND ';
+      filterExpression += '#provider = :provider';
+      expressionAttributeNames['#provider'] = 'provider';
+      expressionAttributeValues[':provider'] = filter.provider;
     }
 
     if (filter.createdAt && filter.createdAt.$gte) {
