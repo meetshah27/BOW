@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); // Start with loading true
 
-  // Listen for Firebase auth state changes
+    // Listen for Firebase auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -69,6 +69,48 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
+  // Auto-refresh user role every 5 seconds to detect DynamoDB changes
+  useEffect(() => {
+    if (!currentUser?.email) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        console.log('🔄 Auto-checking for role updates...');
+        console.log('📧 Checking email:', currentUser.email);
+        
+        const res = await api.user.get(`/users/refresh-role/${currentUser.email}`);
+        console.log('📡 Backend response status:', res.status);
+        
+        if (res.ok) {
+          const data = await res.json();
+          console.log('📊 Backend returned data:', data);
+          
+          if (data.user && data.user.role !== currentUser.role) {
+            console.log('✅ Role changed detected!', currentUser.role, '→', data.user.role);
+            setCurrentUser(data.user);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
+            
+            // Show notification for role change
+            if (data.user.role === 'admin') {
+              console.log('🎉 User now has admin access!');
+              // Force a re-render to show admin dashboard button
+              window.location.reload();
+            }
+          } else {
+            console.log('🔄 No role change detected. Current role:', currentUser.role, 'DB role:', data.user?.role);
+          }
+        } else {
+          console.log('❌ Backend error:', res.status, res.statusText);
+        }
+      } catch (error) {
+        console.log('❌ Auto-role check failed:', error.message);
+        console.log('❌ Error details:', error);
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [currentUser?.email, currentUser?.role]);
 
   // Sync Firebase user with your backend
   const syncUserWithBackend = async (firebaseUser) => {
@@ -189,6 +231,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authToken');
   };
+
+
 
   const value = {
     currentUser,
