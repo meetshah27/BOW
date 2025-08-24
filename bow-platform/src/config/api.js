@@ -14,7 +14,7 @@ const API_CONFIG = {
 
 // Get current environment
 const getEnvironment = () => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'production';
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'development';
   if (process.env.NODE_ENV === 'production') return 'production';
   return 'development';
 };

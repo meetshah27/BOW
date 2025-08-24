@@ -178,11 +178,12 @@ const Navbar = () => {
                       <UserCircle className="w-4 h-4 mr-2" /> Profile
                     </button>
                     <button
-                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
+                      className="w-full flex items-center px-4 py-4 text-sm text-gray-700 hover:bg-primary-50"
                       onClick={() => { navigate('/member/events'); setDropdownOpen(false); }}
                     >
                       <Calendar className="w-4 h-4 mr-2" /> Events Registered
                     </button>
+                    
                     {currentUser && currentUser.role === 'admin' && (
                       <button
                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"

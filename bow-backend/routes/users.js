@@ -247,62 +247,165 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// GET - Refresh user role from database (for role changes)
+router.get('/refresh-role/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    
+    console.log('🔄 Refreshing role for email:', email);
+    
+    if (User) {
+      // Find user by email in DynamoDB
+      const user = await User.findByEmail(email.toLowerCase());
+      
+      if (user) {
+        console.log('✅ User found in database, role:', user.role);
+        
+        // Return updated user data
+        const userResponse = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          photoURL: user.photoURL,
+          role: user.role,
+          isActive: user.isActive,
+          provider: user.provider,
+          lastSignIn: user.lastSignIn,
+          createdAt: user.createdAt
+        };
+        
+        res.json({
+          message: 'Role refreshed successfully',
+          user: userResponse
+        });
+      } else {
+        console.log('❌ User not found in database');
+        res.status(404).json({ message: 'User not found' });
+      }
+    } else {
+      console.log('❌ User model not available');
+      res.status(500).json({ message: 'User model not available' });
+    }
+  } catch (error) {
+    console.error('❌ Role refresh error:', error);
+    res.status(500).json({ 
+      message: 'Failed to refresh role',
+      error: error.message 
+    });
+  }
+});
+
 // POST - Google Sign-in/Sign-up
 router.post('/google', async (req, res) => {
   try {
     const { firebaseUid, email, displayName, firstName, lastName, phone, photoURL, provider = 'google' } = req.body;
     
+    console.log('🔍 Google auth request received:', { firebaseUid, email, displayName, firstName, lastName, phone, photoURL, provider });
+    
     // Validate required fields
     if (!firebaseUid || !email) {
+      console.log('❌ Missing required fields:', { firebaseUid, email });
       return res.status(400).json({ message: 'Firebase UID and email are required' });
     }
     
     if (User) {
+      console.log('✅ User model available, checking for existing user...');
+      
       // Check if user already exists by Firebase UID
       let user = await User.findByFirebaseUid(firebaseUid);
+      console.log('🔍 User lookup result:', user ? `Found user with role: ${user.role}` : 'No user found');
       
       if (user) {
+        console.log('🔄 Updating existing user...');
         // User exists - update last sign in and any new info
-        await user.updateLastSignIn();
+        try {
+          await user.updateLastSignIn();
+          console.log('✅ Last sign in updated');
+        } catch (error) {
+          console.error('❌ Error updating last sign in:', error);
+        }
+        
         if (photoURL && photoURL !== user.photoURL) {
-          await user.update({ photoURL });
+          try {
+            await user.update({ photoURL });
+            console.log('✅ Photo URL updated');
+          } catch (error) {
+            console.error('❌ Error updating photo URL:', error);
+          }
         }
         if (displayName && displayName !== user.displayName) {
-          await user.update({ displayName });
+          try {
+            await user.update({ displayName });
+            console.log('✅ Display name updated');
+          } catch (error) {
+            console.error('❌ Error updating display name:', error);
+          }
         }
         // Refresh user data
         user = await User.findByFirebaseUid(firebaseUid);
-      } else {
-        // Check if email already exists (user might have signed up with email first)
-        const existingUserByEmail = await User.findByEmail(email.toLowerCase());
-        
-        if (existingUserByEmail) {
-          // Email exists but with different provider - link the accounts
-          await existingUserByEmail.update({
-            firebaseUid: firebaseUid,
-            provider: provider,
-            photoURL: photoURL || existingUserByEmail.photoURL,
-            lastSignIn: new Date().toISOString()
-          });
-          user = await User.findByFirebaseUid(firebaseUid);
-        } else {
-          // Create new user
-          const userData = {
-            email: email.toLowerCase(),
-            displayName: displayName || email,
-            firstName: firstName || displayName?.split(' ')[0] || '',
-            lastName: lastName || displayName?.split(' ').slice(1).join(' ') || '',
-            phone: phone || null,
-            photoURL: photoURL || null,
-            provider: provider,
-            firebaseUid: firebaseUid,
-            role: 'member',
-            isActive: true
-          };
-          user = await User.create(userData);
+        // IMPORTANT: Preserve existing user role - don't override admin role
+        console.log('✅ Existing user updated, preserving role:', user.role);
+              } else {
+          console.log('🆕 No user found by Firebase UID, checking by email...');
+          // Check if email already exists (user might have signed up with email first)
+          const existingUserByEmail = await User.findByEmail(email.toLowerCase());
+          console.log('🔍 Email lookup result:', existingUserByEmail ? `Found user with role: ${existingUserByEmail.role}` : 'No user found by email');
+          
+          if (existingUserByEmail) {
+            console.log('🔗 Linking existing user by email, preserving role:', existingUserByEmail.role);
+            // Email exists but with different provider - link the accounts
+            // IMPORTANT: Preserve existing user role when linking accounts
+            try {
+              await existingUserByEmail.update({
+                firebaseUid: firebaseUid,
+                provider: provider,
+                photoURL: photoURL || existingUserByEmail.photoURL,
+                lastSignIn: new Date().toISOString()
+                // Note: role is NOT updated - preserves existing admin role
+              });
+              console.log('✅ User account linked successfully');
+              user = await User.findByFirebaseUid(firebaseUid);
+            } catch (error) {
+              console.error('❌ Error linking user account:', error);
+              throw error;
+            }
+          } else {
+            console.log('🆕 Creating new user...');
+            // Create new user
+            const userData = {
+              email: email.toLowerCase(),
+              displayName: displayName || email,
+              firstName: firstName || displayName?.split(' ')[0] || '',
+              lastName: lastName || displayName?.split(' ').slice(1).join(' ') || '',
+              phone: phone || null,
+              photoURL: photoURL || null,
+              provider: provider,
+              firebaseUid: firebaseUid,
+              role: 'member', // Default role for new users
+              isActive: true
+            };
+            console.log('📝 User data to create:', userData);
+            
+            try {
+              user = await User.create(userData);
+              console.log('✅ New user created successfully with role:', user.role);
+            } catch (error) {
+              console.error('❌ Error creating new user:', error);
+              throw error;
+            }
+          }
         }
-      }
 
+      console.log('✅ User processing complete, preparing response...');
+      console.log('📊 Final user data:', { uid: user.uid, email: user.email, role: user.role, provider: user.provider });
+      
       // Don't send sensitive data in response
       const userResponse = {
         uid: user.uid,
@@ -319,6 +422,7 @@ router.post('/google', async (req, res) => {
         createdAt: user.createdAt
       };
 
+      console.log('📤 Sending response with user role:', userResponse.role);
       res.json({
         message: 'Google authentication successful',
         user: userResponse
@@ -346,10 +450,15 @@ router.post('/google', async (req, res) => {
         user: demoUser
       });
     }
-  } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(500).json({ message: 'Failed to authenticate with Google' });
-  }
+      } catch (error) {
+      console.error('❌ Google auth error:', error);
+      console.error('❌ Error stack:', error.stack);
+      res.status(500).json({ 
+        message: 'Failed to authenticate with Google',
+        error: error.message,
+        details: error.stack
+      });
+    }
 });
 
 // PUT - Update user (admin can update roles)
