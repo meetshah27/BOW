@@ -14,12 +14,21 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true); // Start with loading true
+  const [isSyncing, setIsSyncing] = useState(false); // Prevent multiple simultaneous syncs
 
     // Listen for Firebase auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         console.log('Firebase user photoURL:', firebaseUser.photoURL);
+        
+        // Prevent multiple simultaneous syncs
+        if (isSyncing) {
+          console.log('🔄 Sync already in progress, skipping...');
+          return;
+        }
+        
+        setIsSyncing(true);
         try {
           // Sync with backend to get complete user data
           const backendUser = await syncUserWithBackend(firebaseUser);
@@ -58,6 +67,8 @@ export const AuthProvider = ({ children }) => {
           console.log('Setting fallback user, photoURL:', basicUser.photoURL);
           setCurrentUser(basicUser);
           localStorage.setItem('currentUser', JSON.stringify(basicUser));
+        } finally {
+          setIsSyncing(false);
         }
       } else {
         setCurrentUser(null);
@@ -70,55 +81,32 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Auto-refresh user role every 5 seconds to detect DynamoDB changes
+  // Check user role once when user is loaded (instead of continuous polling)
+  // REMOVED: This was redundant since syncUserWithBackend already fetches the role
+  // The role is fetched once during initial authentication and doesn't need to be checked again
+
+  // Periodic role check (every 30 seconds) to detect role changes
   useEffect(() => {
     if (!currentUser?.email) return;
     
     const interval = setInterval(async () => {
-      try {
-        console.log('🔄 Auto-checking for role updates...');
-        console.log('📧 Checking email:', currentUser.email);
-        
-        const res = await api.user.get(`/users/refresh-role/${currentUser.email}`);
-        console.log('📡 Backend response status:', res.status);
-        
-        if (res.ok) {
-          const data = await res.json();
-          console.log('📊 Backend returned data:', data);
-          
-          if (data.user && data.user.role !== currentUser.role) {
-            console.log('✅ Role changed detected!', currentUser.role, '→', data.user.role);
-            setCurrentUser(data.user);
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            
-            // Show notification for role change
-            if (data.user.role === 'admin') {
-              console.log('🎉 User now has admin access!');
-              // Force a re-render to show admin dashboard button
-              window.location.reload();
-            }
-          } else {
-            console.log('🔄 No role change detected. Current role:', currentUser.role, 'DB role:', data.user?.role);
-          }
-        } else {
-          console.log('❌ Backend error:', res.status, res.statusText);
-        }
-      } catch (error) {
-        console.log('❌ Auto-role check failed:', error.message);
-        console.log('❌ Error details:', error);
+      // Only check if user is active (page is visible)
+      if (document.visibilityState === 'visible') {
+        await refreshUserRole();
       }
-    }, 5000); // Check every 5 seconds
+    }, 30000); // Check every 30 seconds instead of 5 seconds
 
     return () => clearInterval(interval);
-  }, [currentUser?.email, currentUser?.role]);
+  }, [currentUser?.email]);
 
   // Sync Firebase user with your backend
   const syncUserWithBackend = async (firebaseUser) => {
     try {
-      // Try to get existing user from backend
+      // Always try to get the latest user data from backend first
       const res = await api.user.get(`/users/email/${firebaseUser.email}`);
       if (res.ok) {
         const userData = await res.json();
+        console.log('✅ Found existing user in backend:', userData.user?.role);
         return userData;
       }
     } catch (error) {
@@ -141,7 +129,8 @@ export const AuthProvider = ({ children }) => {
       const res = await api.user.post('/users/google', googleUserData);
       if (res.ok) {
         const data = await res.json();
-        return data.user;
+        console.log('✅ Created new user in backend:', data.user?.role);
+        return data;
       } else {
         throw new Error('Failed to create user in backend');
       }
@@ -232,6 +221,41 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('authToken');
   };
 
+  // Function to manually refresh user role (useful for detecting role changes)
+  const refreshUserRole = async () => {
+    if (!currentUser?.email) return;
+    
+    try {
+      console.log('🔄 Manually refreshing user role...');
+      const res = await api.user.get(`/users/refresh-role/${currentUser.email}`);
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user && data.user.role !== currentUser.role) {
+          console.log('✅ Role change detected!', currentUser.role, '→', data.user.role);
+          setCurrentUser(data.user);
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
+          
+          // Show notification for role change
+          if (data.user.role === 'admin') {
+            console.log('🎉 User now has admin access!');
+            // Force a re-render to show admin dashboard button
+            window.location.reload();
+          }
+          return data.user;
+        } else {
+          console.log('🔄 No role change detected. Current role:', currentUser.role);
+          return currentUser;
+        }
+      } else {
+        console.log('❌ Failed to refresh role:', res.status);
+        return currentUser;
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing role:', error);
+      return currentUser;
+    }
+  };
 
 
   const value = {
@@ -241,6 +265,7 @@ export const AuthProvider = ({ children }) => {
     registerWithEmail,
     signOut,
     loading,
+    refreshUserRole, // Add this function to the context
   };
 
   return (
