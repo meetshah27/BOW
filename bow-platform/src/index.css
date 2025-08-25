@@ -413,6 +413,24 @@
   transform: rotate(1deg) skew(1deg) scale(1.1);
 }
 
+/* Mission placeholder video effects */
+.mission-placeholder video {
+  transition: all 0.4s ease;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+  transform: rotate(2deg) skew(2deg);
+}
+
+.mission-placeholder:hover video {
+  filter: drop-shadow(0 20px 40px rgba(59, 130, 246, 0.3));
+  transform: rotate(1deg) skew(1deg) scale(1.1);
+}
+
+/* Mission placeholder loading state */
+.mission-placeholder .placeholder-content > div {
+  transition: all 0.4s ease;
+  transform: rotate(2deg) skew(2deg);
+}
+
 /* Mission section background enhancement */
 .mission-section {
   position: relative;
