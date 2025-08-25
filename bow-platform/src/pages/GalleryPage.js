@@ -51,21 +51,23 @@ const GalleryPage = () => {
         }
         const data = await response.json();
         
-        // Transform the data to match the expected format
-        const transformedData = data.map(item => ({
-          id: item.id,
-          title: item.title || 'Untitled',
-          type: item.imageUrl?.includes('.mp4') || item.imageUrl?.includes('.mov') || item.imageUrl?.includes('.avi') ? 'video' : 'image',
-          category: item.album || 'general',
-          url: item.imageUrl,
-          thumbnail: item.imageUrl, // Use the same URL for thumbnail
-          date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          location: 'BOW Community',
-          description: item.description || 'No description available',
-          tags: item.album ? [item.album] : ['general'],
-          likes: 0,
-          views: 0
-        }));
+        // Filter out items without valid image URLs and transform the data
+        const transformedData = data
+          .filter(item => item.imageUrl && item.imageUrl.trim() !== '') // Filter out items without image URLs
+          .map(item => ({
+            id: item.id,
+            title: item.title || 'Untitled',
+            type: item.imageUrl?.includes('.mp4') || item.imageUrl?.includes('.mov') || item.imageUrl?.includes('.avi') ? 'video' : 'image',
+            category: item.album || 'general',
+            url: item.imageUrl,
+            thumbnail: item.imageUrl, // Use the same URL for thumbnail
+            date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            location: 'BOW Community',
+            description: item.description || 'No description available',
+            tags: item.album ? [item.album] : ['general'],
+            likes: 0,
+            views: 0
+          }));
         
         setGalleryItems(transformedData);
         
