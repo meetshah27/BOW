@@ -145,25 +145,68 @@ const LeadershipPage = () => {
       </section>
 
       {/* Introduction Section */}
-      <section className="bg-white py-20">
-        <div className="container-custom">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Washington Ganesh Festival 2024 Leadership Team
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              Discover the individuals who lead Beats of Washington, learn about their roles, and understand their motivations. 
-              Each member of our leadership team brings unique skills and experiences, contributing to our collective success.
-            </p>
-            <div className="bg-primary-50 rounded-xl p-8 mb-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Why They Are Part of Beats of Washington
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Our leaders are passionate about making a difference. They are dedicated to the mission of Beats of Washington 
-                and are inspired by the impact we create in the community. Their involvement is not just professional but deeply 
-                personal, fueled by a shared vision of a better future.
-              </p>
+      <section className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-24 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-indigo-200/20 to-blue-200/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-purple-200/10 to-pink-200/10 rounded-full blur-2xl"></div>
+        </div>
+        
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="floating-particle particle-1"></div>
+          <div className="floating-particle particle-2"></div>
+          <div className="floating-particle particle-3"></div>
+          <div className="floating-particle particle-4"></div>
+          <div className="floating-particle particle-5"></div>
+        </div>
+
+        <div className="container-custom relative z-10">
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Main description with enhanced styling */}
+            <div className="mb-12 transform hover:scale-105 transition-all duration-500">
+              <div className="inline-block bg-gradient-to-r from-blue-600/10 to-purple-600/10 backdrop-blur-sm rounded-2xl p-8 border border-blue-200/30 shadow-xl">
+                <p className="text-xl text-gray-700 leading-relaxed font-medium">
+                  Discover the individuals who lead <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-bold">Beats of Washington</span>, 
+                  learn about their roles, and understand their motivations. Each member of our leadership team brings 
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-semibold"> unique skills and experiences</span>, 
+                  contributing to our collective success.
+                </p>
+              </div>
+            </div>
+
+            {/* Enhanced info box */}
+            <div className="bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/50 rounded-3xl p-10 shadow-2xl border border-blue-100/50 backdrop-blur-sm transform hover:scale-105 transition-all duration-700 hover:shadow-3xl relative overflow-hidden">
+              {/* Decorative corner elements */}
+              <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-br-3xl opacity-20"></div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-purple-400 to-pink-500 rounded-bl-3xl opacity-20"></div>
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-indigo-400 to-blue-500 rounded-tr-3xl opacity-20"></div>
+              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-pink-400 to-purple-500 rounded-tl-3xl opacity-20"></div>
+              
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full animate-shimmer"></div>
+              
+              <div className="relative z-10">
+                <h3 className="text-3xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  ✨ Why They Are Part of Beats of Washington ✨
+                </h3>
+                <p className="text-lg text-gray-700 leading-relaxed max-w-4xl mx-auto">
+                  Our leaders are <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-semibold">passionate about making a difference</span>. 
+                  They are dedicated to the mission of Beats of Washington and are inspired by the 
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-semibold"> impact we create in the community</span>. 
+                  Their involvement is not just professional but deeply personal, fueled by a 
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 font-semibold">shared vision of a better future</span>.
+                </p>
+                
+                {/* Additional decorative elements */}
+                <div className="flex justify-center items-center mt-8 space-x-4">
+                  <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full animate-pulse delay-100"></div>
+                  <div className="w-3 h-3 bg-gradient-to-r from-pink-400 to-indigo-500 rounded-full animate-pulse delay-200"></div>
+                  <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full animate-pulse delay-300"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
