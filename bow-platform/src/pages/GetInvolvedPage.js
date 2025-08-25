@@ -218,12 +218,7 @@ const GetInvolvedPage = () => {
     }
   ];
 
-  const stats = [
-    { number: "500+", label: "Active Volunteers", icon: Users },
-    { number: "2,000+", label: "Members", icon: Heart },
-    { number: "200+", label: "Events Annually", icon: Calendar },
-    { number: "15", label: "Years of Service", icon: Award }
-  ];
+
 
   const closeCommunityModal = () => setShowCommunityModal(false);
 
@@ -239,76 +234,49 @@ const GetInvolvedPage = () => {
         <div className="container-custom text-center">
 
           
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-              <Users className="w-10 h-10" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Get Involved
-          </h1>
+
+
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
-            Join our community of volunteers and members making a difference 
-            through music, culture, and connection.
+            Whether you want to volunteer your time or become a member, 
+            there are many ways to get involved with BOW.
           </p>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-white py-16">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-4">
-                  <stat.icon className="w-12 h-12 text-primary-600" />
-                </div>
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-gray-600 font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* Tabs Section */}
       <section className="py-20 bg-gray-50">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              How You Can Help
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Whether you want to volunteer your time or become a member, 
-              there are many ways to get involved with BOW.
-            </p>
-          </div>
+
 
           {/* Tab Navigation */}
-          <div className="flex justify-center mb-12">
-            <div className="bg-white rounded-lg p-1 shadow-lg flex gap-2">
+          <div className="flex justify-center mb-16">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-2 shadow-2xl border border-white/20 flex gap-3">
               <button
                 onClick={() => setActiveTab('volunteer')}
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base shadow-sm border 
-                  ${activeTab === 'volunteer' ? 'btn-primary text-white border-primary-600 bg-primary-600 hover:bg-primary-700' : 'btn-outline text-primary-600 border-primary-600 bg-white hover:bg-primary-50'}`}
+                className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:ring-offset-2 text-lg shadow-lg border-2 ${
+                  activeTab === 'volunteer' 
+                    ? 'text-white border-primary-600 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-primary-500/50' 
+                    : 'text-primary-600 border-primary-600 bg-white hover:bg-primary-50 hover:border-primary-700 hover:text-primary-700'
+                }`}
                 type="button"
                 aria-pressed={activeTab === 'volunteer'}
               >
-                <Users className="w-5 h-5 inline mr-2 align-text-bottom" />
+                <Users className="w-6 h-6 inline mr-3 align-text-bottom" />
                 Volunteer
               </button>
               <button
                 onClick={() => setActiveTab('member')}
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base shadow-sm border 
-                  ${activeTab === 'member' ? 'btn-primary text-white border-primary-600 bg-primary-600 hover:bg-primary-700' : 'btn-outline text-primary-600 border-primary-600 bg-white hover:bg-primary-50'}`}
+                className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:ring-offset-2 text-lg shadow-lg border-2 ${
+                  activeTab === 'member' 
+                    ? 'text-white border-primary-600 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-primary-500/50' 
+                    : 'text-primary-600 border-primary-600 bg-white hover:bg-primary-50 hover:border-primary-700 hover:text-primary-700'
+                }`}
                 type="button"
                 aria-pressed={activeTab === 'member'}
               >
-                <Heart className="w-5 h-5 inline mr-2 align-text-bottom" />
+                <Heart className="w-6 h-6 inline mr-3 align-text-bottom" />
                 Become a Member
               </button>
             </div>
@@ -318,14 +286,20 @@ const GetInvolvedPage = () => {
           <div className="max-w-6xl mx-auto">
             {activeTab === 'volunteer' && (
               <div className="space-y-8">
-                <div className="text-center mb-12">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <div className="text-center mb-16">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-6 shadow-lg animate-pulse">
+                    <Users className="w-10 h-10 text-white animate-bounce" />
+                  </div>
+                  <h3 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
                     Volunteer Opportunities
                   </h3>
-                  <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                    Join our dedicated team of volunteers and make a real impact in your community. 
-                    We have opportunities for all skill levels and interests.
-                  </p>
+                  <div className="relative">
+                    <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up">
+                      Join our dedicated team of volunteers and make a real impact in your community. 
+                      We have opportunities for all skill levels and interests.
+                    </p>
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
+                  </div>
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8">
@@ -344,12 +318,12 @@ const GetInvolvedPage = () => {
                     ))
                   ) : volunteerOpportunities.length > 0 ? (
                     volunteerOpportunities.map((opportunity) => (
-                      <div key={opportunity.opportunityId || opportunity.id} className="bg-white rounded-xl shadow-lg p-8">
+                      <div key={opportunity.opportunityId || opportunity.id} className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
                       <div className="flex items-start justify-between mb-4">
                         <h4 className="text-xl font-semibold text-gray-900">
                           {opportunity.title}
                         </h4>
-                        <span className="inline-block px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm font-medium">
+                        <span className="inline-block px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full text-sm font-bold shadow-lg">
                           {opportunity.category}
                         </span>
                       </div>
@@ -434,43 +408,68 @@ const GetInvolvedPage = () => {
 
             {activeTab === 'member' && (
               <div className="space-y-8">
-                <div className="text-center mb-12">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <div className="text-center mb-16">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full mb-6 shadow-lg animate-pulse">
+                    <Heart className="w-10 h-10 text-white animate-bounce" />
+                  </div>
+                  <h3 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-secondary-600 to-primary-600 bg-clip-text text-transparent animate-fade-in">
                     Membership Levels
                   </h3>
-                  <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                    Choose the membership level that's right for you and enjoy exclusive benefits 
-                    while supporting our mission.
-                  </p>
+                  <div className="relative">
+                    <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up">
+                      Choose the membership level that's right for you and enjoy exclusive benefits 
+                      while supporting our mission.
+                    </p>
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-secondary-400 to-primary-500 rounded-full animate-pulse"></div>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8">
                   {membershipLevels.map((level, index) => (
                     <div
                       key={index}
-                      className={`bg-white rounded-xl shadow-lg p-8 ${index === 1 ? 'ring-2 ring-primary-600 relative' : ''}`}
+                      className={`bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 ${
+                        index === 1 ? 'ring-2 ring-primary-600 relative scale-105' : ''
+                      }`}
                     >
                       {index === 1 && (
                         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                          <span className="bg-primary-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                            Most Popular
+                          <span className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                            ⭐ Most Popular
                           </span>
                         </div>
                       )}
-                      <h4 className="text-2xl font-bold text-gray-900 mb-2">{level.name}</h4>
-                      <div className="text-3xl font-bold text-primary-600 mb-2">{level.price}</div>
-                      <p className="text-gray-600 mb-6">{level.description}</p>
+                      
+                      <div className="text-center mb-6">
+                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                          index === 0 ? 'bg-gradient-to-br from-gray-400 to-gray-600' :
+                          index === 1 ? 'bg-gradient-to-br from-primary-500 to-primary-600' :
+                          'bg-gradient-to-br from-secondary-500 to-secondary-600'
+                        }`}>
+                          <Heart className="w-8 h-8 text-white" />
+                        </div>
+                        <h4 className="text-2xl font-bold text-gray-900 mb-2">{level.name}</h4>
+                        <div className={`text-4xl font-bold mb-2 ${
+                          index === 0 ? 'text-gray-600' :
+                          index === 1 ? 'text-primary-600' :
+                          'text-secondary-600'
+                        }`}>{level.price}</div>
+                      </div>
+                      
+                      <p className="text-gray-600 mb-6 text-center">{level.description}</p>
+                      
                       <ul className="space-y-3 mb-8">
                         {level.benefits.map((benefit, benefitIndex) => (
-                          <li key={benefitIndex} className="flex items-start">
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700">{benefit}</span>
+                          <li key={benefitIndex} className="flex items-start group">
+                            <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="text-gray-700 group-hover:text-gray-900 transition-colors duration-200">{benefit}</span>
                           </li>
                         ))}
                       </ul>
+                      
                       {index === 0 ? (
                         <button
-                          className="w-full btn-outline"
+                          className="w-full px-6 py-4 border-2 border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 hover:text-gray-700 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-500/30"
                           onClick={() => setShowCommunityModal(true)}
                           type="button"
                         >
@@ -479,7 +478,11 @@ const GetInvolvedPage = () => {
                       ) : (
                         <Link
                           to="/donate"
-                          className={`w-full ${index === 1 ? 'btn-primary' : 'btn-outline'}`}
+                          className={`w-full px-6 py-4 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 ${
+                            index === 1 
+                              ? 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white shadow-lg hover:shadow-xl focus:ring-primary-500/30' 
+                              : 'border-2 border-secondary-600 text-secondary-600 hover:bg-secondary-50 hover:border-secondary-700 hover:text-secondary-700 focus:ring-secondary-500/30'
+                          }`}
                         >
                           Join Now
                         </Link>
