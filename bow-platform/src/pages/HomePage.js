@@ -147,6 +147,23 @@ const HomePage = () => {
   const [loadingHero, setLoadingHero] = useState(true);
   const [heroFetched, setHeroFetched] = useState(false);
 
+  // Mission media state
+  const [missionMedia, setMissionMedia] = useState({
+    mediaType: 'image',
+    mediaUrl: '/logo512.png',
+    thumbnailUrl: '',
+    title: '',
+    description: '',
+    altText: 'Beats of Washington Logo',
+    isActive: true,
+    overlayOpacity: 0.2,
+    missionTitle: '',
+    missionDescription: '',
+    missionLegacy: ''
+  });
+  const [loadingMissionMedia, setLoadingMissionMedia] = useState(true);
+  const [missionMediaFetched, setMissionMediaFetched] = useState(false);
+
   useEffect(() => {
     const fetchEvents = async () => {
       // Prevent duplicate calls
@@ -208,14 +225,52 @@ const HomePage = () => {
       } catch (err) {
         console.error('💥 Error fetching hero settings:', err);
         console.log('⚠️ Keeping current hero settings due to error (not resetting to defaults)');
-      } finally {
-        setLoadingHero(false);
-      }
-    };
-    
-    fetchEvents();
-    fetchHeroSettings();
-  }, []);
+             } finally {
+         setLoadingHero(false);
+       }
+     };
+     
+     const fetchMissionMedia = async () => {
+       // Prevent duplicate calls
+       if (missionMediaFetched) {
+         console.log('⚠️ Mission media already fetched, skipping duplicate request');
+         return;
+       }
+       
+       setLoadingMissionMedia(true);
+       try {
+         console.log('🔄 Fetching mission media from backend...');
+         const res = await api.get('/mission-media');
+         console.log('📡 Mission media response status:', res.status);
+         
+         if (res.ok) {
+           const data = await res.json();
+           console.log('✅ Mission media fetched from backend:', data);
+           
+           // Only update if we have valid data
+           if (data && (data.mediaUrl || data.missionTitle || data.missionDescription)) {
+             setMissionMedia(data);
+             setMissionMediaFetched(true);
+             console.log('✅ Mission media updated successfully');
+           } else {
+             console.log('⚠️ Backend returned empty data, keeping current settings');
+           }
+         } else {
+           console.error('❌ Failed to fetch mission media, status:', res.status);
+           console.log('⚠️ Keeping current mission media settings');
+         }
+       } catch (err) {
+         console.error('💥 Error fetching mission media:', err);
+         console.log('⚠️ Keeping current mission media settings due to error');
+       } finally {
+         setLoadingMissionMedia(false);
+       }
+     };
+     
+     fetchEvents();
+     fetchHeroSettings();
+     fetchMissionMedia();
+   }, []);
 
   // Debug: Log whenever heroSettings changes
   useEffect(() => {
@@ -232,11 +287,13 @@ const HomePage = () => {
   // Start frontend stability monitoring
   useEffect(() => {
     if (window.frontendStabilityMonitor) {
-      // Monitor hero settings specifically
-      window.frontendStabilityMonitor.monitorData('heroSettings', () => heroSettings);
-      window.frontendStabilityMonitor.monitorData('events', () => events);
-      window.frontendStabilityMonitor.monitorData('loadingHero', () => loadingHero);
-      window.frontendStabilityMonitor.monitorData('loadingEvents', () => loadingEvents);
+             // Monitor hero settings specifically
+       window.frontendStabilityMonitor.monitorData('heroSettings', () => heroSettings);
+       window.frontendStabilityMonitor.monitorData('events', () => events);
+       window.frontendStabilityMonitor.monitorData('loadingHero', () => loadingHero);
+       window.frontendStabilityMonitor.monitorData('loadingEvents', () => loadingEvents);
+       window.frontendStabilityMonitor.monitorData('missionMedia', () => missionMedia);
+       window.frontendStabilityMonitor.monitorData('loadingMissionMedia', () => loadingMissionMedia);
       
       console.log('🔍 Frontend stability monitoring started for HomePage');
     }
@@ -621,19 +678,28 @@ const HomePage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Our Mission
+                {missionMedia.missionTitle || 'Our Mission'}
               </h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Beats of Washington (BOW) is dedicated to fostering community connections 
-                through the universal language of music. We believe that music has the 
-                power to bridge cultural divides, inspire creativity, and create lasting 
-                bonds within our communities.
+                {missionMedia.missionDescription || 
+                  'Beats of Washington (BOW) is dedicated to fostering community connections ' +
+                  'through the universal language of music. We believe that music has the ' +
+                  'power to bridge cultural divides, inspire creativity, and create lasting ' +
+                  'bonds within our communities.'
+                }
               </p>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                As a 501(c)(3) non-profit organization, we serve over 50,000 community 
-                members and coordinate 5,000+ volunteers across Washington State, 
-                creating inclusive spaces where everyone can participate, learn, and grow.
-              </p>
+              {missionMedia.missionLegacy && (
+                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                  {missionMedia.missionLegacy}
+                </p>
+              )}
+              {!missionMedia.missionLegacy && (
+                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                  As a 501(c)(3) non-profit organization, we serve over 50,000 community 
+                  members and coordinate 5,000+ volunteers across Washington State, 
+                  creating inclusive spaces where everyone can participate, learn, and grow.
+                </p>
+              )}
               <Link to="/about" className="btn-primary">
                 Learn More About Us
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -646,11 +712,39 @@ const HomePage = () => {
               
               {/* Main placeholder content */}
               <div className="placeholder-content">
-                <img
-                  src="/logo512.png"
-                  alt="Beats of Washington Logo"
-                  className="w-full h-80 object-contain"
-                />
+                {loadingMissionMedia ? (
+                  <div className="w-full h-80 flex items-center justify-center bg-gray-100 rounded-lg animate-pulse">
+                    <div className="text-gray-400">Loading mission media...</div>
+                  </div>
+                ) : missionMedia.mediaUrl ? (
+                  missionMedia.mediaType === 'video' ? (
+                    <video
+                      src={missionMedia.mediaUrl}
+                      className="w-full h-80 object-cover rounded-lg"
+                      controls
+                      autoPlay
+                      muted
+                      loop
+                      poster={missionMedia.thumbnailUrl}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      src={missionMedia.mediaUrl}
+                      alt={missionMedia.altText || 'Mission Media'}
+                      className="w-full h-80 object-contain"
+                      title={missionMedia.title || ''}
+                    />
+                  )
+                ) : (
+                  <div className="w-full h-80 flex items-center justify-center bg-gray-100 rounded-lg">
+                    <div className="text-center text-gray-400">
+                      <div className="text-lg font-medium mb-2">No Media Set</div>
+                      <div className="text-sm">Admins can add content from the admin panel</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
