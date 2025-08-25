@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
+import FrontendStabilityMonitor from '../utils/frontend-stability-test';
 
 
 // CountUpNumber component with Intersection Observer
@@ -131,6 +132,7 @@ const HomePage = () => {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [eventsError, setEventsError] = useState(null);
+  const [eventsFetched, setEventsFetched] = useState(false);
   
   // Hero settings state
   const [heroSettings, setHeroSettings] = useState({
@@ -143,9 +145,16 @@ const HomePage = () => {
     isActive: true
   });
   const [loadingHero, setLoadingHero] = useState(true);
+  const [heroFetched, setHeroFetched] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
+      // Prevent duplicate calls
+      if (eventsFetched) {
+        console.log('⚠️ Events already fetched, skipping duplicate request');
+        return;
+      }
+      
       setLoadingEvents(true);
       setEventsError(null);
       try {
@@ -153,6 +162,7 @@ const HomePage = () => {
         if (!res.ok) throw new Error('Failed to fetch events');
         const data = await res.json();
         setEvents(Array.isArray(data) ? data : []);
+        setEventsFetched(true); // Mark as fetched
       } catch (err) {
         setEventsError('Could not load events.');
         setEvents([]);
@@ -162,17 +172,42 @@ const HomePage = () => {
     };
     
     const fetchHeroSettings = async () => {
+      // Prevent duplicate calls
+      if (heroFetched) {
+        console.log('⚠️ Hero settings already fetched, skipping duplicate request');
+        return;
+      }
+      
       setLoadingHero(true);
       try {
+        console.log('🔄 Fetching hero settings from backend...');
+        console.log('🔄 Current heroSettings state:', heroSettings);
+        
         const res = await api.get('/hero');
+        console.log('📡 Backend response status:', res.status);
+        
         if (res.ok) {
           const data = await res.json();
-          setHeroSettings(data);
+          console.log('✅ Hero settings fetched from backend:', data);
+          console.log('✅ Setting new hero settings:', data);
+          
+          // Only update if we have valid data
+          if (data && (data.backgroundUrl || data.title)) {
+            setHeroSettings(data);
+            setHeroFetched(true); // Mark as fetched
+            console.log('✅ Hero settings updated successfully');
+          } else {
+            console.log('⚠️ Backend returned empty data, keeping current settings');
+          }
         } else {
-          console.error('Failed to fetch hero settings, using defaults');
+          console.error('❌ Failed to fetch hero settings, status:', res.status);
+          const errorText = await res.text();
+          console.error('Error response:', errorText);
+          console.log('⚠️ Keeping current hero settings instead of using defaults');
         }
       } catch (err) {
-        console.error('Error fetching hero settings:', err);
+        console.error('💥 Error fetching hero settings:', err);
+        console.log('⚠️ Keeping current hero settings due to error (not resetting to defaults)');
       } finally {
         setLoadingHero(false);
       }
@@ -180,6 +215,31 @@ const HomePage = () => {
     
     fetchEvents();
     fetchHeroSettings();
+  }, []);
+
+  // Debug: Log whenever heroSettings changes
+  useEffect(() => {
+    console.log('🔄 Hero settings state changed:', heroSettings);
+    
+    // Validate hero settings are stable
+    if (heroSettings.backgroundUrl && heroSettings.backgroundUrl.startsWith('http')) {
+      console.log('✅ Hero settings are stable with permanent URLs');
+    } else if (heroSettings.backgroundUrl && heroSettings.backgroundUrl.startsWith('blob:')) {
+      console.log('⚠️ Hero settings using temporary blob URLs (will not persist)');
+    }
+  }, [heroSettings]);
+
+  // Start frontend stability monitoring
+  useEffect(() => {
+    if (window.frontendStabilityMonitor) {
+      // Monitor hero settings specifically
+      window.frontendStabilityMonitor.monitorData('heroSettings', () => heroSettings);
+      window.frontendStabilityMonitor.monitorData('events', () => events);
+      window.frontendStabilityMonitor.monitorData('loadingHero', () => loadingHero);
+      window.frontendStabilityMonitor.monitorData('loadingEvents', () => loadingEvents);
+      
+      console.log('🔍 Frontend stability monitoring started for HomePage');
+    }
   }, []);
 
   // Find the nearest (soonest) live event by date, only if date is today or in the future
@@ -334,6 +394,7 @@ const HomePage = () => {
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white overflow-hidden">
+
 
         
         {/* Background Image/Video */}

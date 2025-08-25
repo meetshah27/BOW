@@ -121,7 +121,7 @@ const HeroManagement = () => {
     }
   };
 
-  const handleFileUpload = (files) => {
+  const handleFileUpload = async (files) => {
     if (files.length > 0) {
       const file = files[0];
       
@@ -137,23 +137,60 @@ const HeroManagement = () => {
       // Set the background type based on file type
       const newBackgroundType = isVideo ? 'video' : 'image';
       
-      // For now, we'll use a placeholder URL
-      // In production, this would upload to S3 and return the actual URL
-      const fileUrl = URL.createObjectURL(file);
-      
-      // Immediately update the state to ensure both values are set
-      setHeroSettings(prev => {
-        const newSettings = {
-          ...prev,
-          backgroundType: newBackgroundType,
-          backgroundUrl: fileUrl
-        };
-
-        return newSettings;
-      });
-      
-      setUploadedFiles(files);
-      toast.success(`${newBackgroundType.charAt(0).toUpperCase() + newBackgroundType.slice(1)} uploaded successfully!`);
+      try {
+        // Show uploading state
+        toast.loading('Uploading file to S3...');
+        
+        // Create FormData for upload
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'hero');
+        
+        // Upload to S3
+        const response = await api.upload('/upload/single', formData);
+        
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.success) {
+            // Get the permanent S3 URL
+            const fileUrl = result.data.fileUrl;
+            
+            setHeroSettings(prev => {
+              const newSettings = {
+                ...prev,
+                backgroundType: newBackgroundType,
+                backgroundUrl: fileUrl
+              };
+              return newSettings;
+            });
+            
+            setUploadedFiles(files);
+            toast.dismiss();
+            toast.success(`${newBackgroundType.charAt(0).toUpperCase() + newBackgroundType.slice(1)} uploaded successfully!`);
+          } else {
+            throw new Error(result.error || 'Upload failed');
+          }
+        } else {
+          throw new Error('Upload request failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.dismiss();
+        toast.error(`Upload failed: ${error.message}`);
+        
+        // Fallback to local blob URL for preview (but won't persist)
+        const fileUrl = URL.createObjectURL(file);
+        setHeroSettings(prev => {
+          const newSettings = {
+            ...prev,
+            backgroundType: newBackgroundType,
+            backgroundUrl: fileUrl
+          };
+          return newSettings;
+        });
+        setUploadedFiles(files);
+      }
     }
   };
 
