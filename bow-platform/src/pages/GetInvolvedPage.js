@@ -23,6 +23,18 @@ const GetInvolvedPage = () => {
   const [activeTab, setActiveTab] = useState('volunteer');
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  
+  // Debug logging for modal state
+  useEffect(() => {
+    console.log('Modal state changed - showApplicationForm:', showApplicationForm);
+    console.log('Modal state changed - selectedOpportunity:', selectedOpportunity);
+  }, [showApplicationForm, selectedOpportunity]);
+  
+  // Debug logging for component re-renders
+  useEffect(() => {
+    console.log('GetInvolvedPage component rendered');
+  });
+  
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [volunteerOpportunities, setVolunteerOpportunities] = useState([]);
   const [loadingOpportunities, setLoadingOpportunities] = useState(true);
@@ -31,13 +43,23 @@ const GetInvolvedPage = () => {
   useEffect(() => {
     const fetchOpportunities = async () => {
       try {
+        console.log('Fetching volunteer opportunities...');
         const response = await api.get('/volunteer-opportunities/opportunities/active');
+        console.log('Volunteer opportunities response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
-          setVolunteerOpportunities(data.opportunities);
+          console.log('Volunteer opportunities data:', data);
+          setVolunteerOpportunities(data.opportunities || []);
+        } else {
+          console.error('Failed to fetch volunteer opportunities, status:', response.status);
+          // Fallback to sample data if API fails
+          setVolunteerOpportunities(fallbackOpportunities);
         }
       } catch (error) {
         console.error('Error fetching volunteer opportunities:', error);
+        // Fallback to sample data if API fails
+        setVolunteerOpportunities(fallbackOpportunities);
       } finally {
         setLoadingOpportunities(false);
       }
@@ -50,6 +72,7 @@ const GetInvolvedPage = () => {
   const fallbackOpportunities = [
     {
       id: 1,
+      opportunityId: 1, // Add this for compatibility
       title: "Event Coordinator",
       category: "Events",
       location: "Seattle Area",
@@ -70,6 +93,7 @@ const GetInvolvedPage = () => {
     },
     {
       id: 2,
+      opportunityId: 2, // Add this for compatibility
       title: "Music Workshop Assistant",
       category: "Education",
       location: "Various Locations",
@@ -90,6 +114,7 @@ const GetInvolvedPage = () => {
     },
     {
       id: 3,
+      opportunityId: 3, // Add this for compatibility
       title: "Community Outreach Specialist",
       category: "Outreach",
       location: "Washington State",
@@ -110,6 +135,7 @@ const GetInvolvedPage = () => {
     },
     {
       id: 4,
+      opportunityId: 4, // Add this for compatibility
       title: "Technical Support",
       category: "Technical",
       location: "Remote/Seattle",
@@ -211,6 +237,8 @@ const GetInvolvedPage = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20">
         <div className="container-custom text-center">
+
+          
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
               <Users className="w-10 h-10" />
@@ -301,6 +329,8 @@ const GetInvolvedPage = () => {
                 </div>
 
                 <div className="grid lg:grid-cols-2 gap-8">
+
+                  
                   {loadingOpportunities ? (
                     // Loading skeleton
                     Array.from({ length: 4 }).map((_, index) => (
@@ -314,7 +344,7 @@ const GetInvolvedPage = () => {
                     ))
                   ) : volunteerOpportunities.length > 0 ? (
                     volunteerOpportunities.map((opportunity) => (
-                      <div key={opportunity.opportunityId} className="bg-white rounded-xl shadow-lg p-8">
+                      <div key={opportunity.opportunityId || opportunity.id} className="bg-white rounded-xl shadow-lg p-8">
                       <div className="flex items-start justify-between mb-4">
                         <h4 className="text-xl font-semibold text-gray-900">
                           {opportunity.title}
@@ -367,10 +397,23 @@ const GetInvolvedPage = () => {
                       <div className="mt-6">
                         <button
                           onClick={() => {
-                            setSelectedOpportunity(opportunity);
-                            setShowApplicationForm(true);
+                            console.log('Apply Now clicked for opportunity:', opportunity);
+                            console.log('Setting selectedOpportunity to:', opportunity);
+                            console.log('Setting showApplicationForm to true');
+                            
+                            // Test if the state setters are working
+                            try {
+                              setSelectedOpportunity(opportunity);
+                              setShowApplicationForm(true);
+                              console.log('State setters called successfully');
+                            } catch (error) {
+                              console.error('Error setting state:', error);
+                            }
+                            
+                            console.log('State should now be updated');
                           }}
                           className="btn-primary w-full justify-center"
+                          type="button"
                         >
                           Apply Now
                           <ArrowRight className="w-4 h-4 ml-2" />
@@ -451,10 +494,11 @@ const GetInvolvedPage = () => {
       </section>
 
       {/* Volunteer Application Form Modal */}
-      {showApplicationForm && selectedOpportunity && (
+      {showApplicationForm && selectedOpportunity ? (
         <VolunteerApplicationForm
           opportunity={selectedOpportunity}
           onClose={() => {
+            console.log('Closing application form');
             setShowApplicationForm(false);
             setSelectedOpportunity(null);
           }}
@@ -464,6 +508,10 @@ const GetInvolvedPage = () => {
             setSelectedOpportunity(null);
           }}
         />
+      ) : (
+        <div style={{ display: 'none' }}>
+          {console.log('Modal should NOT be visible - showApplicationForm:', showApplicationForm, 'selectedOpportunity:', selectedOpportunity)}
+        </div>
       )}
 
       {/* Testimonials Section */}

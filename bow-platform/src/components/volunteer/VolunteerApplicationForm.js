@@ -22,7 +22,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     applicantName: currentUser ? (currentUser.displayName || currentUser.email || '') : '',
     applicantEmail: currentUser ? (currentUser.email || '') : '',
-    applicantPhone: currentUser ? (currentUser.phone || '') : '',
+    applicantPhone: currentUser ? (currentUser.phone || 'Not provided') : '',
     applicantAge: '',
     applicantAddress: {
       street: '',
@@ -58,15 +58,47 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
 
   // Update form data when currentUser changes
   useEffect(() => {
+    console.log('useEffect triggered - currentUser:', currentUser);
     if (currentUser) {
+      console.log('Setting form data for logged-in user:', {
+        displayName: currentUser.displayName,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        phoneType: typeof currentUser.phone,
+        phoneTruthy: !!currentUser.phone
+      });
+      setFormData(prev => {
+        const newData = {
+          ...prev,
+          applicantName: currentUser.displayName || currentUser.email || '',
+          applicantEmail: currentUser.email || '',
+          applicantPhone: currentUser.phone || 'Not provided' // Provide a fallback for phone
+        };
+        console.log('Updated form data:', newData);
+        return newData;
+      });
+    }
+  }, [currentUser]);
+
+  // Initialize form data when component mounts
+  useEffect(() => {
+    console.log('Component mounted - currentUser:', currentUser);
+    if (currentUser) {
+      console.log('Current user details:', {
+        displayName: currentUser.displayName,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        fullObject: currentUser
+      });
+      console.log('Initializing form data on mount');
       setFormData(prev => ({
         ...prev,
         applicantName: currentUser.displayName || currentUser.email || '',
         applicantEmail: currentUser.email || '',
-        applicantPhone: currentUser.phone || ''
+        applicantPhone: currentUser.phone || 'Not provided' // Provide a fallback for phone
       }));
     }
-  }, [currentUser]);
+  }, []); // Empty dependency array - runs only on mount
 
   const timeCommitmentOptions = [
     '2-4 hours/week',
@@ -129,7 +161,13 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   const validateStep = (step) => {
     switch (step) {
       case 1:
-        return formData.applicantName && formData.applicantEmail && formData.applicantPhone && formData.applicantAge;
+        // For logged-in users, name, email, and phone are pre-filled and required
+        // For non-logged-in users, all fields are required
+        if (currentUser) {
+          return formData.applicantName && formData.applicantEmail && formData.applicantPhone && formData.applicantAge;
+        } else {
+          return formData.applicantName && formData.applicantEmail && formData.applicantPhone && formData.applicantAge;
+        }
       case 2:
         return formData.experience && formData.motivation && formData.timeCommitment;
       case 3:
@@ -142,10 +180,21 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   };
 
   const nextStep = () => {
+    console.log('Validating step:', currentStep);
+    console.log('Current form data:', formData);
+    console.log('Current user:', currentUser);
+    
     if (validateStep(currentStep)) {
       setCurrentStep(prev => prev + 1);
       setError('');
     } else {
+      console.log('Validation failed for step:', currentStep);
+      console.log('Form data validation:', {
+        applicantName: !!formData.applicantName,
+        applicantEmail: !!formData.applicantEmail,
+        applicantPhone: !!formData.applicantPhone,
+        applicantAge: !!formData.applicantAge
+      });
       setError('Please fill in all required fields before continuing.');
     }
   };
@@ -161,15 +210,26 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const response = await api.post('/volunteers/apply', {
+      console.log('Submitting volunteer application for opportunity:', opportunity);
+      console.log('Form data:', formData);
+      
+      const requestData = {
         opportunityId: opportunity.opportunityId || opportunity.id,
         opportunityTitle: opportunity.title,
         opportunityCategory: opportunity.category,
         ...formData,
         skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill)
-      });
+      };
+      
+      console.log('Request data being sent:', requestData);
+      
+      const response = await api.post('/volunteers/apply', requestData);
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
         setSuccess(true);
@@ -177,10 +237,11 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
           onSuccess(data);
         }
       } else {
-        setError(data.error || 'Failed to submit application');
+        setError(data.error || `Failed to submit application. Status: ${response.status}`);
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      console.error('Error submitting volunteer application:', err);
+      setError(`Network error: ${err.message}. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +249,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
 
   if (success) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md mx-4">
           <div className="text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -212,8 +273,8 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4 my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4 my-8 relative">
         <div className="flex justify-between items-center mb-6">
           <div>
           <h2 className="text-2xl font-bold text-gray-900">
