@@ -17,14 +17,14 @@ const AboutPage = () => {
     mediaType: 'image',
     mediaUrl: '',
     thumbnailUrl: '',
-    title: 'Our Mission',
-    description: 'Beats of Washington Mission',
-    altText: 'Mission media',
+    title: '',
+    description: '',
+    altText: '',
     isActive: true,
     overlayOpacity: 0.2,
-    missionTitle: 'Our Mission',
-    missionDescription: 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
-    missionLegacy: 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+    missionTitle: '',
+    missionDescription: '',
+    missionLegacy: ''
   });
   const [loadingMission, setLoadingMission] = useState(true);
 
@@ -41,17 +41,21 @@ const AboutPage = () => {
         // Ensure overlayOpacity has a valid default value
         const missionMediaWithDefaults = {
           ...data,
-          overlayOpacity: data.overlayOpacity !== undefined && !isNaN(data.overlayOpacity) ? data.overlayOpacity : 0.2,
-          missionTitle: data.missionTitle || 'Our Mission',
-          missionDescription: data.missionDescription || 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
-          missionLegacy: data.missionLegacy || 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+          overlayOpacity: data.overlayOpacity !== undefined && !isNaN(data.overlayOpacity) ? data.overlayOpacity : 0.2
         };
+        
         setMissionMedia(missionMediaWithDefaults);
         console.log('✅ Mission media loaded:', missionMediaWithDefaults);
         console.log('🎯 Mission content check:');
         console.log('  - Title:', missionMediaWithDefaults.missionTitle);
         console.log('  - Description:', missionMediaWithDefaults.missionDescription);
         console.log('  - Legacy:', missionMediaWithDefaults.missionLegacy);
+        
+        // Debug: Check if content fields are empty
+        if (!missionMediaWithDefaults.missionTitle && !missionMediaWithDefaults.missionDescription && !missionMediaWithDefaults.missionLegacy) {
+          console.log('⚠️  WARNING: All mission content fields are empty!');
+          console.log('📋 Full data received:', data);
+        }
       } else {
         console.error('Failed to fetch mission media');
       }
@@ -150,13 +154,13 @@ const AboutPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                {missionMedia.missionTitle || 'Our Mission'}
+                {missionMedia.missionTitle}
               </h2>
               <p className="text-lg text-primary-700 mb-6 leading-relaxed font-semibold">
-                {missionMedia.missionDescription || 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.'}
+                {missionMedia.missionDescription}
               </p>
               <p className="text-lg text-primary-600 mb-6 leading-relaxed italic">
-                {missionMedia.missionLegacy || 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'}
+                {missionMedia.missionLegacy}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
