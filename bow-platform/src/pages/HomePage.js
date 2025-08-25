@@ -289,20 +289,20 @@ const HomePage = () => {
 
   const testimonials = [
     {
-      name: "Sarah Johnson",
+      name: "Shivam Pawar",
       role: "Community Member",
       content: "BOW has transformed our neighborhood through the power of music. The events bring people together in ways I never imagined possible.",
       rating: 5
     },
     {
-      name: "Michael Chen",
+      name: "Mandar",
       role: "Volunteer",
       content: "Being part of BOW has given me a sense of purpose and community. The impact we make on people's lives is incredible.",
       rating: 5
     },
     {
-      name: "Maria Rodriguez",
-      role: "Local Artist",
+      name: "Nirmal Mantri",
+      role: "Volunteer",
       content: "BOW provides a platform for local artists to showcase their talent and connect with the community. It's been life-changing.",
       rating: 5
     }
@@ -605,7 +605,7 @@ const HomePage = () => {
                 <Star className="w-12 h-12 text-primary-600" />
               </div>
               <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                7
+                Since 2019
               </div>
               <div className="text-gray-600 font-medium">
                 Years of Service
@@ -641,11 +641,10 @@ const HomePage = () => {
             </div>
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-                alt="Community music event"
-                className="rounded-2xl shadow-2xl"
+                src="/logo512.png"
+                alt="Beats of Washington Logo"
+                className="rounded-2xl shadow-2xl w-full h-80 object-contain bg-white p-8"
               />
-              <div className="absolute inset-0 bg-primary-600 rounded-2xl opacity-20"></div>
             </div>
           </div>
         </div>
