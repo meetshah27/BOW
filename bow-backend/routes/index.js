@@ -351,6 +351,100 @@ router.get('/api/hero', async (req, res) => {
   }
 });
 
+// Test route to check database content
+router.get('/api/debug-mission-media', async (req, res) => {
+  try {
+    console.log('🧪 Debug route called - checking database content...');
+    
+    if (MissionMedia) {
+      try {
+        // Try to get the raw data from DynamoDB
+        const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+        const { GetCommand } = require('@aws-sdk/lib-dynamodb');
+        
+        const client = new DynamoDBClient({
+          region: process.env.AWS_REGION || 'us-west-2',
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          }
+        });
+        
+        const command = new GetCommand({
+          TableName: 'bow-mission-media',
+          Key: { id: 'mission-media' }
+        });
+        
+        const result = await client.send(command);
+        console.log('🧪 Raw DynamoDB result:', result);
+        
+        res.json({
+          success: true,
+          rawData: result.Item,
+          hasData: !!result.Item,
+          tableName: 'bow-mission-media'
+        });
+      } catch (error) {
+        console.error('❌ Debug route error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message
+        });
+      }
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'MissionMedia model not loaded'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Debug route error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Test route to verify database connection
+router.get('/api/test-mission-media', async (req, res) => {
+  try {
+    console.log('🧪 Testing mission media database connection...');
+    console.log('🔍 MissionMedia model available:', !!MissionMedia);
+    
+    if (MissionMedia) {
+      try {
+        const result = await MissionMedia.getMissionMedia();
+        console.log('✅ Database connection successful, got result:', result);
+        res.json({
+          success: true,
+          message: 'Database connection successful',
+          data: result
+        });
+      } catch (error) {
+        console.error('❌ Database connection failed:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Database connection failed',
+          details: error.message
+        });
+      }
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'MissionMedia model not loaded'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Test route error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Test route error',
+      details: error.message
+    });
+  }
+});
+
 // API: Get mission media
 router.get('/api/mission-media', async (req, res) => {
   try {
@@ -377,14 +471,14 @@ router.get('/api/mission-media', async (req, res) => {
           mediaType: 'image',
           mediaUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
           thumbnailUrl: '',
-          title: 'Our Mission',
-          description: 'Beats of Washington Mission',
-          altText: 'Mission media',
+          title: '',
+          description: '',
+          altText: '',
           isActive: true,
           overlayOpacity: 0.2,
-          missionTitle: 'Our Mission',
-          missionDescription: 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
-          missionLegacy: 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+          missionTitle: '',
+          missionDescription: '',
+          missionLegacy: ''
         };
         console.log('📋 Using fallback data:', defaultMissionMedia);
         res.json(defaultMissionMedia);
@@ -396,14 +490,14 @@ router.get('/api/mission-media', async (req, res) => {
         mediaType: 'image',
         mediaUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         thumbnailUrl: '',
-        title: 'Our Mission',
-        description: 'Beats of Washington Mission',
-        altText: 'Mission media',
+        title: '',
+        description: '',
+        altText: '',
         isActive: true,
         overlayOpacity: 0.2,
-        missionTitle: 'Our Mission',
-        missionDescription: 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
-        missionLegacy: 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+        missionTitle: '',
+        missionDescription: '',
+        missionLegacy: ''
       };
       console.log('📋 Using fallback data:', defaultMissionMedia);
       res.json(defaultMissionMedia);
@@ -418,58 +512,71 @@ router.get('/api/mission-media', async (req, res) => {
 router.put('/api/mission-media', async (req, res) => {
   try {
     console.log('🚀 PUT /api/mission-media called with body:', req.body);
+    console.log('📋 Request headers:', req.headers);
     
     const { mediaType, mediaUrl, thumbnailUrl, title, description, altText, isActive, overlayOpacity, missionTitle, missionDescription, missionLegacy } = req.body;
     
     console.log('📝 Extracted fields:', { mediaType, mediaUrl, thumbnailUrl, title, description, altText, isActive, overlayOpacity, missionTitle, missionDescription, missionLegacy });
     
-    // Validate required fields
-    if (!mediaType) {
-      console.log('❌ Validation failed: mediaType is required');
-      return res.status(400).json({ error: 'Media type is required (image or video)' });
-    }
-    
-    if (!mediaUrl) {
-      console.log('❌ Validation failed: mediaUrl is required');
-      return res.status(400).json({ error: 'Media URL is required' });
-    }
-    
-    // Validate media type
-    if (!['image', 'video'].includes(mediaType)) {
-      console.log('❌ Validation failed: invalid mediaType:', mediaType);
-      return res.status(400).json({ error: 'Media type must be either "image" or "video"' });
-    }
-    
-    // Basic URL validation
-    if (!mediaUrl.startsWith('http') && !mediaUrl.startsWith('blob:') && !mediaUrl.startsWith('data:')) {
-      console.log('❌ Validation failed: invalid mediaUrl:', mediaUrl);
-      return res.status(400).json({ error: 'Media URL must be a valid HTTP URL, blob URL, or data URL' });
+    // Validate required fields - allow saving content without media
+    if (!mediaType && !mediaUrl && !missionTitle && !missionDescription && !missionLegacy) {
+      console.log('❌ Validation failed: either media file or mission content is required');
+      return res.status(400).json({ error: 'Either media file or mission content is required' });
     }
     
     console.log('✅ Validation passed, proceeding with save...');
+    console.log('🔍 MissionMedia model available:', !!MissionMedia);
     
     if (MissionMedia) {
+      console.log('📚 MissionMedia model loaded successfully');
       try {
         console.log('🔄 Getting existing mission media from DynamoDB...');
-        const missionMedia = await MissionMedia.getMissionMedia();
-        console.log('📋 Existing mission media:', missionMedia);
+        let missionMedia;
+        try {
+          missionMedia = await MissionMedia.getMissionMedia();
+          console.log('📋 Existing mission media:', missionMedia);
+        } catch (getError) {
+          console.log('⚠️  No existing mission media found, will create new record');
+          console.log('⚠️  Get error details:', getError.message);
+          missionMedia = null;
+        }
         
-        console.log('🔄 Updating mission media in DynamoDB...');
-        const updatedMedia = await missionMedia.update({
-          mediaType,
-          mediaUrl,
-          thumbnailUrl: thumbnailUrl || '',
-          title: title || 'Our Mission',
-          description: description || 'Beats of Washington Mission',
-          altText: altText || 'Mission media',
-          isActive: isActive !== undefined ? isActive : true,
-          overlayOpacity: overlayOpacity !== undefined ? overlayOpacity : 0.2,
-          missionTitle: missionTitle || 'Our Mission',
-          missionDescription: missionDescription || 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
-          missionLegacy: missionLegacy || 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
-        });
+        let updatedMedia;
+        if (missionMedia) {
+          console.log('🔄 Updating existing mission media in DynamoDB...');
+          updatedMedia = await missionMedia.update({
+            mediaType: mediaType || missionMedia.mediaType || 'image',
+            mediaUrl: mediaUrl || missionMedia.mediaUrl || '',
+            thumbnailUrl: thumbnailUrl || missionMedia.thumbnailUrl || '',
+            title: title || missionMedia.title || '',
+            description: description || missionMedia.description || '',
+            altText: altText || missionMedia.altText || '',
+            isActive: isActive !== undefined ? isActive : missionMedia.isActive !== undefined ? missionMedia.isActive : true,
+            overlayOpacity: overlayOpacity !== undefined ? overlayOpacity : missionMedia.overlayOpacity || 0.2,
+            missionTitle: missionTitle || missionMedia.missionTitle || '',
+            missionDescription: missionDescription || missionMedia.missionDescription || '',
+            missionLegacy: missionLegacy || missionMedia.missionLegacy || ''
+          });
+        } else {
+          console.log('🔄 Creating new mission media record in DynamoDB...');
+          // Create new record if none exists
+          const newMissionMedia = new MissionMedia({
+            mediaType: mediaType || 'image',
+            mediaUrl: mediaUrl || '',
+            thumbnailUrl: thumbnailUrl || '',
+            title: title || '',
+            description: description || '',
+            altText: altText || '',
+            isActive: isActive !== undefined ? isActive : true,
+            overlayOpacity: overlayOpacity !== undefined ? overlayOpacity : 0.2,
+            missionTitle: missionTitle || '',
+            missionDescription: missionDescription || '',
+            missionLegacy: missionLegacy || ''
+          });
+          updatedMedia = await newMissionMedia.save();
+        }
         
-        console.log('✅ Mission media updated successfully in DynamoDB:', updatedMedia);
+        console.log('✅ Mission media saved successfully in DynamoDB:', updatedMedia);
         
         res.json({
           success: true,
@@ -520,9 +627,9 @@ router.put('/api/mission-media', async (req, res) => {
           altText: altText || 'Mission media',
           isActive: isActive !== undefined ? isActive : true,
           overlayOpacity: overlayOpacity !== undefined ? overlayOpacity : 0.2,
-          missionTitle: missionTitle || 'Our Mission',
-          missionDescription: missionDescription || 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
-          missionLegacy: missionLegacy || 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+          missionTitle: missionTitle || '',
+          missionDescription: missionDescription || '',
+          missionLegacy: missionLegacy || ''
         }
       });
     }

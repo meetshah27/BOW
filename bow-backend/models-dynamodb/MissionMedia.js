@@ -22,10 +22,14 @@ class MissionMedia {
     this.mediaType = data.mediaType || 'image'; // 'image' or 'video'
     this.mediaUrl = data.mediaUrl || '';
     this.thumbnailUrl = data.thumbnailUrl || '';
-    this.title = data.title || 'Our Mission';
-    this.description = data.description || 'Beats of Washington Mission';
-    this.altText = data.altText || 'Mission media';
+    this.title = data.title || '';
+    this.description = data.description || '';
+    this.altText = data.altText || '';
     this.isActive = data.isActive !== undefined ? data.isActive : true;
+    this.overlayOpacity = data.overlayOpacity !== undefined ? data.overlayOpacity : 0.2;
+    this.missionTitle = data.missionTitle || '';
+    this.missionDescription = data.missionDescription || '';
+    this.missionLegacy = data.missionLegacy || '';
     this.uploadedAt = data.uploadedAt || new Date().toISOString();
     this.updatedAt = data.updatedAt || new Date().toISOString();
   }
@@ -40,9 +44,16 @@ class MissionMedia {
     try {
       const result = await docClient.send(command);
       if (result.Item) {
-        return new MissionMedia(result.Item);
+        console.log('📋 Raw data from DynamoDB:', result.Item);
+        // Create new instance with all fields from database
+        const missionMedia = new MissionMedia();
+        // Map all fields from database to model instance
+        Object.assign(missionMedia, result.Item);
+        console.log('📋 Processed mission media:', missionMedia);
+        return missionMedia;
       }
       // Return default settings if none exist
+      console.log('📋 No existing data, returning defaults');
       return new MissionMedia();
     } catch (error) {
       console.error('Error getting mission media:', error);
@@ -63,6 +74,10 @@ class MissionMedia {
         description: this.description,
         altText: this.altText,
         isActive: this.isActive,
+        overlayOpacity: this.overlayOpacity,
+        missionTitle: this.missionTitle,
+        missionDescription: this.missionDescription,
+        missionLegacy: this.missionLegacy,
         uploadedAt: this.uploadedAt,
         updatedAt: new Date().toISOString()
       }
