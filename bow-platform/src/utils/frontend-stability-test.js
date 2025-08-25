@@ -1,5 +1,7 @@
 // Frontend Stability Test - Monitor for 30-second data loss issues
+// TEMPORARILY DISABLED TO STOP HEALTH CHECK SPAM
 
+/*
 class FrontendStabilityMonitor {
   constructor() {
     this.startTime = Date.now();
@@ -107,16 +109,14 @@ class FrontendStabilityMonitor {
       }
     });
 
-    // Check if fetch is working
+    // Check if fetch is working (without making actual health check calls)
     try {
-      fetch('/health')
-        .then(response => response.json())
-        .then(data => {
-          console.log('🌐 Health check response:', data);
-        })
-        .catch(error => {
-          console.error('❌ Health check failed:', error);
-        });
+      // Test fetch availability without making network requests
+      if (typeof fetch === 'function') {
+        console.log('✅ Fetch API: Available');
+      } else {
+        console.log('❌ Fetch API: Not available');
+      }
     } catch (error) {
       console.error('❌ Fetch not available:', error);
     }
@@ -154,12 +154,30 @@ class FrontendStabilityMonitor {
   }
 }
 
-// Create global instance
+// Create global instance (but don't auto-start)
 window.frontendStabilityMonitor = new FrontendStabilityMonitor();
 
-// Auto-start monitoring in development
-if (process.env.NODE_ENV === 'development') {
+// Auto-start monitoring in development (COMPLETELY DISABLED to prevent health check spam)
+// To enable: set window.DISABLE_STABILITY_MONITOR = false in browser console
+if (process.env.NODE_ENV === 'development' && window.DISABLE_STABILITY_MONITOR === false) {
+  console.log('🔍 Auto-starting Frontend Stability Monitor in development mode');
   window.frontendStabilityMonitor.start();
+} else {
+  console.log('🔍 Frontend Stability Monitor auto-start COMPLETELY DISABLED');
+  console.log('💡 To enable, set: window.DISABLE_STABILITY_MONITOR = false in browser console');
 }
 
 export default FrontendStabilityMonitor;
+*/
+
+// Dummy export to prevent import errors
+class DummyFrontendStabilityMonitor {
+  start() { console.log('Frontend Stability Monitor is disabled'); }
+  stop() { console.log('Frontend Stability Monitor is disabled'); }
+  monitorData() { console.log('Frontend Stability Monitor is disabled'); }
+}
+
+// Create dummy global instance
+window.frontendStabilityMonitor = new DummyFrontendStabilityMonitor();
+
+export default DummyFrontendStabilityMonitor;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
-import FrontendStabilityMonitor from '../utils/frontend-stability-test';
+
 
 
 // CountUpNumber component with Intersection Observer
@@ -164,113 +164,105 @@ const HomePage = () => {
   const [loadingMissionMedia, setLoadingMissionMedia] = useState(true);
   const [missionMediaFetched, setMissionMediaFetched] = useState(false);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      // Prevent duplicate calls
-      if (eventsFetched) {
-        console.log('⚠️ Events already fetched, skipping duplicate request');
-        return;
-      }
-      
-      setLoadingEvents(true);
-      setEventsError(null);
-      try {
-        const res = await api.get('/events');
-        if (!res.ok) throw new Error('Failed to fetch events');
-        const data = await res.json();
-        setEvents(Array.isArray(data) ? data : []);
-        setEventsFetched(true); // Mark as fetched
-      } catch (err) {
-        setEventsError('Could not load events.');
-        setEvents([]);
-      } finally {
-        setLoadingEvents(false);
-      }
-    };
+  // Fetch functions defined outside useEffect to prevent recreation
+  const fetchEvents = useCallback(async () => {
+    if (eventsFetched) {
+      console.log('⚠️ Events already fetched, skipping duplicate request');
+      return;
+    }
     
-    const fetchHeroSettings = async () => {
-      // Prevent duplicate calls
-      if (heroFetched) {
-        console.log('⚠️ Hero settings already fetched, skipping duplicate request');
-        return;
-      }
+    setLoadingEvents(true);
+    setEventsError(null);
+    try {
+      const res = await api.get('/events');
+      if (!res.ok) throw new Error('Failed to fetch events');
+      const data = await res.json();
+      setEvents(Array.isArray(data) ? data : []);
+      setEventsFetched(true);
+    } catch (err) {
+      setEventsError('Could not load events.');
+      setEvents([]);
+    } finally {
+      setLoadingEvents(false);
+    }
+  }, [eventsFetched]);
+
+  const fetchHeroSettings = useCallback(async () => {
+    if (heroFetched) {
+      console.log('⚠️ Hero settings already fetched, skipping duplicate request');
+      return;
+    }
+    
+    setLoadingHero(true);
+    try {
+      console.log('🔄 Fetching hero settings from backend...');
+      const res = await api.get('/hero');
+      console.log('📡 Backend response status:', res.status);
       
-      setLoadingHero(true);
-      try {
-        console.log('🔄 Fetching hero settings from backend...');
-        console.log('🔄 Current heroSettings state:', heroSettings);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('✅ Hero settings fetched from backend:', data);
         
-        const res = await api.get('/hero');
-        console.log('📡 Backend response status:', res.status);
-        
-        if (res.ok) {
-          const data = await res.json();
-          console.log('✅ Hero settings fetched from backend:', data);
-          console.log('✅ Setting new hero settings:', data);
-          
-          // Only update if we have valid data
-          if (data && (data.backgroundUrl || data.title)) {
-            setHeroSettings(data);
-            setHeroFetched(true); // Mark as fetched
-            console.log('✅ Hero settings updated successfully');
-          } else {
-            console.log('⚠️ Backend returned empty data, keeping current settings');
-          }
+        if (data && (data.backgroundUrl || data.title)) {
+          setHeroSettings(data);
+          setHeroFetched(true);
+          console.log('✅ Hero settings updated successfully');
         } else {
-          console.error('❌ Failed to fetch hero settings, status:', res.status);
-          const errorText = await res.text();
-          console.error('Error response:', errorText);
-          console.log('⚠️ Keeping current hero settings instead of using defaults');
+          console.log('⚠️ Backend returned empty data, keeping current settings');
         }
-      } catch (err) {
-        console.error('💥 Error fetching hero settings:', err);
-        console.log('⚠️ Keeping current hero settings due to error (not resetting to defaults)');
-             } finally {
-         setLoadingHero(false);
-       }
-     };
-     
-     const fetchMissionMedia = async () => {
-       // Prevent duplicate calls
-       if (missionMediaFetched) {
-         console.log('⚠️ Mission media already fetched, skipping duplicate request');
-         return;
-       }
-       
-       setLoadingMissionMedia(true);
-       try {
-         console.log('🔄 Fetching mission media from backend...');
-         const res = await api.get('/mission-media');
-         console.log('📡 Mission media response status:', res.status);
-         
-         if (res.ok) {
-           const data = await res.json();
-           console.log('✅ Mission media fetched from backend:', data);
-           
-           // Only update if we have valid data
-           if (data && (data.mediaUrl || data.missionTitle || data.missionDescription)) {
-             setMissionMedia(data);
-             setMissionMediaFetched(true);
-             console.log('✅ Mission media updated successfully');
-           } else {
-             console.log('⚠️ Backend returned empty data, keeping current settings');
-           }
-         } else {
-           console.error('❌ Failed to fetch mission media, status:', res.status);
-           console.log('⚠️ Keeping current mission media settings');
-         }
-       } catch (err) {
-         console.error('💥 Error fetching mission media:', err);
-         console.log('⚠️ Keeping current mission media settings due to error');
-       } finally {
-         setLoadingMissionMedia(false);
-       }
-     };
-     
-     fetchEvents();
-     fetchHeroSettings();
-     fetchMissionMedia();
-   }, []);
+      } else {
+        console.error('❌ Failed to fetch hero settings, status:', res.status);
+        console.log('⚠️ Keeping current hero settings instead of using defaults');
+      }
+    } catch (err) {
+      console.error('💥 Error fetching hero settings:', err);
+      console.log('⚠️ Keeping current hero settings due to error (not resetting to defaults)');
+    } finally {
+      setLoadingHero(false);
+    }
+  }, [heroFetched]);
+
+  const fetchMissionMedia = useCallback(async () => {
+    if (missionMediaFetched) {
+      console.log('⚠️ Mission media already fetched, skipping duplicate request');
+      return;
+    }
+    
+    setLoadingMissionMedia(true);
+    try {
+      console.log('🔄 Fetching mission media from backend...');
+      const res = await api.get('/mission-media');
+      console.log('📡 Mission media response status:', res.status);
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('✅ Mission media fetched from backend:', data);
+        
+        if (data && (data.mediaUrl || data.missionTitle || data.missionDescription)) {
+          setMissionMedia(data);
+          setMissionMediaFetched(true);
+          console.log('✅ Mission media updated successfully');
+        } else {
+          console.log('⚠️ Backend returned empty data, keeping current settings');
+        }
+      } else {
+        console.error('❌ Failed to fetch mission media, status:', res.status);
+        console.log('⚠️ Keeping current mission media settings');
+      }
+    } catch (err) {
+      console.error('💥 Error fetching mission media:', err);
+      console.log('⚠️ Keeping current mission media settings due to error');
+    } finally {
+      setLoadingMissionMedia(false);
+    }
+  }, [missionMediaFetched]);
+
+  // Initial data fetch - only run once
+  useEffect(() => {
+    fetchEvents();
+    fetchHeroSettings();
+    fetchMissionMedia();
+  }, []); // Empty dependency array - only run on mount
 
   // Debug: Log whenever heroSettings changes
   useEffect(() => {
@@ -284,20 +276,9 @@ const HomePage = () => {
     }
   }, [heroSettings]);
 
-  // Start frontend stability monitoring
-  useEffect(() => {
-    if (window.frontendStabilityMonitor) {
-             // Monitor hero settings specifically
-       window.frontendStabilityMonitor.monitorData('heroSettings', () => heroSettings);
-       window.frontendStabilityMonitor.monitorData('events', () => events);
-       window.frontendStabilityMonitor.monitorData('loadingHero', () => loadingHero);
-       window.frontendStabilityMonitor.monitorData('loadingEvents', () => loadingEvents);
-       window.frontendStabilityMonitor.monitorData('missionMedia', () => missionMedia);
-       window.frontendStabilityMonitor.monitorData('loadingMissionMedia', () => loadingMissionMedia);
-      
-      console.log('🔍 Frontend stability monitoring started for HomePage');
-    }
-  }, []);
+
+
+   
 
   // Find the nearest (soonest) live event by date, only if date is today or in the future
   const liveEvents = events.filter(e => {
