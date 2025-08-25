@@ -555,7 +555,7 @@ const HomePage = () => {
       </section>
 
       {/* Our Impact in Numbers Section */}
-      <section className="bg-white py-20">
+      <section className="stats-section bg-white py-20">
         <div className="container-custom">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -569,45 +569,45 @@ const HomePage = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center stats-card">
               <div className="flex justify-center mb-4">
-                <Users className="w-12 h-12 text-primary-600" />
+                <Users className="w-12 h-12 text-primary-600 stats-icon" />
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
                 50,000+
               </div>
-              <div className="text-gray-600 font-medium">
+              <div className="text-gray-600 font-medium stats-label">
                 Community Members
               </div>
             </div>
             <div className="text-center stats-card">
               <div className="flex justify-center mb-4">
-                <Heart className="w-12 h-12 text-primary-600" />
+                <Heart className="w-12 h-12 text-primary-600 stats-icon" />
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
                 2,000+
               </div>
-              <div className="text-gray-600 font-medium">
+              <div className="text-gray-600 font-medium stats-label">
                 Volunteers
               </div>
             </div>
             <div className="text-center stats-card">
               <div className="flex justify-center mb-4">
-                <Calendar className="w-12 h-12 text-primary-600" />
+                <Calendar className="w-12 h-12 text-primary-600 stats-icon" />
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
                 200+
               </div>
-              <div className="text-gray-600 font-medium">
+              <div className="text-gray-600 font-medium stats-label">
                 Events Annually
               </div>
             </div>
             <div className="text-center stats-card">
               <div className="flex justify-center mb-4">
-                <Star className="w-12 h-12 text-primary-600" />
+                <Star className="w-12 h-12 text-primary-600 stats-icon" />
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
                 Since 2019
               </div>
-              <div className="text-gray-600 font-medium">
+              <div className="text-gray-600 font-medium stats-label">
                 Years of Service
               </div>
             </div>
@@ -616,7 +616,7 @@ const HomePage = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="bg-gray-50 py-20">
+      <section className="mission-section bg-gray-50 py-20">
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -639,12 +639,19 @@ const HomePage = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </div>
-            <div className="relative">
-              <img
-                src="/logo512.png"
-                alt="Beats of Washington Logo"
-                className="rounded-2xl shadow-2xl w-full h-80 object-contain bg-white p-8"
-              />
+            <div className="relative mission-placeholder">
+              {/* Multiple layered placeholders behind */}
+              <div className="placeholder-layer-1"></div>
+              <div className="placeholder-layer-2"></div>
+              
+              {/* Main placeholder content */}
+              <div className="placeholder-content">
+                <img
+                  src="/logo512.png"
+                  alt="Beats of Washington Logo"
+                  className="w-full h-80 object-contain"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -688,26 +695,21 @@ const HomePage = () => {
       </section>
 
       {/* Sponsors Slider Section */}
-      <section className="bg-white py-12">
+      <section className="sponsor-section py-12">
         <div className="container-custom">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Our Sponsors</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8 relative z-10">Our Sponsors</h2>
           <div className="overflow-hidden relative">
             <div className="flex gap-8 animate-sponsor-scroll whitespace-nowrap">
               {sponsors.concat(sponsors).map((sponsor, idx) => (
                 <div key={idx} className="sponsor-card">
-                  <a 
-                    href={sponsor.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="block w-32 h-20 flex items-center justify-center"
-                  >
+                  <div className="block w-32 h-20 flex items-center justify-center">
                     <img
                       src={sponsor.logo}
                       alt={`${sponsor.name} logo`}
                       className="sponsor-logo"
                       title={sponsor.name}
                     />
-                  </a>
+                  </div>
                 </div>
               ))}
             </div>
