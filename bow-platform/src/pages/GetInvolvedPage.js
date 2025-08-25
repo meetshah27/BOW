@@ -517,77 +517,163 @@ const GetInvolvedPage = () => {
         </div>
       )}
 
-      {/* Testimonials Section */}
+      {/* Volunteer Benefits Section */}
       <section className="py-20 bg-white">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              What Our Volunteers & Members Say
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-6 shadow-lg animate-pulse">
+              <Users className="w-10 h-10 text-white animate-bounce" />
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
+              How You Can Help & Grow
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Hear from the amazing people who make our community vibrant and diverse.
-            </p>
+            <div className="relative">
+              <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up">
+                Discover the incredible opportunities to make a difference while developing valuable skills and leadership qualities.
+              </p>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gray-50 rounded-xl p-8">
-                <div className="flex items-center mb-4">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full mr-4"
-                  />
-                  <div>
-                    <h4 className="font-semibold text-gray-900">
-                      {testimonial.name}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {testimonial.role}
-                    </p>
-                  </div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-4">
+                  <Heart className="w-8 h-8 text-white" />
                 </div>
-                
-                <div className="flex mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                
-                <p className="text-gray-600 leading-relaxed">
-                  "{testimonial.content}"
-                </p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Make a Difference</h3>
               </div>
-            ))}
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Help create meaningful community connections</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Support music education and cultural programs</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Contribute to positive social impact</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Build lasting relationships</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 border border-green-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full mb-4">
+                  <Award className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Develop Leadership</h3>
+              </div>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Lead teams and manage projects</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Develop communication skills</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Build decision-making abilities</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Gain confidence and self-esteem</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 border border-purple-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full mb-4">
+                  <Star className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Explore & Learn</h3>
+              </div>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Discover new skills and talents</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Learn about different cultures</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Gain event planning experience</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Network with professionals</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container-custom text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-200/20 to-secondary-200/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-secondary-200/20 to-primary-200/20 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full mb-8 shadow-lg animate-pulse">
+            <Mail className="w-10 h-10 text-white animate-bounce" />
+          </div>
+          
+          <h2 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Have questions about volunteering or membership? We'd love to hear from you 
-            and help you find the perfect way to get involved.
-          </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <a href="mailto:volunteer@beatsofwashington.org" className="btn-primary text-lg px-8 py-4">
-              <Mail className="w-5 h-5 mr-2" />
-              Email Us
+          <div className="relative mb-8">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+              Have questions about volunteering or membership? We'd love to hear from you 
+              and help you find the perfect way to get involved.
+            </p>
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-10">
+            <a 
+              href="mailto:volunteer@beatsofwashington.org" 
+              className="group relative px-10 py-5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <div className="relative flex items-center justify-center">
+                <Mail className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                Email Us
+              </div>
             </a>
-            <a href="tel:+12065550123" className="btn-outline text-lg px-8 py-4">
-              <Phone className="w-5 h-5 mr-2" />
-              Call Us
+            
+            <a 
+              href="tel:+12065550123" 
+              className="group relative px-10 py-5 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-bold text-lg rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-primary-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              <div className="relative flex items-center justify-center">
+                <Phone className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                Call Us
+              </div>
             </a>
           </div>
           
-          <p className="text-gray-600">
-            Or visit our <a href="/contact" className="text-primary-600 hover:text-primary-700 font-medium">contact page</a> for more ways to reach us.
-          </p>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg">
+            <p className="text-gray-700 font-medium">
+              Or visit our <a href="/contact" className="text-primary-600 hover:text-primary-700 font-semibold underline decoration-2 underline-offset-4 hover:decoration-primary-400 transition-all duration-300">contact page</a> for more ways to reach us.
+            </p>
+          </div>
         </div>
       </section>
 

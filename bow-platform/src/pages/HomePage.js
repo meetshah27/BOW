@@ -654,54 +654,81 @@ const HomePage = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="mission-section bg-gray-50 py-20">
-        <div className="container-custom">
+      <section className="mission-section bg-gradient-to-br from-gray-50 via-white to-gray-100 py-20 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-primary-200/10 to-secondary-200/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-secondary-200/10 to-primary-200/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            <div className="animate-fade-in-up">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full mb-8 shadow-lg animate-pulse">
+                <Music className="w-10 h-10 text-white animate-bounce" />
+              </div>
+              
+              <h2 className="text-5xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
                 {missionMedia.missionTitle || 'Our Mission'}
               </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                {missionMedia.missionDescription || 
-                  'Beats of Washington (BOW) is dedicated to fostering community connections ' +
-                  'through the universal language of music. We believe that music has the ' +
-                  'power to bridge cultural divides, inspire creativity, and create lasting ' +
-                  'bonds within our communities.'
-                }
-              </p>
-              {missionMedia.missionLegacy && (
-                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                  {missionMedia.missionLegacy}
+              
+              <div className="space-y-6 mb-10">
+                <p className="text-xl text-gray-600 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+                  {missionMedia.missionDescription || 
+                    'Beats of Washington (BOW) is dedicated to fostering community connections ' +
+                    'through the universal language of music. We believe that music has the ' +
+                    'power to bridge cultural divides, inspire creativity, and create lasting ' +
+                    'bonds within our communities.'
+                  }
                 </p>
-              )}
-              {!missionMedia.missionLegacy && (
-                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                  As a 501(c)(3) non-profit organization, we serve over 50,000 community 
-                  members and coordinate 5,000+ volunteers across Washington State, 
-                  creating inclusive spaces where everyone can participate, learn, and grow.
-                </p>
-              )}
-              <Link to="/about" className="btn-primary">
-                Learn More About Us
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
+                
+                {missionMedia.missionLegacy && (
+                  <p className="text-xl text-gray-600 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                    {missionMedia.missionLegacy}
+                  </p>
+                )}
+                
+                {!missionMedia.missionLegacy && (
+                  <p className="text-xl text-gray-600 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                    As a 501(c)(3) non-profit organization, we serve over 50,000 community 
+                    members and coordinate 5,000+ volunteers across Washington State, 
+                    creating inclusive spaces where everyone can participate, learn, and grow.
+                  </p>
+                )}
+              </div>
+              
+              <div className="relative">
+                <Link to="/about" className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <div className="relative flex items-center">
+                    Learn More About Us
+                    <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform duration-300" />
+                  </div>
+                </Link>
+                <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
+              </div>
             </div>
-            <div className="relative mission-placeholder">
+            <div className="relative mission-placeholder animate-fade-in-up" style={{animationDelay: '0.6s'}}>
               {/* Multiple layered placeholders behind */}
               <div className="placeholder-layer-1"></div>
               <div className="placeholder-layer-2"></div>
               
               {/* Main placeholder content */}
-              <div className="placeholder-content">
+              <div className="placeholder-content hover:shadow-2xl transition-all duration-500">
                 {loadingMissionMedia ? (
-                  <div className="w-full h-80 flex items-center justify-center bg-gray-100 rounded-lg animate-pulse">
-                    <div className="text-gray-400">Loading mission media...</div>
+                  <div className="w-full h-80 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl animate-pulse border border-gray-200">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                        <Music className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-gray-500 font-medium">Loading mission media...</div>
+                    </div>
                   </div>
                 ) : missionMedia.mediaUrl ? (
                   missionMedia.mediaType === 'video' ? (
                     <video
                       src={missionMedia.mediaUrl}
-                      className="w-full h-80 object-cover rounded-lg"
+                      className="w-full h-80 object-cover rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105"
                       controls
                       autoPlay
                       muted
@@ -714,15 +741,18 @@ const HomePage = () => {
                     <img
                       src={missionMedia.mediaUrl}
                       alt={missionMedia.altText || 'Mission Media'}
-                      className="w-full h-80 object-contain"
+                      className="w-full h-80 object-contain rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105"
                       title={missionMedia.title || ''}
                     />
                   )
                 ) : (
-                  <div className="w-full h-80 flex items-center justify-center bg-gray-100 rounded-lg">
-                    <div className="text-center text-gray-400">
-                      <div className="text-lg font-medium mb-2">No Media Set</div>
-                      <div className="text-sm">Admins can add content from the admin panel</div>
+                  <div className="w-full h-80 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-dashed border-gray-300 hover:border-primary-400 transition-all duration-300">
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                        <Music className="w-10 h-10 text-white" />
+                      </div>
+                      <div className="text-lg font-medium text-gray-500 mb-2">No Media Set</div>
+                      <div className="text-sm text-gray-400">Admins can add content from the admin panel</div>
                     </div>
                   </div>
                 )}
@@ -733,34 +763,73 @@ const HomePage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="bg-gray-50 py-20">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <section className="bg-white py-20 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-orange-400/10 to-amber-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full mb-8 shadow-lg animate-pulse">
+              <Users className="w-10 h-10 text-white animate-bounce" />
+            </div>
+            <h2 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent animate-fade-in">
               What Our Community Says
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Hear from the people who make our community vibrant and diverse.
-            </p>
+            <div className="relative">
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+                Hear from the people who make our community vibrant and diverse.
+              </p>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 rounded-full animate-pulse"></div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-xl shadow-lg">
-                <div className="flex mb-4">
+              <div 
+                key={index} 
+                className="group bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl border border-gray-100 hover:border-orange-300 transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up"
+                style={{animationDelay: `${0.2 + index * 0.2}s`}}
+              >
+                {/* Rating stars with enhanced styling */}
+                <div className="flex mb-6">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    <Star 
+                      key={i} 
+                      className="w-6 h-6 text-yellow-500 fill-current mr-1 transform hover:scale-110 transition-transform duration-200 animate-pulse"
+                      style={{animationDelay: `${i * 0.1}s`}}
+                    />
                   ))}
                 </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                
+                {/* Quote icon */}
+                <div className="absolute top-6 right-6 opacity-30 group-hover:opacity-60 transition-opacity duration-500">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-2xl font-serif">"</span>
+                  </div>
+                </div>
+                
+                {/* Testimonial content */}
+                <p className="text-gray-700 mb-8 leading-relaxed text-lg group-hover:text-gray-900 transition-colors duration-300">
                   "{testimonial.content}"
                 </p>
+                
+                {/* Author info with enhanced styling */}
                 <div>
-                  <div className="font-semibold text-gray-900">
-                    {testimonial.name}
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <span className="text-white font-bold text-xl">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </span>
                   </div>
-                  <div className="text-gray-500 text-sm">
-                    {testimonial.role}
+                  <div className="text-center">
+                    <div className="font-bold text-gray-900 text-lg mb-1 group-hover:text-orange-600 transition-colors duration-300">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-orange-600 font-medium text-sm bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-2 rounded-full inline-block group-hover:from-orange-100 group-hover:to-amber-100 transition-all duration-300 border border-orange-200">
+                      {testimonial.role}
+                    </div>
                   </div>
                 </div>
               </div>
