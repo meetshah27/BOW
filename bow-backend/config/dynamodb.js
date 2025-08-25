@@ -27,7 +27,8 @@ const TABLES = {
   REGISTRATIONS: 'bow-registrations',
   VOLUNTEERS: 'bow-volunteers',
   GALLERY: 'bow-gallery',
-  HERO: 'bow-hero'
+  HERO: 'bow-hero',
+  MISSION_MEDIA: 'bow-mission-media'
 };
 
 // Table schemas for creation
@@ -176,6 +177,19 @@ const TABLE_SCHEMAS = {
   },
   [TABLES.HERO]: {
     TableName: TABLES.HERO,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.MISSION_MEDIA]: {
+    TableName: TABLES.MISSION_MEDIA,
     KeySchema: [
       { AttributeName: 'id', KeyType: 'HASH' }
     ],
