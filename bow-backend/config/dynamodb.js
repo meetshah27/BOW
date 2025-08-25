@@ -26,7 +26,8 @@ const TABLES = {
   DONATIONS: 'bow-donations',
   REGISTRATIONS: 'bow-registrations',
   VOLUNTEERS: 'bow-volunteers',
-  GALLERY: 'bow-gallery'
+  GALLERY: 'bow-gallery',
+  HERO: 'bow-hero'
 };
 
 // Table schemas for creation
@@ -162,6 +163,19 @@ const TABLE_SCHEMAS = {
   },
   [TABLES.GALLERY]: {
     TableName: TABLES.GALLERY,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.HERO]: {
+    TableName: TABLES.HERO,
     KeySchema: [
       { AttributeName: 'id', KeyType: 'HASH' }
     ],

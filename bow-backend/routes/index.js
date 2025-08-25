@@ -224,62 +224,38 @@ router.get('/api/events', async (req, res) => {
     if (Event) {
       try {
         const events = await Event.findAll();
-        // Sort by date (newest first)
-        events.sort((a, b) => new Date(b.date) - new Date(a.date));
         res.json(events);
       } catch (dynamoError) {
         console.log('⚠️  DynamoDB error for events, using fallback data:', dynamoError.message);
         // Fallback to sample data when DynamoDB fails
         const sampleEvents = [
           {
-            id: 'event_1',
-            title: 'Annual Cultural Festival',
-            description: 'Join us for our biggest celebration of the year',
-            longDescription: 'Experience the rich cultural diversity of our community through music, dance, food, and art. This annual festival brings together people from all backgrounds to celebrate our shared humanity.',
-            date: '2024-08-15',
-            time: '2:00 PM - 8:00 PM',
+            id: 'event-1',
+            title: 'Summer Music Festival',
+            description: 'Join us for a day of music, food, and community celebration.',
+            date: '2024-07-15',
             location: 'Seattle Center',
-            address: '305 Harrison St, Seattle, WA 98109',
-            category: 'Cultural',
-            image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            capacity: 500,
-            price: 25,
-            organizer: 'Beats of Washington',
-            contact: {
-              phone: '(206) 555-0123',
-              email: 'events@bow.org'
-            },
-            tags: ['cultural', 'festival', 'music', 'dance'],
+            category: 'Festival',
+            image: '/assets/event-1.jpg',
             featured: true,
+            isLive: true,
             isActive: true,
-            isLive: false,
-            registeredCount: 2,
-            createdAt: new Date().toISOString()
+            registeredCount: 45,
+            capacity: 100
           },
           {
-            id: 'event_2',
-            title: 'Community Workshop Series',
-            description: 'Learn new skills and connect with neighbors',
-            longDescription: 'Our monthly workshop series offers hands-on learning opportunities in various topics including cooking, crafts, technology, and wellness. All skill levels welcome.',
-            date: '2024-07-20',
-            time: '10:00 AM - 12:00 PM',
+            id: 'event-2',
+            title: 'Cultural Workshop Series',
+            description: 'Learn about different musical traditions from around the world.',
+            date: '2024-06-20',
             location: 'Community Center',
-            address: '123 Main St, Seattle, WA 98101',
-            category: 'Educational',
-            image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            capacity: 30,
-            price: 0,
-            organizer: 'Beats of Washington',
-            contact: {
-              phone: '(206) 555-0123',
-              email: 'workshops@bow.org'
-            },
-            tags: ['workshop', 'learning', 'community'],
+            category: 'Workshop',
+            image: '/assets/event-2.jpg',
             featured: false,
+            isLive: true,
             isActive: true,
-            isLive: false,
-            registeredCount: 1,
-            createdAt: new Date().toISOString()
+            registeredCount: 12,
+            capacity: 25
           }
         ];
         res.json(sampleEvents);
@@ -288,60 +264,185 @@ router.get('/api/events', async (req, res) => {
       // Fallback to sample data when DynamoDB models aren't available
       const sampleEvents = [
         {
-          id: 'event_1',
-          title: 'Annual Cultural Festival',
-          description: 'Join us for our biggest celebration of the year',
-          longDescription: 'Experience the rich cultural diversity of our community through music, dance, food, and art. This annual festival brings together people from all backgrounds to celebrate our shared humanity.',
-          date: '2024-08-15',
-          time: '2:00 PM - 8:00 PM',
+          id: 'event-1',
+          title: 'Summer Music Festival',
+          description: 'Join us for a day of music, food, and community celebration.',
+          date: '2024-07-15',
           location: 'Seattle Center',
-          address: '305 Harrison St, Seattle, WA 98109',
-          category: 'Cultural',
-          image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-          capacity: 500,
-          price: 25,
-          organizer: 'Beats of Washington',
-          contact: {
-            phone: '(206) 555-0123',
-            email: 'events@bow.org'
-          },
-          tags: ['cultural', 'festival', 'music', 'dance'],
+          category: 'Festival',
+          image: '/assets/event-1.jpg',
           featured: true,
+          isLive: true,
           isActive: true,
-          isLive: false,
-          registeredCount: 2,
-          createdAt: new Date().toISOString()
+          registeredCount: 45,
+          capacity: 100
         },
         {
-          id: 'event_2',
-          title: 'Community Workshop Series',
-          description: 'Learn new skills and connect with neighbors',
-          longDescription: 'Our monthly workshop series offers hands-on learning opportunities in various topics including cooking, crafts, technology, and wellness. All skill levels welcome.',
-          date: '2024-07-20',
-          time: '10:00 AM - 12:00 PM',
+          id: 'event-2',
+          title: 'Cultural Workshop Series',
+          description: 'Learn about different musical traditions from around the world.',
+          date: '2024-06-20',
           location: 'Community Center',
-          address: '123 Main St, Seattle, WA 98101',
-          category: 'Educational',
-          image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-          capacity: 30,
-          price: 0,
-          organizer: 'Beats of Washington',
-          contact: {
-            phone: '(206) 555-0123',
-            email: 'workshops@bow.org'
-          },
-          tags: ['workshop', 'learning', 'community'],
+          category: 'Workshop',
+          image: '/assets/event-2.jpg',
           featured: false,
+          isLive: true,
           isActive: true,
-          isLive: false,
-          registeredCount: 1,
-          createdAt: new Date().toISOString()
+          registeredCount: 12,
+          capacity: 25
         }
       ];
       res.json(sampleEvents);
     }
   } catch (err) {
     console.error('Error fetching events:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get hero settings
+router.get('/api/hero', async (req, res) => {
+  try {
+    // Try to use DynamoDB Hero model, fallback to default if not available
+    let Hero;
+    try {
+      Hero = require('../models-dynamodb/Hero');
+      console.log('✅ Using DynamoDB Hero model');
+    } catch (error) {
+      console.log('⚠️  DynamoDB Hero model not available, using fallback mode');
+      Hero = null;
+    }
+
+    if (Hero) {
+      try {
+        const heroSettings = await Hero.getSettings();
+        res.json(heroSettings);
+      } catch (dynamoError) {
+        console.log('⚠️  DynamoDB error for hero settings, using fallback data:', dynamoError.message);
+        // Fallback to default hero settings when DynamoDB fails
+        const defaultHeroSettings = {
+          backgroundType: 'image',
+          backgroundUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          overlayOpacity: 0.2,
+          title: 'Empowering Communities',
+          subtitle: 'Through Music',
+          description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+          isActive: true
+        };
+        res.json(defaultHeroSettings);
+      }
+    } else {
+      // Fallback to default hero settings when DynamoDB models aren't available
+      const defaultHeroSettings = {
+        backgroundType: 'image',
+        backgroundUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+        overlayOpacity: 0.2,
+        title: 'Empowering Communities',
+        subtitle: 'Through Music',
+        description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+        isActive: true
+      };
+      res.json(defaultHeroSettings);
+    }
+  } catch (err) {
+    console.error('Error fetching hero settings:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Update hero settings (admin only)
+router.put('/api/hero', async (req, res) => {
+  try {
+    const { backgroundType, backgroundUrl, overlayOpacity, title, subtitle, description, isActive } = req.body;
+    
+    // Validate required fields
+    if (!backgroundType) {
+      return res.status(400).json({ error: 'Background type is required (image or video)' });
+    }
+    
+    if (!backgroundUrl) {
+      return res.status(400).json({ error: 'Background URL is required' });
+    }
+    
+    // Validate background type
+    if (!['image', 'video'].includes(backgroundType)) {
+      return res.status(400).json({ error: 'Background type must be either "image" or "video"' });
+    }
+    
+    // Basic URL validation (allow blob URLs for local development)
+    if (!backgroundUrl.startsWith('http') && !backgroundUrl.startsWith('blob:') && !backgroundUrl.startsWith('data:')) {
+      return res.status(400).json({ error: 'Background URL must be a valid HTTP URL, blob URL, or data URL' });
+    }
+    
+    // Try to use DynamoDB Hero model, fallback to success response if not available
+    let Hero;
+    try {
+      Hero = require('../models-dynamodb/Hero');
+      console.log('✅ Using DynamoDB Hero model for update');
+    } catch (error) {
+      console.log('⚠️  DynamoDB Hero model not available, using fallback mode');
+      Hero = null;
+    }
+
+    if (Hero) {
+      try {
+        const heroSettings = await Hero.getSettings();
+        const updatedSettings = await heroSettings.update({
+          backgroundType,
+          backgroundUrl,
+          overlayOpacity: overlayOpacity || 0.2,
+          title: title || 'Empowering Communities',
+          subtitle: subtitle || 'Through Music',
+          description: description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+          isActive: isActive !== undefined ? isActive : true
+        });
+        
+        console.log('✅ Hero settings updated in DynamoDB:', updatedSettings);
+        res.json({ 
+          message: 'Hero settings updated successfully',
+          settings: updatedSettings
+        });
+      } catch (dynamoError) {
+        console.log('⚠️  DynamoDB error updating hero settings, using fallback response:', dynamoError.message);
+        // Fallback response when DynamoDB fails
+        const updatedSettings = {
+          backgroundType,
+          backgroundUrl,
+          overlayOpacity: overlayOpacity || 0.2,
+          title: title || 'Empowering Communities',
+          subtitle: subtitle || 'Through Music',
+          description: description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+          isActive: isActive !== undefined ? isActive : true,
+          updatedAt: new Date().toISOString()
+        };
+        
+        console.log('Hero settings updated (fallback mode):', updatedSettings);
+        res.json({ 
+          message: 'Hero settings updated successfully (fallback mode)',
+          settings: updatedSettings
+        });
+      }
+    } else {
+      // Fallback response when DynamoDB models aren't available
+      const updatedSettings = {
+        backgroundType,
+        backgroundUrl,
+        overlayOpacity: overlayOpacity || 0.2,
+        title: title || 'Empowering Communities',
+        subtitle: subtitle || 'Through Music',
+        description: description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+        isActive: isActive !== undefined ? isActive : true,
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log('Hero settings updated (fallback mode):', updatedSettings);
+      res.json({ 
+        message: 'Hero settings updated successfully (fallback mode)',
+        settings: updatedSettings
+      });
+    }
+  } catch (err) {
+    console.error('Error updating hero settings:', err);
     res.status(500).json({ error: err.message });
   }
 });

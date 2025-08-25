@@ -131,6 +131,18 @@ const HomePage = () => {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [eventsError, setEventsError] = useState(null);
+  
+  // Hero settings state
+  const [heroSettings, setHeroSettings] = useState({
+    backgroundType: 'image',
+    backgroundUrl: '',
+    overlayOpacity: 0.2,
+    title: 'Empowering Communities',
+    subtitle: 'Through Music',
+    description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+    isActive: true
+  });
+  const [loadingHero, setLoadingHero] = useState(true);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -148,7 +160,26 @@ const HomePage = () => {
         setLoadingEvents(false);
       }
     };
+    
+    const fetchHeroSettings = async () => {
+      setLoadingHero(true);
+      try {
+        const res = await api.get('/hero');
+        if (res.ok) {
+          const data = await res.json();
+          setHeroSettings(data);
+        } else {
+          console.error('Failed to fetch hero settings, using defaults');
+        }
+      } catch (err) {
+        console.error('Error fetching hero settings:', err);
+      } finally {
+        setLoadingHero(false);
+      }
+    };
+    
     fetchEvents();
+    fetchHeroSettings();
   }, []);
 
   // Find the nearest (soonest) live event by date, only if date is today or in the future
@@ -303,8 +334,32 @@ const HomePage = () => {
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center opacity-10"></div>
+
+        
+        {/* Background Image/Video */}
+        {heroSettings.backgroundUrl && heroSettings.backgroundType && (
+          heroSettings.backgroundType === 'image' ? (
+            <img
+              src={heroSettings.backgroundUrl}
+              alt="Hero background"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <video
+              src={heroSettings.backgroundUrl}
+              autoPlay
+              muted
+              loop
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )
+        )}
+        
+        {/* Overlay */}
+        <div 
+          className="absolute inset-0 bg-black"
+          style={{ opacity: heroSettings.overlayOpacity || 0.2 }}
+        ></div>
         <div className="container-custom section-padding relative z-10">
           {/* Live event placeholder absolutely at the far left of the hero section, outside the centered container */}
           {(loadingEvents || liveEvent) && (
@@ -351,24 +406,23 @@ const HomePage = () => {
           <div className="max-w-4xl mx-auto mb-6 flex items-center justify-center">
             <div className="flex-1 text-center">
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-              Empowering Communities
-              <span className="block text-secondary-300">Through Music</span>
-            </h1>
+                {heroSettings.title || 'Empowering Communities'}
+                <span className="block text-secondary-300">{heroSettings.subtitle || 'Through Music'}</span>
+              </h1>
             </div>
           </div>
-            <p className="text-xl md:text-2xl mb-8 text-gray-100 leading-relaxed">
-              Beats of Washington connects, inspires, and celebrates cultural diversity 
-              through music and community events across Washington State since 2019.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/events" className="btn-secondary text-lg px-8 py-4">
-                <Calendar className="w-5 h-5 mr-2" />
-                Find Events
-              </Link>
-              <Link to="/get-involved" className="btn-outline text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-primary-600">
-                <Users className="w-5 h-5 mr-2" />
-                Get Involved
-              </Link>
+          <p className="text-xl md:text-2xl mb-8 text-gray-100 leading-relaxed">
+            {heroSettings.description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/events" className="btn-secondary text-lg px-8 py-4">
+              <Calendar className="w-5 h-5 mr-2" />
+              Find Events
+            </Link>
+            <Link to="/get-involved" className="btn-outline text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-primary-600">
+              <Users className="w-5 h-5 mr-2" />
+              Get Involved
+            </Link>
           </div>
         </div>
       </section>
