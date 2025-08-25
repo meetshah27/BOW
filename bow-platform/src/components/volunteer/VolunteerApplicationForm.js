@@ -22,7 +22,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     applicantName: currentUser ? (currentUser.displayName || currentUser.email || '') : '',
     applicantEmail: currentUser ? (currentUser.email || '') : '',
-    applicantPhone: currentUser ? (currentUser.phone || 'Not provided') : '',
+    applicantPhone: currentUser ? (currentUser.phone || '') : '', // Remove fallback, let user enter it
     applicantAge: '',
     applicantAddress: {
       street: '',
@@ -72,7 +72,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
           ...prev,
           applicantName: currentUser.displayName || currentUser.email || '',
           applicantEmail: currentUser.email || '',
-          applicantPhone: currentUser.phone || 'Not provided' // Provide a fallback for phone
+          applicantPhone: currentUser.phone || '' // Provide a fallback for phone
         };
         console.log('Updated form data:', newData);
         return newData;
@@ -95,7 +95,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
         ...prev,
         applicantName: currentUser.displayName || currentUser.email || '',
         applicantEmail: currentUser.email || '',
-        applicantPhone: currentUser.phone || 'Not provided' // Provide a fallback for phone
+        applicantPhone: currentUser.phone || '' // Provide a fallback for phone
       }));
     }
   }, []); // Empty dependency array - runs only on mount
@@ -273,17 +273,17 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4 my-8 relative">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Volunteer Application
-          </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Applying for: <span className="font-medium text-primary-600">{opportunity.title}</span>
-            </p>
-          </div>
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto">
+       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 my-8 relative">
+                 <div className="flex justify-between items-center mb-4">
+           <div>
+           <h2 className="text-xl font-bold text-gray-900">
+             Volunteer Application
+           </h2>
+             <p className="text-xs text-gray-600 mt-1">
+               Applying for: <span className="font-medium text-primary-600">{opportunity.title}</span>
+             </p>
+           </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -292,9 +292,9 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
           </button>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between mb-2">
+                 {/* Progress Bar */}
+         <div className="mb-6">
+           <div className="flex justify-between mb-2">
             {[1, 2, 3, 4].map(step => (
               <div
                 key={step}
@@ -325,10 +325,10 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit}>
           {/* Step 1: Personal Information */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                     {currentStep === 1 && (
+             <div className="space-y-4">
+               <div>
+                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Personal Information
                 </h3>
                 {currentUser && (
@@ -379,25 +379,22 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
                       <p className="text-xs text-gray-500 mt-1">Pre-filled from your account</p>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone *
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.applicantPhone}
-                      onChange={(e) => handleInputChange('applicantPhone', e.target.value)}
-                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                        currentUser ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'
-                      }`}
-                      required
-                      readOnly={!!currentUser}
-                      disabled={!!currentUser}
-                    />
-                    {currentUser && (
-                      <p className="text-xs text-gray-500 mt-1">Pre-filled from your account</p>
-                    )}
-                  </div>
+                                     <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                       Phone *
+                     </label>
+                                           <input
+                        type="tel"
+                        value={formData.applicantPhone}
+                        onChange={(e) => handleInputChange('applicantPhone', e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        required
+                        placeholder="Phone number"
+                      />
+                     {currentUser && (
+                       <p className="text-xs text-gray-500 mt-1">Please provide your phone number</p>
+                     )}
+                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Age *
@@ -453,53 +450,53 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
           )}
 
           {/* Step 2: Experience and Availability */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                     {currentStep === 2 && (
+             <div className="space-y-4">
+               <div>
+                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Experience & Availability
                 </h3>
                 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Relevant Experience *
-                  </label>
-                  <textarea
-                    value={formData.experience}
-                    onChange={(e) => handleInputChange('experience', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    rows="4"
-                    placeholder="Describe your relevant experience, skills, and background..."
-                    required
-                  />
-                </div>
+                                                  <div className="mb-3">
+                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                     Relevant Experience *
+                   </label>
+                   <textarea
+                     value={formData.experience}
+                     onChange={(e) => handleInputChange('experience', e.target.value)}
+                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                     rows="3"
+                     placeholder="Describe your experience..."
+                     required
+                   />
+                 </div>
 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Skills (comma-separated)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.skills}
-                    onChange={(e) => handleInputChange('skills', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., event planning, music, communication, social media"
-                  />
+                                     <input
+                     type="text"
+                     value={formData.skills}
+                     onChange={(e) => handleInputChange('skills', e.target.value)}
+                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                     placeholder="e.g., event planning, music"
+                   />
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Why do you want to volunteer with BOW? *
-                  </label>
-                  <textarea
-                    value={formData.motivation}
-                    onChange={(e) => handleInputChange('motivation', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    rows="3"
-                    placeholder="Tell us about your motivation and what you hope to contribute..."
-                    required
-                  />
-                </div>
+                                 <div className="mb-3">
+                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                     Why do you want to volunteer with BOW? *
+                   </label>
+                   <textarea
+                     value={formData.motivation}
+                     onChange={(e) => handleInputChange('motivation', e.target.value)}
+                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                     rows="2"
+                     placeholder="Tell us about your motivation..."
+                     required
+                   />
+                 </div>
 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -647,51 +644,51 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* Step 4: Consent */}
-          {currentStep === 4 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Consent & Agreement
-                </h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      checked={formData.backgroundCheckConsent}
-                      onChange={(e) => handleInputChange('backgroundCheckConsent', e.target.checked)}
-                      className="mt-1 mr-3"
-                      required
-                    />
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Background Check Consent *
-                      </label>
-                      <p className="text-sm text-gray-600 mt-1">
-                        I consent to a background check as required for this volunteer position. 
-                        This is for the safety and security of our community members.
-                      </p>
-                    </div>
-                  </div>
+                     {/* Step 4: Consent */}
+           {currentStep === 4 && (
+             <div className="space-y-4">
+               <div>
+                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                   Consent & Agreement
+                 </h3>
+                 
+                 <div className="space-y-4">
+                   <div className="bg-gray-50 p-4 rounded-lg">
+                     <h4 className="font-medium text-gray-900 mb-3">Volunteer Agreement</h4>
+                     <ul className="text-sm text-gray-600 space-y-2">
+                       <li>• I understand this is a volunteer position with no monetary compensation</li>
+                       <li>• I agree to represent BOW professionally and follow all policies</li>
+                       <li>• I will provide advance notice if I cannot fulfill my commitments</li>
+                       <li>• I understand that BOW reserves the right to terminate my volunteer status</li>
+                       <li>• I give permission for BOW to use photos/videos of me for promotional purposes</li>
+                     </ul>
+                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Volunteer Agreement</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• I understand this is a volunteer position with no monetary compensation</li>
-                      <li>• I agree to represent BOW professionally and follow all policies</li>
-                      <li>• I will provide advance notice if I cannot fulfill my commitments</li>
-                      <li>• I understand that BOW reserves the right to terminate my volunteer status</li>
-                      <li>• I give permission for BOW to use photos/videos of me for promotional purposes</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+                   <div className="flex items-start">
+                     <input
+                       type="checkbox"
+                       checked={formData.backgroundCheckConsent}
+                       onChange={(e) => handleInputChange('backgroundCheckConsent', e.target.checked)}
+                       className="mt-1 mr-3"
+                       required
+                     />
+                     <div>
+                       <label className="text-sm font-medium text-gray-700">
+                         Background Check Consent *
+                       </label>
+                       <p className="text-sm text-gray-600 mt-1">
+                         I consent to a background check as required for this volunteer position. 
+                         This is for the safety and security of our community members.
+                       </p>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8">
+                     {/* Navigation Buttons */}
+           <div className="flex justify-between mt-6">
             {currentStep > 1 && (
               <button
                 type="button"
