@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { 
@@ -10,8 +10,57 @@ import {
   Star,
   CheckCircle
 } from 'lucide-react';
+import api from '../config/api';
 
 const AboutPage = () => {
+  const [missionMedia, setMissionMedia] = useState({
+    mediaType: 'image',
+    mediaUrl: '',
+    thumbnailUrl: '',
+    title: 'Our Mission',
+    description: 'Beats of Washington Mission',
+    altText: 'Mission media',
+    isActive: true,
+    overlayOpacity: 0.2,
+    missionTitle: 'Our Mission',
+    missionDescription: 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
+    missionLegacy: 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+  });
+  const [loadingMission, setLoadingMission] = useState(true);
+
+  useEffect(() => {
+    fetchMissionMedia();
+  }, []);
+
+  const fetchMissionMedia = async () => {
+    try {
+      setLoadingMission(true);
+      const res = await api.get('/mission-media');
+      if (res.ok) {
+        const data = await res.json();
+        // Ensure overlayOpacity has a valid default value
+        const missionMediaWithDefaults = {
+          ...data,
+          overlayOpacity: data.overlayOpacity !== undefined && !isNaN(data.overlayOpacity) ? data.overlayOpacity : 0.2,
+          missionTitle: data.missionTitle || 'Our Mission',
+          missionDescription: data.missionDescription || 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.',
+          missionLegacy: data.missionLegacy || 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'
+        };
+        setMissionMedia(missionMediaWithDefaults);
+        console.log('✅ Mission media loaded:', missionMediaWithDefaults);
+        console.log('🎯 Mission content check:');
+        console.log('  - Title:', missionMediaWithDefaults.missionTitle);
+        console.log('  - Description:', missionMediaWithDefaults.missionDescription);
+        console.log('  - Legacy:', missionMediaWithDefaults.missionLegacy);
+      } else {
+        console.error('Failed to fetch mission media');
+      }
+    } catch (error) {
+      console.error('Error fetching mission media:', error);
+    } finally {
+      setLoadingMission(false);
+    }
+  };
 
 
   const boardMembers = [
@@ -101,14 +150,15 @@ const AboutPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Our Mission
+                {missionMedia.missionTitle || 'Our Mission'}
               </h2>
               <p className="text-lg text-primary-700 mb-6 leading-relaxed font-semibold">
-                Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.
+                {missionMedia.missionDescription || 'Beats of Washington is a dynamic non-profit organization rooted in Washington, USA. Our unwavering commitment lies in preserving and promoting Indian cultural heritage. Through rhythmic expressions, vibrant performances, and community engagement, we weave a tapestry that resonates across generations.'}
               </p>
               <p className="text-lg text-primary-600 mb-6 leading-relaxed italic">
-                Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.
+                {missionMedia.missionLegacy || 'Our Beat, Our Legacy: As the sun sets over Redmond, our Dhol-Tasha drums continue to resonate—a testament to our unyielding commitment.'}
               </p>
+              
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/get-involved" className="btn-primary">
                   Get Involved
@@ -120,15 +170,45 @@ const AboutPage = () => {
               </div>
             </div>
             <div className="relative">
-              <video
-                src="/our-mission.mp4"
-                controls
-                className="rounded-2xl shadow-2xl w-full h-80 object-cover bg-black"
-                poster="https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-              >
-                Sorry, your browser does not support embedded videos.
-              </video>
-              <div className="absolute inset-0 bg-primary-600 rounded-2xl opacity-20 pointer-events-none"></div>
+              {loadingMission ? (
+                <div className="w-full h-80 bg-gray-200 rounded-2xl shadow-2xl flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading mission media...</p>
+                  </div>
+                </div>
+              ) : missionMedia.mediaUrl && missionMedia.isActive ? (
+                <div className="relative" key={`mission-media-${missionMedia.overlayOpacity}`}>
+                  {missionMedia.mediaType === 'image' ? (
+                    <img
+                      src={missionMedia.mediaUrl}
+                      alt={missionMedia.altText}
+                      className="rounded-2xl shadow-2xl w-full h-80 object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={missionMedia.mediaUrl}
+                      controls
+                      className="rounded-2xl shadow-2xl w-full h-80 object-cover bg-black"
+                    >
+                      Sorry, your browser does not support embedded videos.
+                    </video>
+                  )}
+                  {/* Dynamic overlay based on mission media settings */}
+                  <div 
+                    className="absolute inset-0 bg-primary-600 rounded-2xl pointer-events-none"
+                    style={{ opacity: missionMedia.overlayOpacity || 0.2 }}
+                  ></div>
+                </div>
+              ) : (
+                <div className="w-full h-80 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl shadow-2xl flex items-center justify-center">
+                  <div className="text-center text-primary-600">
+                    <Music className="w-16 h-16 mx-auto mb-4" />
+                    <p className="text-lg font-semibold">Mission Media</p>
+                    <p className="text-sm">Upload image or video from admin panel</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

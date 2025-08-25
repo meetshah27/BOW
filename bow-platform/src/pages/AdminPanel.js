@@ -41,6 +41,7 @@ import VolunteerOpportunityManager from '../components/admin/VolunteerOpportunit
 import StoriesManagement from '../components/admin/StoriesManagement';
 import NewsletterManagement from '../components/admin/NewsletterManagement';
 import HeroManagement from '../components/admin/HeroManagement';
+import MissionMediaManagement from '../components/admin/MissionMediaManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // SimpleModal component for modals
@@ -2465,6 +2466,7 @@ const AdminPanel = () => {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Hero', href: '/admin/hero', icon: Image },
+    { name: 'Mission Media', href: '/admin/mission-media', icon: FileText },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
@@ -2485,6 +2487,8 @@ const AdminPanel = () => {
         return <Dashboard />;
       case 'hero':
         return <HeroManagement />;
+      case 'mission media':
+        return <MissionMediaManagement />;
       case 'users':
         return <UserManagement />;
       case 'volunteers':
