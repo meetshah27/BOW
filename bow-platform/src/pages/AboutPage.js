@@ -301,94 +301,163 @@ const AboutPage = () => {
 
 
       {/* Founders Section */}
-      <section id="founders" className="py-20 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <section id="founders" className="py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-primary-200 rounded-full blur-3xl floating-bg"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-secondary-200 rounded-full blur-3xl floating-bg" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-200 rounded-full blur-2xl floating-bg" style={{animationDelay: '4s'}}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg pulse-glow">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-6">
               Our Founders
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               Meet the visionary leaders who founded Beats of Washington and continue 
               to guide our mission of empowering communities through music.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-16">
             {/* Aand Sane */}
-            <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-8 shadow-lg">
-              <div className="text-center mb-6">
-                <div className="w-24 h-24 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-2xl">A</span>
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
+              <div className="relative bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">
+                <div className="text-center mb-8">
+                  <div className="relative mb-6">
+                    <div className="w-28 h-28 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto shadow-2xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 founder-avatar">
+                      <span className="text-white font-bold text-3xl">A</span>
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                      <Star className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">
+                    Aand Sane
+                  </h3>
+                  <p className="text-primary-600 font-semibold text-xl mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+                    Board Chair & Co-Founder
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  Aand Sane
-                </h3>
-                <p className="text-primary-600 font-semibold text-lg mb-4">
-                  Board Chair & Co-Founder
+                <p className="text-gray-700 leading-relaxed text-center text-lg group-hover:text-gray-800 transition-colors duration-300">
+                  Aand Sane is the visionary founder of Beats of Washington, whose passion 
+                  for community building through music has inspired thousands across Washington State. 
+                  As Board Chair, Aand continues to lead our organization with dedication and 
+                  innovative thinking.
                 </p>
+                <div className="mt-8 flex justify-center space-x-4">
+                  <div className="flex items-center space-x-2 text-primary-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">Visionary Leader</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-secondary-600">
+                    <Heart className="w-5 h-5" />
+                    <span className="text-sm font-medium">Community Builder</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-600 leading-relaxed text-center">
-                Aand Sane is the visionary founder of Beats of Washington, whose passion 
-                for community building through music has inspired thousands across Washington State. 
-                As Board Chair, Aand continues to lead our organization with dedication and 
-                innovative thinking.
-              </p>
             </div>
 
             {/* Deepali Sane */}
-            <div className="bg-gradient-to-br from-secondary-50 to-primary-50 rounded-2xl p-8 shadow-lg">
-              <div className="text-center mb-6">
-                <div className="w-24 h-24 bg-secondary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-2xl">D</span>
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
+              <div className="relative bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">
+                <div className="text-center mb-8">
+                  <div className="relative mb-6">
+                    <div className="w-28 h-28 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full flex items-center justify-center mx-auto shadow-2xl transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 founder-avatar">
+                      <span className="text-white font-bold text-3xl">D</span>
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-pink-400 rounded-full flex items-center justify-center shadow-lg">
+                      <Heart className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3 group-hover:text-secondary-600 transition-colors duration-300">
+                    Deepali Sane
+                  </h3>
+                  <p className="text-secondary-600 font-semibold text-xl mb-6 bg-gradient-to-r from-secondary-500 to-primary-500 bg-clip-text text-transparent">
+                    Vice Chair & Co-Founder
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  Deepali Sane
-                </h3>
-                <p className="text-secondary-600 font-semibold text-lg mb-4">
-                  Vice Chair & Co-Founder
+                <p className="text-gray-700 leading-relaxed text-center text-lg group-hover:text-gray-800 transition-colors duration-300">
+                  Deepali Sane co-founded Beats of Washington with a deep commitment to 
+                  fostering cultural connections through music. As Vice Chair, Deepali 
+                  brings strategic vision and community expertise to ensure our programs 
+                  continue to serve and inspire diverse communities.
                 </p>
+                <div className="mt-8 flex justify-center space-x-4">
+                  <div className="flex items-center space-x-2 text-secondary-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">Strategic Vision</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-primary-600">
+                    <Users className="w-5 h-5" />
+                    <span className="text-sm font-medium">Cultural Expert</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-600 leading-relaxed text-center">
-                Deepali Sane co-founded Beats of Washington with a deep commitment to 
-                fostering cultural connections through music. As Vice Chair, Deepali 
-                brings strategic vision and community expertise to ensure our programs 
-                continue to serve and inspire diverse communities.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Board of Directors */}
-      <section className="py-20 bg-gray-50">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 right-20 w-48 h-48 bg-primary-100 rounded-full blur-3xl floating-bg"></div>
+          <div className="absolute bottom-20 left-20 w-32 h-32 bg-secondary-100 rounded-full blur-2xl floating-bg" style={{animationDelay: '3s'}}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6">
               Board of Directors
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               Our board provides strategic guidance and ensures we remain accountable 
               to our mission and community.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-12">
             {boardMembers.map((member, index) => (
-              <div key={index} className="text-center p-8 bg-white rounded-xl shadow-lg">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-primary-600 font-bold text-xl">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </span>
+              <div key={index} className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
+                <div className="relative bg-white rounded-2xl p-10 shadow-xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+                  <div className="text-center">
+                    <div className="relative mb-6">
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2">
+                        <span className="text-white font-bold text-2xl">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-md">
+                        <Award className="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                      {member.name}
+                    </h3>
+                    <p className="text-blue-600 font-semibold text-lg mb-3 bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+                      {member.role}
+                    </p>
+                    <p className="text-gray-600 text-base font-medium">
+                      {member.organization}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {member.name}
-                </h3>
-                <p className="text-primary-600 font-medium mb-2">
-                  {member.role}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  {member.organization}
-                </p>
               </div>
             ))}
           </div>
