@@ -24,7 +24,7 @@ class Hero {
     this.overlayOpacity = data.overlayOpacity || 0.2;
     this.title = data.title || 'Empowering Communities';
     this.subtitle = data.subtitle || 'Through Music';
-    this.description = data.description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.';
+    this.description = data.description !== undefined ? data.description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.';
     this.isActive = data.isActive !== undefined ? data.isActive : true;
     this.updatedAt = data.updatedAt || new Date().toISOString();
   }
