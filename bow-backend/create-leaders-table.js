@@ -1,14 +1,18 @@
-const AWS = require('aws-sdk');
+const { DynamoDBClient, CreateTableCommand, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 require('dotenv').config();
 
 // Configure AWS
-AWS.config.update({
+const dynamodbClient = new DynamoDBClient({
   region: process.env.AWS_REGION || 'us-west-2',
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
 });
 
-const dynamodb = new AWS.DynamoDB();
+const dynamodb = dynamodbClient;
+const docClient = DynamoDBDocumentClient.from(dynamodbClient);
 
 const createLeadersTable = async () => {
   const params = {
@@ -62,7 +66,8 @@ const createLeadersTable = async () => {
 
   try {
     console.log('Creating Leaders table...');
-    const result = await dynamodb.createTable(params).promise();
+    const command = new CreateTableCommand(params);
+    const result = await dynamodb.send(command);
     console.log('✅ Leaders table created successfully!');
     console.log('Table ARN:', result.TableDescription.TableArn);
     console.log('Table Status:', result.TableDescription.TableStatus);
@@ -73,7 +78,7 @@ const createLeadersTable = async () => {
     console.log('🎉 Leaders table is now active and ready to use!');
     
   } catch (error) {
-    if (error.code === 'ResourceInUseException') {
+    if (error.name === 'ResourceInUseException') {
       console.log('⚠️  Leaders table already exists');
     } else {
       console.error('❌ Error creating Leaders table:', error);
@@ -89,7 +94,8 @@ const waitForTableActive = async () => {
   return new Promise((resolve, reject) => {
     const checkStatus = async () => {
       try {
-        const result = await dynamodb.describeTable(params).promise();
+        const command = new DescribeTableCommand(params);
+        const result = await dynamodb.send(command);
         const status = result.Table.TableStatus;
         
         if (status === 'ACTIVE') {
@@ -110,8 +116,6 @@ const waitForTableActive = async () => {
 };
 
 const seedLeadersTable = async () => {
-  const docClient = new AWS.DynamoDB.DocumentClient();
-  
   const sampleLeaders = [
          {
        id: '1',
@@ -174,10 +178,11 @@ const seedLeadersTable = async () => {
     console.log('Seeding Leaders table with sample data...');
     
     for (const leader of sampleLeaders) {
-      await docClient.put({
+      const putCommand = new PutCommand({
         TableName: process.env.LEADERS_TABLE || 'Leaders',
         Item: leader
-      }).promise();
+      });
+      await docClient.send(putCommand);
       console.log(`✅ Added leader: ${leader.name}`);
     }
     
