@@ -180,8 +180,8 @@ if (require.main === module) {
   });
   
   // Enhanced server settings for connection stability
-  server.keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 65000;
-  server.headersTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 65000;
+  server.keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 120000; // 2 minutes instead of 65 seconds
+  server.headersTimeout = parseInt(process.env.HEADERS_TIMEOUT) || 125000; // Slightly higher than keepAliveTimeout
   
   // Handle server errors
   server.on('error', (error) => {
@@ -195,8 +195,11 @@ if (require.main === module) {
   server.on('connection', (socket) => {
     console.log('🔌 New connection established');
     
-    // Set socket timeout
-    socket.setTimeout(parseInt(process.env.AWS_REQUEST_TIMEOUT) || 30000);
+    // Set socket timeout - Increased for stability
+    socket.setTimeout(parseInt(process.env.SOCKET_TIMEOUT) || 120000); // 2 minutes instead of 30 seconds
+    
+    // Enable TCP keep-alive
+    socket.setKeepAlive(true, 60000); // 1 minute
     
     socket.on('timeout', () => {
       console.log('⏰ Socket timeout, closing connection');
@@ -206,9 +209,19 @@ if (require.main === module) {
     socket.on('error', (error) => {
       console.error('🔌 Socket error:', error.message);
     });
+    
+    socket.on('close', (hadError) => {
+      if (hadError) {
+        console.log('🔌 Connection closed due to error');
+      } else {
+        console.log('🔌 Connection closed normally');
+      }
+    });
   });
   
   console.log(`🔧 Server configured with keep-alive timeout: ${server.keepAliveTimeout}ms`);
+  console.log(`🔧 Server configured with headers timeout: ${server.headersTimeout}ms`);
+  console.log(`🔧 Socket timeout: ${parseInt(process.env.SOCKET_TIMEOUT) || 120000}ms`);
 }
 
 module.exports = app;
