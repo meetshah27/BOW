@@ -552,7 +552,7 @@ const HomePage = () => {
         <div className="container-custom py-12 relative z-10">
           {/* Live event placeholder absolutely at the far left of the hero section, outside the centered container */}
           {(loadingEvents || liveEvent) && (
-            <div className="absolute -left-8 top-[20%] -translate-y-1/2 z-20">
+            <div className="absolute -left-8 top-[35%] -translate-y-1/2 z-20">
               {loadingEvents ? (
                 <div className="bg-white/80 rounded-2xl px-5 py-5 min-w-[240px] max-w-[280px] flex items-center justify-center shadow-2xl border-2 border-orange-200 animate-pulse text-gray-400 text-base">
                   Loading event...
