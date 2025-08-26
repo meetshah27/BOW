@@ -298,7 +298,16 @@ const GetInvolvedPage = () => {
           <div className="flex justify-center mb-16">
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-2 shadow-2xl border border-white/20 flex gap-3">
               <button
-                onClick={() => setActiveTab('volunteer')}
+                onClick={() => {
+                  setActiveTab('volunteer');
+                  // Add a small delay to ensure the tab content is rendered before scrolling
+                  setTimeout(() => {
+                    document.getElementById('volunteer-section').scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }, 100);
+                }}
                 className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:ring-offset-2 text-lg shadow-lg border-2 ${
                   activeTab === 'volunteer' 
                     ? 'text-white border-primary-600 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-primary-500/50' 
@@ -311,7 +320,16 @@ const GetInvolvedPage = () => {
                 Volunteer
               </button>
               <button
-                onClick={() => setActiveTab('member')}
+                onClick={() => {
+                  setActiveTab('member');
+                  // Add a small delay to ensure the tab content is rendered before scrolling
+                  setTimeout(() => {
+                    document.getElementById('member-section').scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }, 100);
+                }}
                 className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:ring-offset-2 text-lg shadow-lg border-2 ${
                   activeTab === 'member' 
                     ? 'text-white border-primary-600 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-primary-500/50' 
@@ -329,7 +347,7 @@ const GetInvolvedPage = () => {
           {/* Tab Content */}
           <div className="max-w-6xl mx-auto">
             {activeTab === 'volunteer' && (
-              <div className="space-y-8">
+              <div id="volunteer-section" className="space-y-8">
                 <div className="text-center mb-16">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-6 shadow-lg animate-pulse">
                     <Users className="w-10 h-10 text-white animate-bounce" />
@@ -451,7 +469,7 @@ const GetInvolvedPage = () => {
             )}
 
             {activeTab === 'member' && (
-              <div className="space-y-8">
+              <div id="member-section" className="space-y-8">
                 <div className="text-center mb-16">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full mb-6 shadow-lg animate-pulse">
                     <Heart className="w-10 h-10 text-white animate-bounce" />
