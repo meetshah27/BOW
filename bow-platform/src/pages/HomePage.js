@@ -626,14 +626,51 @@ const HomePage = () => {
       {/* Upcoming Events Section */}
       <section className="bg-white py-20">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Upcoming Events
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Join us for exciting community events, workshops, and performances 
-              that bring people together through the power of music.
-            </p>
+          <div className="text-center mb-16 relative">
+            {/* Decorative background elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-br from-primary-200/20 to-secondary-200/20 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute bottom-0 left-1/4 w-24 h-24 bg-gradient-to-br from-orange-200/20 to-yellow-200/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1s'}}></div>
+              <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
+            </div>
+            
+            {/* Main content with enhanced styling */}
+            <div className="relative z-10">
+
+              
+              {/* Enhanced title with button effect and animation */}
+              <div className="relative inline-block">
+                {/* Small floating bubbles around the title */}
+                <div className="absolute -top-2 -left-2 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                <div className="absolute -bottom-1 -left-3 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
+                <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
+                <div className="absolute top-1/2 -left-4 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '1.2s'}}></div>
+                <div className="absolute top-1/2 -right-4 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
+                
+                <h2 className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-default">
+                  Upcoming Events
+                </h2>
+              </div>
+              
+              {/* Enhanced description with better typography and animation */}
+              <div className="relative">
+                <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+                  Join us for exciting community events, workshops, and performances 
+                  that bring people together through the power of music.
+                </p>
+                
+                {/* Animated underline */}
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary-400 via-secondary-500 to-primary-600 rounded-full animate-pulse"></div>
+              </div>
+              
+              {/* Floating accent elements */}
+              <div className="flex justify-center space-x-4 mt-8">
+                <div className="w-3 h-3 bg-primary-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+                <div className="w-3 h-3 bg-secondary-400 rounded-full animate-bounce" style={{animationDelay: '0.7s'}}></div>
+                <div className="w-3 h-3 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
+              </div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
