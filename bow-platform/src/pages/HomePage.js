@@ -127,6 +127,96 @@ function CountdownTimer({ targetDate }) {
   );
 }
 
+// Live Event Timer component for hero section
+function LiveEventTimer({ event }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    if (!event || !event.date) return;
+
+    function updateCountdown() {
+      const now = new Date();
+      const target = new Date(event.date);
+      const diff = target - now;
+      
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, minutes, seconds });
+    }
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [event]);
+
+  if (!event || !event.date) return null;
+
+  const hasTimeLeft = timeLeft.days + timeLeft.hours + timeLeft.minutes + timeLeft.seconds > 0;
+
+  return (
+    <div className="mt-4 text-center">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 max-w-xl mx-auto">
+        <h3 className="text-base font-semibold text-white mb-3">
+          🎉 Next Event: {event.title}
+        </h3>
+        
+        {hasTimeLeft ? (
+          <>
+            <div className="text-xs text-gray-200 mb-2">
+              Event starts in:
+            </div>
+            <div className="flex justify-center space-x-2 mb-3">
+              <div className="text-center">
+                <div className="bg-white/20 rounded-lg p-2 min-w-[50px]">
+                  <div className="text-lg font-bold text-white">{String(timeLeft.days).padStart(2, '0')}</div>
+                  <div className="text-xs text-gray-200">Days</div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="bg-white/20 rounded-lg p-2 min-w-[50px]">
+                  <div className="text-lg font-bold text-white">{String(timeLeft.hours).padStart(2, '0')}</div>
+                  <div className="text-xs text-gray-200">Hours</div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="bg-white/20 rounded-lg p-2 min-w-[50px]">
+                  <div className="text-lg font-bold text-white">{String(timeLeft.minutes).padStart(2, '0')}</div>
+                  <div className="text-xs text-gray-200">Minutes</div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="bg-white/20 rounded-lg p-2 min-w-[50px]">
+                  <div className="text-lg font-bold text-white">{String(timeLeft.seconds).padStart(2, '0')}</div>
+                  <div className="text-xs text-gray-200">Seconds</div>
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-200">
+              📅 {new Date(event.date).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="text-base font-semibold text-white">
+            🎊 Event is happening now!
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const HomePage = () => {
   // Dynamic events state
   const [events, setEvents] = useState([]);
@@ -459,10 +549,10 @@ const HomePage = () => {
           className="absolute inset-0 bg-black"
           style={{ opacity: heroSettings.overlayOpacity || 0.2 }}
         ></div>
-        <div className="container-custom section-padding relative z-10">
+        <div className="container-custom py-12 relative z-10">
           {/* Live event placeholder absolutely at the far left of the hero section, outside the centered container */}
           {(loadingEvents || liveEvent) && (
-            <div className="absolute left-0 top-[30%] -translate-y-1/2 z-20">
+            <div className="absolute -left-8 top-[20%] -translate-y-1/2 z-20">
               {loadingEvents ? (
                 <div className="bg-white/80 rounded-2xl px-5 py-5 min-w-[240px] max-w-[280px] flex items-center justify-center shadow-2xl border-2 border-orange-200 animate-pulse text-gray-400 text-base">
                   Loading event...
@@ -502,7 +592,7 @@ const HomePage = () => {
               ) : null}
             </div>
           )}
-          <div className="max-w-4xl mx-auto mb-6 flex items-center justify-center">
+          <div className="max-w-4xl mx-auto mb-3 flex items-center justify-center">
             <div className="flex-1 text-center">
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
                 {heroSettings.title || 'Empowering Communities'}
@@ -510,7 +600,7 @@ const HomePage = () => {
               </h1>
             </div>
           </div>
-          <p className="text-xl md:text-2xl mb-8 text-gray-100 leading-relaxed">
+          <p className="text-xl md:text-2xl mb-4 text-gray-100 leading-relaxed">
             {heroSettings.description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -523,6 +613,11 @@ const HomePage = () => {
               Get Involved
             </Link>
           </div>
+          
+          {/* Live Event Timer */}
+          {liveEvent && (
+            <LiveEventTimer event={liveEvent} />
+          )}
         </div>
       </section>
 
