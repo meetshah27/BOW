@@ -174,15 +174,13 @@ const Dashboard = () => {
       </div>
       {/* Recent Activity (unchanged) */}
       <div className="bg-white/80 rounded-2xl shadow-xl p-6 mt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
         <div className="space-y-4">
           {/* You can update this section to show real activity if desired */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-900">New member registered</p>
-              <p className="text-sm text-gray-600">by Sarah Johnson</p>
+              <p className="text-sm font-medium text-gray-900">founders</p>
+              <p className="text-sm text-gray-600">Anand Sane and Deepali sane</p>
             </div>
-            <span className="text-sm text-gray-500">2 hours ago</span>
           </div>
         </div>
       </div>
