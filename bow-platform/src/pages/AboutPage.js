@@ -177,55 +177,108 @@ const AboutPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20 animate-fade-in">
-        <div className="container-custom text-center">
-          <div className="mb-4">
-            <span className="inline-block bg-white/10 text-primary-100 text-xs font-semibold px-4 py-2 rounded-full tracking-widest uppercase shadow-sm animate-fade-in">Welcome to Our Story</span>
+      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-12 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-white to-yellow-200 rounded-full blur-3xl floating-bg"></div>
+          <div className="absolute bottom-20 left-20 w-56 h-56 bg-gradient-to-r from-yellow-200 to-white rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-white to-orange-200 rounded-full blur-3xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
+        </div>
+        
+        {/* Floating about elements */}
+        <div className="absolute top-10 left-10 text-white/20 animate-float-slow">
+          <Heart className="w-8 h-8" />
+        </div>
+        <div className="absolute top-20 right-32 text-white/20 animate-float-slow-reverse">
+          <Music className="w-6 h-6" />
+        </div>
+        <div className="absolute bottom-20 left-32 text-white/20 animate-float-slow">
+          <Users className="w-7 h-7" />
+        </div>
+        <div className="absolute bottom-32 right-10 text-white/20 animate-float-slow-reverse">
+          <Star className="w-6 h-6" />
+        </div>
+        
+        <div className="container-custom text-center relative z-10">
+          {/* Welcome badge */}
+          <div className="mb-6 animate-fade-in">
+            <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-6 py-3 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
+              🎵 Welcome to Our Story 🎵
+            </span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display tracking-tight animate-fade-in">
+          
+          <h1 className="text-3xl md:text-5xl font-bold mb-6 font-display tracking-tight animate-fade-in-up text-glow-hero">
             About <span className="text-secondary-300">Beats of Washington</span>
           </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed text-primary-100 animate-fade-in">
+          
+          <p className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed text-primary-100 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
             Empowering communities through <span className="text-secondary-200 font-semibold">music</span>, <span className="text-secondary-200 font-semibold">culture</span>, and <span className="text-secondary-200 font-semibold">connection</span> since 2019.
           </p>
+          
+          {/* Interactive elements */}
+          <div className="mt-8 flex justify-center space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Heart className="w-5 h-5 text-red-300" />
+              <span className="text-sm font-medium">Community</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Music className="w-5 h-5 text-yellow-300" />
+              <span className="text-sm font-medium">Music</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Users className="w-5 h-5 text-blue-300" />
+              <span className="text-sm font-medium">Connection</span>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Mission Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
+      <section className="py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-full blur-3xl floating-bg"></div>
+          <div className="absolute bottom-20 left-20 w-48 h-48 bg-gradient-to-r from-secondary-200 to-primary-200 rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            <div className="animate-fade-in-up">
+              <div className="inline-block mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Music className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
                 {missionMedia.missionTitle}
               </h2>
-              <p className="text-lg text-primary-700 mb-6 leading-relaxed font-semibold">
+              <p className="text-lg text-black mb-6 leading-relaxed font-semibold animate-fade-in-up" style={{animationDelay: '0.4s'}}>
                 {missionMedia.missionDescription}
               </p>
-              <p className="text-lg text-primary-600 mb-6 leading-relaxed italic">
+              <p className="text-lg text-primary-600 mb-6 leading-relaxed italic animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 {missionMedia.missionLegacy}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/get-involved" className="btn-primary">
+              <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+                <Link to="/get-involved" className="btn-primary transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   Get Involved
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
-                <Link to="/donate" className="btn-outline">
+                <Link to="/donate" className="btn-outline transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   Support Our Mission
                 </Link>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative animate-fade-in-up" style={{animationDelay: '0.3s'}}>
               {loadingMission ? (
-                <div className="w-full h-80 bg-gray-200 rounded-2xl shadow-2xl flex items-center justify-center">
+                <div className="w-full h-80 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl shadow-2xl flex items-center justify-center transform transition-all duration-500 hover:scale-105">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Loading mission media...</p>
                   </div>
                 </div>
               ) : missionMedia.mediaUrl && missionMedia.isActive ? (
-                <div className="relative" key={`mission-media-${missionMedia.overlayOpacity}`}>
+                <div className="relative transform transition-all duration-500 hover:scale-105 hover:shadow-3xl" key={`mission-media-${missionMedia.overlayOpacity}`}>
                   {missionMedia.mediaType === 'image' ? (
                     <img
                       src={missionMedia.mediaUrl}
@@ -238,19 +291,30 @@ const AboutPage = () => {
                       controls
                       className="rounded-2xl shadow-2xl w-full h-80 object-cover bg-black"
                     >
-                      Sorry, your browser does not support embedded videos.
+                      Sorry, your browser doesn't support embedded videos.
                     </video>
                   )}
                   {/* Dynamic overlay based on mission media settings */}
                   <div 
-                    className="absolute inset-0 bg-primary-600 rounded-2xl pointer-events-none"
+                    className="absolute inset-0 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl pointer-events-none"
                     style={{ opacity: missionMedia.overlayOpacity || 0.2 }}
                   ></div>
+                  
+                  {/* Floating elements overlay */}
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    <Star className="w-3 h-3 text-white" />
+                  </div>
+                  <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-secondary-400 rounded-full flex items-center justify-center shadow-lg animate-pulse" style={{animationDelay: '1s'}}>
+                    <Heart className="w-2 h-2 text-white" />
+                  </div>
                 </div>
               ) : (
-                <div className="w-full h-80 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl shadow-2xl flex items-center justify-center">
+                <div className="w-full h-80 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl shadow-2xl flex items-center justify-center transform transition-all duration-500 hover:scale-105 hover:shadow-3xl">
                   <div className="text-center text-primary-600">
-                    <Music className="w-16 h-16 mx-auto mb-4" />
+                    <div className="relative">
+                      <Music className="w-16 h-16 mx-auto mb-4 animate-bounce" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></div>
+                    </div>
                     <p className="text-lg font-semibold">Mission Media</p>
                     <p className="text-sm">Upload image or video from admin panel</p>
                   </div>
@@ -483,11 +547,11 @@ const AboutPage = () => {
         <div className="container-custom relative z-10">
           <div className="text-center mb-16">
             <div className="inline-block mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Users className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6">
+            <h2 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-6">
               Board of Directors
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
@@ -499,11 +563,11 @@ const AboutPage = () => {
           <div className="grid md:grid-cols-2 gap-12">
             {boardMembers.map((member, index) => (
               <div key={index} className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
                 <div className="relative bg-white rounded-2xl p-10 shadow-xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
                   <div className="text-center">
                     <div className="relative mb-6">
-                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2">
+                      <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2">
                         <span className="text-white font-bold text-2xl">
                           {member.name.split(' ').map(n => n[0]).join('')}
                         </span>
@@ -512,10 +576,10 @@ const AboutPage = () => {
                         <Award className="w-3 h-3 text-white" />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors duration-300">
                       {member.name}
                     </h3>
-                    <p className="text-blue-600 font-semibold text-lg mb-3 bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+                    <p className="text-orange-600 font-semibold text-lg mb-3 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
                       {member.role}
                     </p>
                     <p className="text-gray-600 text-base font-medium">

@@ -226,20 +226,60 @@ const GalleryPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20">
-        <div className="container-custom text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-              <Image className="w-10 h-10" />
-            </div>
+      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-12 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-white to-purple-200 rounded-full blur-3xl floating-bg"></div>
+          <div className="absolute bottom-20 left-20 w-56 h-56 bg-gradient-to-r from-purple-200 to-white rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-white to-pink-200 rounded-full blur-3xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
+        </div>
+        
+        {/* Floating gallery elements */}
+        <div className="absolute top-10 left-10 text-white/20 animate-float-slow">
+          <Image className="w-8 h-8" />
+        </div>
+        <div className="absolute top-20 right-32 text-white/20 animate-float-slow-reverse">
+          <Video className="w-6 h-6" />
+        </div>
+        <div className="absolute bottom-20 left-32 text-white/20 animate-float-slow">
+          <Heart className="w-7 h-7" />
+        </div>
+        <div className="absolute bottom-32 right-10 text-white/20 animate-float-slow-reverse">
+          <Share2 className="w-6 h-6" />
+        </div>
+        
+        <div className="container-custom text-center relative z-10">
+          {/* Welcome badge */}
+          <div className="mb-6 animate-fade-in">
+            <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-6 py-3 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
+              📸 Capture & Share 📸
+            </span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+          
+          <h1 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in-up text-glow-hero">
             Our Gallery
           </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
+          
+          <p className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.3s'}}>
             Explore photos and videos from our community events, workshops, 
             and performances that bring people together through music.
           </p>
+          
+          {/* Interactive elements */}
+          <div className="mt-8 flex justify-center space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Image className="w-5 h-5 text-green-300" />
+              <span className="text-sm font-medium">Photos</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Video className="w-5 h-5 text-blue-300" />
+              <span className="text-sm font-medium">Videos</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Heart className="w-5 h-5 text-pink-300" />
+              <span className="text-sm font-medium">Memories</span>
+            </div>
+          </div>
         </div>
       </section>
 
