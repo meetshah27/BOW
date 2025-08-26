@@ -230,16 +230,60 @@ const GetInvolvedPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20">
-        <div className="container-custom text-center">
-
+      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-12 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-white to-green-200 rounded-full blur-3xl floating-bg"></div>
+          <div className="absolute bottom-20 left-20 w-56 h-56 bg-gradient-to-r from-green-200 to-white rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-white to-blue-200 rounded-full blur-3xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
+        </div>
+        
+        {/* Floating involvement elements */}
+        <div className="absolute top-10 left-10 text-white/20 animate-float-slow">
+          <Users className="w-8 h-8" />
+        </div>
+        <div className="absolute top-20 right-32 text-white/20 animate-float-slow-reverse">
+          <Heart className="w-6 h-6" />
+        </div>
+        <div className="absolute bottom-20 left-32 text-white/20 animate-float-slow">
+          <Calendar className="w-7 h-7" />
+        </div>
+        <div className="absolute bottom-32 right-10 text-white/20 animate-float-slow-reverse">
+          <Star className="w-6 h-6" />
+        </div>
+        
+        <div className="container-custom text-center relative z-10">
+          {/* Welcome badge */}
+          <div className="mb-6 animate-fade-in">
+            <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-6 py-3 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
+              🤝 Join Our Community 🤝
+            </span>
+          </div>
           
-
-
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
+          <h1 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in-up text-glow-hero">
+            Get Involved
+          </h1>
+          
+          <p className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.3s'}}>
             Whether you want to volunteer your time or become a member, 
             there are many ways to get involved with BOW.
           </p>
+          
+          {/* Interactive elements */}
+          <div className="mt-8 flex justify-center space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Users className="w-5 h-5 text-green-300" />
+              <span className="text-sm font-medium">Volunteer</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Heart className="w-5 h-5 text-red-300" />
+              <span className="text-sm font-medium">Member</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+              <Calendar className="w-5 h-5 text-blue-300" />
+              <span className="text-sm font-medium">Events</span>
+            </div>
+          </div>
         </div>
       </section>
 
