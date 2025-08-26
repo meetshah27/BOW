@@ -231,7 +231,7 @@ const HomePage = () => {
     overlayOpacity: 0.2,
     title: 'Empowering Communities',
     subtitle: 'Through Music',
-    description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+    description: '',
     isActive: true
   });
   const [loadingHero, setLoadingHero] = useState(true);
@@ -600,9 +600,11 @@ const HomePage = () => {
               </h1>
             </div>
           </div>
-          <p className="text-xl md:text-2xl mb-4 text-gray-100 leading-relaxed">
-            {heroSettings.description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.'}
-          </p>
+          {heroSettings.description && (
+            <p className="text-xl md:text-2xl mb-4 text-gray-100 leading-relaxed">
+              {heroSettings.description}
+            </p>
+          )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/events" className="btn-secondary text-lg px-8 py-4">
               <Calendar className="w-5 h-5 mr-2" />

@@ -927,7 +927,7 @@ router.put('/api/hero', async (req, res) => {
           overlayOpacity: overlayOpacity || 0.2,
           title: title || 'Empowering Communities',
           subtitle: subtitle || 'Through Music',
-          description: description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+          description: description !== undefined ? description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
           isActive: isActive !== undefined ? isActive : true
         });
         
@@ -945,7 +945,7 @@ router.put('/api/hero', async (req, res) => {
           overlayOpacity: overlayOpacity || 0.2,
           title: title || 'Empowering Communities',
           subtitle: subtitle || 'Through Music',
-          description: description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+          description: description !== undefined ? description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
           isActive: isActive !== undefined ? isActive : true,
           updatedAt: new Date().toISOString()
         };
@@ -964,7 +964,7 @@ router.put('/api/hero', async (req, res) => {
         overlayOpacity: overlayOpacity || 0.2,
         title: title || 'Empowering Communities',
         subtitle: subtitle || 'Through Music',
-        description: description || 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
+        description: description !== undefined ? description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
         isActive: isActive !== undefined ? isActive : true,
         updatedAt: new Date().toISOString()
       };
