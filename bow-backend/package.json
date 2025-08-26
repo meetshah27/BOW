@@ -11,6 +11,10 @@
     "server": "node server.js",
     "monitor": "node monitor-connections.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test-founder-media": "node test-founder-media.js",
+    "test-founder-upload": "node test-founder-upload.js",
+    "setup-s3": "node setup-founder-media-s3.js",
+    "check-s3-setup": "node check-s3-setup.js",
     "lint": "eslint . --ext .js --ignore-path .gitignore",
     "format": "prettier --write ."
   },

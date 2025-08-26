@@ -12,6 +12,24 @@ const s3Config = {
   }
 };
 
+// Log S3 configuration (without sensitive data)
+console.log('🔍 S3 Configuration:');
+console.log('   Region:', s3Config.region);
+console.log('   Access Key ID set:', !!s3Config.credentials.accessKeyId);
+console.log('   Secret Access Key set:', !!s3Config.credentials.secretAccessKey);
+console.log('   Bucket Name:', process.env.S3_BUCKET_NAME || 'bow-media-bucket');
+
+// Check if required environment variables are set
+if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+  console.error('❌ AWS credentials not found in environment variables!');
+  console.error('   Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in your .env file');
+}
+
+if (!process.env.S3_BUCKET_NAME) {
+  console.error('❌ S3 bucket name not found in environment variables!');
+  console.error('   Please set S3_BUCKET_NAME in your .env file');
+}
+
 // Create S3 client
 const s3Client = new S3Client(s3Config);
 
@@ -24,7 +42,8 @@ const S3_CONFIG = {
     GALLERY: 'gallery',
     PROFILES: 'profiles',
     SPONSORS: 'sponsors',
-    STORIES: 'stories'
+    STORIES: 'stories',
+    FOUNDERS: 'founders'
   }
 };
 
@@ -32,7 +51,7 @@ const S3_CONFIG = {
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  // Allow images and videos
+  // Allow images, videos, and text files for testing
   const allowedTypes = [
     'image/jpeg',
     'image/jpg', 
@@ -42,7 +61,8 @@ const fileFilter = (req, file, cb) => {
     'video/mp4',
     'video/mov',
     'video/avi',
-    'video/webm'
+    'video/webm',
+    'text/plain' // Added for testing
   ];
   
   if (allowedTypes.includes(file.mimetype)) {
@@ -74,7 +94,20 @@ const generateFileName = (originalName, folder) => {
 // Upload file to S3
 const uploadToS3 = async (file, folder) => {
   try {
+    console.log('🚀 Starting S3 upload...');
+    console.log('📁 S3 Config:', {
+      bucket: S3_CONFIG.BUCKET_NAME,
+      region: S3_CONFIG.REGION,
+      folder: folder
+    });
+    console.log('📁 File info:', {
+      name: file.originalname,
+      type: file.mimetype,
+      size: file.size
+    });
+    
     const fileName = generateFileName(file.originalname, folder);
+    console.log('📝 Generated filename:', fileName);
     
     const uploadParams = {
       Bucket: S3_CONFIG.BUCKET_NAME,
@@ -89,10 +122,13 @@ const uploadToS3 = async (file, folder) => {
       }
     };
 
+    console.log('📤 Sending to S3...');
     const command = new PutObjectCommand(uploadParams);
     await s3Client.send(command);
+    console.log('✅ S3 upload successful');
 
     const fileUrl = `https://${S3_CONFIG.BUCKET_NAME}.s3.${S3_CONFIG.REGION}.amazonaws.com/${fileName}`;
+    console.log('🔗 Generated file URL:', fileUrl);
     
     return {
       success: true,
@@ -103,7 +139,7 @@ const uploadToS3 = async (file, folder) => {
       mimetype: file.mimetype
     };
   } catch (error) {
-    console.error('S3 upload error:', error);
+    console.error('❌ S3 upload error:', error);
     throw new Error('Failed to upload file to S3');
   }
 };

@@ -34,7 +34,8 @@ import {
   Ticket,
   Clock,
   X,
-  Mail
+  Mail,
+  Star
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
 import VolunteerOpportunityManager from '../components/admin/VolunteerOpportunityManager';
@@ -42,6 +43,7 @@ import StoriesManagement from '../components/admin/StoriesManagement';
 import NewsletterManagement from '../components/admin/NewsletterManagement';
 import HeroManagement from '../components/admin/HeroManagement';
 import MissionMediaManagement from '../components/admin/MissionMediaManagement';
+import FounderMediaManagement from '../components/admin/FounderMediaManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // SimpleModal component for modals
@@ -2467,6 +2469,7 @@ const AdminPanel = () => {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Hero', href: '/admin/hero', icon: Image },
     { name: 'Mission Media', href: '/admin/mission-media', icon: FileText },
+    { name: 'Founder Media', href: '/admin/founder-media', icon: Star },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
@@ -2489,6 +2492,8 @@ const AdminPanel = () => {
         return <HeroManagement />;
       case 'mission media':
         return <MissionMediaManagement />;
+      case 'founder media':
+        return <FounderMediaManagement />;
       case 'users':
         return <UserManagement />;
       case 'volunteers':
