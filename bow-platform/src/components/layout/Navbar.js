@@ -81,7 +81,7 @@ const Navbar = () => {
       <div className="container-custom">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-1 -ml-12">
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg">B</span>
             </div>
@@ -103,6 +103,13 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            {/* Donation Button - positioned after Contact */}
+            <Link
+              to="/donate"
+              className="bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors duration-200"
+            >
+              Donate
+            </Link>
           </div>
 
           {/* Desktop Social Media & Auth Buttons */}
@@ -203,9 +210,6 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link to="/donate" className="btn-primary text-sm py-2 px-4">
-                  Donate
-                </Link>
                 <Link to="/login" className="btn-outline text-sm py-2 px-4">
                   Sign In
                 </Link>
@@ -246,6 +250,15 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
+              
+              {/* Mobile Donation Button */}
+              <Link
+                to="/donate"
+                className="block mx-3 my-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded-md text-center transition-colors duration-200"
+                onClick={() => setIsOpen(false)}
+              >
+                Donate
+              </Link>
               
               {/* Mobile Social Media Links */}
               <div className="border-t pt-4 mt-4">
@@ -314,13 +327,6 @@ const Navbar = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Link
-                      to="/donate"
-                      className="block px-3 py-2 text-base font-medium text-primary-600 hover:bg-primary-50"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Donate
-                    </Link>
                     <Link
                       to="/login"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
