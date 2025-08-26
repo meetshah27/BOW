@@ -44,6 +44,7 @@ import NewsletterManagement from '../components/admin/NewsletterManagement';
 import HeroManagement from '../components/admin/HeroManagement';
 import MissionMediaManagement from '../components/admin/MissionMediaManagement';
 import FounderMediaManagement from '../components/admin/FounderMediaManagement';
+import LeaderManagement from '../components/admin/LeaderManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // SimpleModal component for modals
@@ -73,6 +74,8 @@ const Dashboard = () => {
     activeEvents: null,
     monthlyDonations: null,
     volunteerHours: null,
+    totalLeaders: null,
+    activeLeaders: null,
     loading: true,
     error: null
   });
@@ -92,12 +95,17 @@ const Dashboard = () => {
         // Fetch volunteer hours (use totalApplications as proxy)
         const volunteersRes = await api.get('/volunteers/stats');
         const volunteersData = volunteersRes.ok ? await volunteersRes.json() : {};
+        // Fetch leaders stats
+        const leadersRes = await api.get('/leaders/stats/overview');
+        const leadersData = leadersRes.ok ? await leadersRes.json() : {};
 
         setStats({
           totalMembers: usersData.totalUsers ?? 0,
           activeEvents: Array.isArray(eventsData) ? eventsData.filter(e => e.isActive).length : 0,
           monthlyDonations: donationsData.monthlyStats && donationsData.monthlyStats[0] ? (donationsData.monthlyStats[0].amount / 100) : 0,
           volunteerHours: volunteersData.totalApplications ?? 0,
+          totalLeaders: leadersData.totalLeaders ?? 0,
+          activeLeaders: leadersData.activeCount ?? 0,
           loading: false,
           error: null
         });
@@ -137,6 +145,20 @@ const Dashboard = () => {
       icon: Users,
       color: 'bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700',
       iconBg: 'bg-purple-200'
+    },
+    {
+      title: 'Total Leaders',
+      value: stats.loading ? '...' : stats.totalLeaders,
+      icon: Users,
+      color: 'bg-gradient-to-br from-indigo-100 to-indigo-200 text-indigo-700',
+      iconBg: 'bg-indigo-200'
+    },
+    {
+      title: 'Active Leaders',
+      value: stats.loading ? '...' : stats.activeLeaders,
+      icon: Users,
+      color: 'bg-gradient-to-br from-teal-100 to-teal-200 text-teal-700',
+      iconBg: 'bg-teal-200'
     }
   ];
 
@@ -2468,6 +2490,7 @@ const AdminPanel = () => {
     { name: 'Hero', href: '/admin/hero', icon: Image },
     { name: 'Mission Media', href: '/admin/mission-media', icon: FileText },
     { name: 'Founder Media', href: '/admin/founder-media', icon: Star },
+    { name: 'Leaders', href: '/admin/leaders', icon: Users },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
@@ -2492,6 +2515,8 @@ const AdminPanel = () => {
         return <MissionMediaManagement />;
       case 'founder media':
         return <FounderMediaManagement />;
+      case 'leaders':
+        return <LeaderManagement />;
       case 'users':
         return <UserManagement />;
       case 'volunteers':
