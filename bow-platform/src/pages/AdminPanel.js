@@ -45,6 +45,8 @@ import HeroManagement from '../components/admin/HeroManagement';
 import MissionMediaManagement from '../components/admin/MissionMediaManagement';
 import FounderMediaManagement from '../components/admin/FounderMediaManagement';
 import LeaderManagement from '../components/admin/LeaderManagement';
+import AboutPageManagement from '../components/admin/AboutPageManagement';
+import FounderContentManagement from '../components/admin/FounderContentManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // SimpleModal component for modals
@@ -2490,6 +2492,8 @@ const AdminPanel = () => {
     { name: 'Hero', href: '/admin/hero', icon: Image },
     { name: 'Mission Media', href: '/admin/mission-media', icon: FileText },
     { name: 'Founder Media', href: '/admin/founder-media', icon: Star },
+    { name: 'About Page', href: '/admin/about-page', icon: FileText },
+    { name: 'Founder Content', href: '/admin/founder-content', icon: Users },
     { name: 'Leaders', href: '/admin/leaders', icon: Users },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
@@ -2515,6 +2519,10 @@ const AdminPanel = () => {
         return <MissionMediaManagement />;
       case 'founder media':
         return <FounderMediaManagement />;
+      case 'about page':
+        return <AboutPageManagement />;
+      case 'founder content':
+        return <FounderContentManagement />;
       case 'leaders':
         return <LeaderManagement />;
       case 'users':
