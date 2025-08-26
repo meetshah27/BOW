@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
 const securityMiddleware = require('./middleware/security');
+const { connectionRetryMiddleware, healthCheckMiddleware } = require('./middleware/connectionRetry');
 
 require('dotenv').config();
 
@@ -23,6 +24,9 @@ const app = express();
 
 // Apply security middleware
 securityMiddleware(app);
+
+// Apply connection retry middleware
+app.use(connectionRetryMiddleware());
 
 // Enable CORS for all routes
 app.use(cors({
@@ -54,12 +58,23 @@ console.log('   AWS_REGION:', process.env.AWS_REGION || 'us-west-2');
 console.log('   AWS_ACCESS_KEY_ID set:', !!process.env.AWS_ACCESS_KEY_ID);
 console.log('   AWS_SECRET_ACCESS_KEY set:', !!process.env.AWS_SECRET_ACCESS_KEY);
 
-// Test DynamoDB connection
+// Test DynamoDB connection with enhanced error handling
 try {
-  const { docClient } = require('./config/dynamodb');
+  const { docClient, isConnectionHealthy } = require('./config/dynamodb');
+  const { checkConnectionHealth } = require('./config/aws-config');
+  
   console.log('✅ DynamoDB client initialized');
   console.log('📊 Using AWS Region:', process.env.AWS_REGION || 'us-west-2');
   console.log('🎯 All models connected to DynamoDB');
+  
+  // Initial connection test
+  checkConnectionHealth().then(healthy => {
+    if (healthy) {
+      console.log('✅ Initial DynamoDB connection test successful');
+    } else {
+      console.log('⚠️  Initial DynamoDB connection test failed');
+    }
+  });
 } catch (error) {
   console.log('⚠️  DynamoDB not configured, using fallback mode');
   console.log('💡 To enable DynamoDB, set AWS credentials in .env file');
@@ -77,14 +92,8 @@ app.use(cookieParser());
 app.use('/sponsors', express.static(path.join(__dirname, 'public/sponsors')));
 app.use('/favicon.ico', express.static(path.join(__dirname, 'public/favicon.ico')));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Health check endpoint with enhanced monitoring
+app.use(healthCheckMiddleware);
 
 // API routes
 app.use('/', indexRouter);
@@ -158,11 +167,46 @@ process.on('uncaughtException', (error) => {
 });
 
 if (require.main === module) {
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 BOW backend server running on http://localhost:${PORT}`);
-  console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-})};
+  const PORT = process.env.PORT || 3000;
+  
+  // Enhanced server configuration
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 BOW backend server running on http://localhost:${PORT}`);
+    console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔧 Connection monitoring enabled`);
+  });
+  
+  // Enhanced server settings for connection stability
+  server.keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 65000;
+  server.headersTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT) || 65000;
+  
+  // Handle server errors
+  server.on('error', (error) => {
+    console.error('❌ Server error:', error.message);
+    if (error.code === 'EADDRINUSE') {
+      console.error('💡 Port is already in use. Try a different port or stop the existing service.');
+    }
+  });
+  
+  // Handle connection events
+  server.on('connection', (socket) => {
+    console.log('🔌 New connection established');
+    
+    // Set socket timeout
+    socket.setTimeout(parseInt(process.env.AWS_REQUEST_TIMEOUT) || 30000);
+    
+    socket.on('timeout', () => {
+      console.log('⏰ Socket timeout, closing connection');
+      socket.destroy();
+    });
+    
+    socket.on('error', (error) => {
+      console.error('🔌 Socket error:', error.message);
+    });
+  });
+  
+  console.log(`🔧 Server configured with keep-alive timeout: ${server.keepAliveTimeout}ms`);
+}
 
 module.exports = app;
