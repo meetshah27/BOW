@@ -1,21 +1,8 @@
-require('dotenv').config();
+// Import enhanced AWS configuration
+const { docClient, dynamoClient } = require('./aws-config');
 
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
-
-// AWS Configuration
-const awsConfig = {
-  region: process.env.AWS_REGION || 'us-west-2',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  }
-};
-
-// Create DynamoDB client
-console.log('Creating DynamoDB client with config:', awsConfig);
-const client = new DynamoDBClient(awsConfig);
-const docClient = DynamoDBDocumentClient.from(client);
+// Legacy client reference for backward compatibility
+const client = dynamoClient;
 
 // Table definitions
 const TABLES = {
