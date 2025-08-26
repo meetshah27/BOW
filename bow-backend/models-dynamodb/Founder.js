@@ -9,6 +9,14 @@ class Founder {
     this.role = data.role;
     this.bio = data.bio || '';
     this.image = data.image || '';
+    this.mediaType = data.mediaType || 'image'; // 'image' or 'video'
+    this.mediaUrl = data.mediaUrl || '';
+    this.thumbnailUrl = data.thumbnailUrl || '';
+    this.mediaTitle = data.mediaTitle || '';
+    this.mediaDescription = data.mediaDescription || '';
+    this.mediaAltText = data.mediaAltText || '';
+    this.isMediaActive = data.isMediaActive !== undefined ? data.isMediaActive : false;
+    this.mediaOverlayOpacity = data.mediaOverlayOpacity || 0.1;
     this.social = data.social || {
       instagram: '',
       facebook: '',

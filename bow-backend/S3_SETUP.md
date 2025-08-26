@@ -122,8 +122,25 @@ your-bucket-name/
 ├── gallery/         # Gallery media
 ├── profiles/        # User profile images
 ├── sponsors/        # Sponsor logos
-└── stories/         # Story images
+├── stories/         # Story images
+└── founders/        # Founder media (Deepali Sane photos/videos)
 ```
+
+## 🚀 Quick Setup with Script
+
+Use the automated setup script to create all required folders:
+
+```bash
+cd bow-backend
+npm run setup-s3
+```
+
+This script will:
+- ✅ Check your AWS credentials
+- ✅ Verify S3 bucket access
+- ✅ Create all required folders
+- ✅ Test upload capability to founders folder
+- ✅ Provide detailed status report
 
 ## 🎯 Step 7: Frontend Integration
 

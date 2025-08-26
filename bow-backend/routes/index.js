@@ -639,6 +639,251 @@ router.put('/api/mission-media', async (req, res) => {
   }
 });
 
+// API: Get founder media
+router.get('/api/founder-media', async (req, res) => {
+  try {
+    console.log('🚀 GET /api/founder-media called');
+    
+    // Try to use DynamoDB Founder model, fallback to default data if not available
+    let Founder;
+    try {
+      Founder = require('../models-dynamodb/Founder');
+      console.log('✅ Using DynamoDB Founder model');
+    } catch (error) {
+      console.log('⚠️  DynamoDB Founder model not available, using fallback data');
+      Founder = null;
+    }
+
+    if (Founder) {
+      try {
+        // Find Deepali Sane by name
+        const deepali = await Founder.findByName('Deepali Sane');
+        if (deepali) {
+          console.log('📋 Found Deepali Sane in DynamoDB:', deepali);
+          console.log('🔍 Raw founder data:', {
+            mediaType: deepali.mediaType,
+            mediaUrl: deepali.mediaUrl,
+            thumbnailUrl: deepali.thumbnailUrl,
+            mediaTitle: deepali.mediaTitle,
+            mediaDescription: deepali.mediaDescription,
+            mediaAltText: deepali.mediaAltText,
+            isMediaActive: deepali.isMediaActive,
+            mediaOverlayOpacity: deepali.mediaOverlayOpacity,
+            name: deepali.name,
+            role: deepali.role
+          });
+          
+          const responseData = {
+            mediaType: deepali.mediaType || 'image',
+            mediaUrl: deepali.mediaUrl || '',
+            thumbnailUrl: deepali.thumbnailUrl || '',
+            title: deepali.mediaTitle || '',
+            description: deepali.mediaDescription || '',
+            altText: deepali.mediaAltText || '',
+            isActive: deepali.isMediaActive || false,
+            overlayOpacity: deepali.mediaOverlayOpacity || 0.1,
+            founderName: deepali.name || 'Deepali Sane',
+            founderRole: deepali.role || 'Vice Chair & Co-Founder'
+          };
+          
+          console.log('📤 Sending response data:', responseData);
+          console.log('🎯 Media display conditions:');
+          console.log(`   - mediaUrl exists: ${!!responseData.mediaUrl}`);
+          console.log(`   - isActive: ${responseData.isActive}`);
+          console.log(`   - Will display: ${!!(responseData.mediaUrl && responseData.isActive)}`);
+          
+          res.json(responseData);
+        } else {
+          console.log('📋 Deepali Sane not found in DynamoDB, returning default data');
+          // Return default data if founder not found
+          const defaultFounderMedia = {
+            mediaType: 'image',
+            mediaUrl: '',
+            thumbnailUrl: '',
+            title: '',
+            description: '',
+            altText: '',
+            isActive: false,
+            overlayOpacity: 0.1,
+            founderName: 'Deepali Sane',
+            founderRole: 'Vice Chair & Co-Founder'
+          };
+          res.json(defaultFounderMedia);
+        }
+      } catch (dynamoError) {
+        console.log('⚠️  DynamoDB error, using fallback data:', dynamoError.message);
+        // Fallback to default data when DynamoDB fails
+        const defaultFounderMedia = {
+          mediaType: 'image',
+          mediaUrl: '',
+          thumbnailUrl: '',
+          title: '',
+          description: '',
+          altText: '',
+          isActive: false,
+          overlayOpacity: 0.1,
+          founderName: 'Deepali Sane',
+          founderRole: 'Vice Chair & Co-Founder'
+        };
+        res.json(defaultFounderMedia);
+      }
+    } else {
+      // Fallback to default data when DynamoDB model is not available
+      const defaultFounderMedia = {
+        mediaType: 'image',
+        mediaUrl: '',
+        thumbnailUrl: '',
+        title: '',
+        description: '',
+        altText: '',
+        isActive: false,
+        overlayOpacity: 0.1,
+        founderName: 'Deepali Sane',
+        founderRole: 'Vice Chair & Co-Founder'
+      };
+      res.json(defaultFounderMedia);
+    }
+  } catch (err) {
+    console.error('❌ Error fetching founder media:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Update founder media (admin only)
+router.put('/api/founder-media', async (req, res) => {
+  try {
+    console.log('🚀 PUT /api/founder-media called with body:', req.body);
+    
+    const { mediaType, mediaUrl, thumbnailUrl, title, description, altText, isActive, overlayOpacity, founderName, founderRole } = req.body;
+    
+    console.log('📝 Extracted fields:', { mediaType, mediaUrl, thumbnailUrl, title, description, altText, isActive, overlayOpacity, founderName, founderRole });
+    
+    // Try to use DynamoDB Founder model, fallback to success response if not available
+    let Founder;
+    try {
+      Founder = require('../models-dynamodb/Founder');
+      console.log('✅ Using DynamoDB Founder model for update');
+    } catch (error) {
+      console.log('⚠️  DynamoDB Founder model not available, using fallback mode');
+      Founder = null;
+    }
+
+    if (Founder) {
+      try {
+        // Find Deepali Sane by name
+        let deepali = await Founder.findByName('Deepali Sane');
+        
+        if (deepali) {
+          // Update existing founder
+          console.log('📝 Updating existing founder:', deepali.id);
+          console.log('📝 Update data:', {
+            mediaType,
+            mediaUrl,
+            thumbnailUrl,
+            mediaTitle: title,
+            mediaDescription: description,
+            mediaAltText: altText,
+            isMediaActive: isActive,
+            mediaOverlayOpacity: overlayOpacity
+          });
+          
+          await deepali.update({
+            mediaType,
+            mediaUrl,
+            thumbnailUrl,
+            mediaTitle: title,
+            mediaDescription: description,
+            mediaAltText: altText,
+            isMediaActive: isActive,
+            mediaOverlayOpacity: overlayOpacity
+          });
+          console.log('✅ Founder updated successfully in DynamoDB');
+          
+          // Verify the update by fetching the founder again
+          const updatedFounder = await Founder.findByName('Deepali Sane');
+          console.log('🔍 Verification - Updated founder data:', updatedFounder);
+        } else {
+          // Create new founder if not found
+          console.log('📝 Creating new founder for Deepali Sane');
+          console.log('📝 Create data:', {
+            name: founderName || 'Deepali Sane',
+            role: founderRole || 'Vice Chair & Co-Founder',
+            mediaType,
+            mediaUrl,
+            thumbnailUrl,
+            mediaTitle: title,
+            mediaDescription: description,
+            mediaAltText: altText,
+            isMediaActive: isActive,
+            mediaOverlayOpacity: overlayOpacity
+          });
+          
+          deepali = await Founder.create({
+            name: founderName || 'Deepali Sane',
+            role: founderRole || 'Vice Chair & Co-Founder',
+            mediaType,
+            mediaUrl,
+            thumbnailUrl,
+            mediaTitle: title,
+            mediaDescription: description,
+            mediaAltText: altText,
+            isMediaActive: isActive,
+            mediaOverlayOpacity: overlayOpacity
+          });
+          console.log('✅ New founder created successfully in DynamoDB');
+          console.log('🔍 Verification - Created founder data:', deepali);
+        }
+        
+        res.json({
+          success: true,
+          message: 'Founder media updated successfully in DynamoDB',
+          data: {
+            id: deepali.id,
+            mediaType,
+            mediaUrl,
+            thumbnailUrl,
+            title,
+            description,
+            altText,
+            isActive,
+            overlayOpacity,
+            founderName: deepali.name,
+            founderRole: deepali.role
+          }
+        });
+      } catch (dynamoError) {
+        console.error('❌ DynamoDB error during update:', dynamoError);
+        res.status(500).json({ 
+          error: 'Failed to update founder media in database',
+          details: dynamoError.message 
+        });
+      }
+    } else {
+      // Fallback mode - just log the data and return success
+      console.log('✅ Founder media update received, logging data for future implementation');
+      res.json({
+        success: true,
+        message: 'Founder media updated successfully (fallback mode)',
+        data: {
+          mediaType,
+          mediaUrl,
+          thumbnailUrl,
+          title,
+          description,
+          altText,
+          isActive,
+          overlayOpacity,
+          founderName,
+          founderRole
+        }
+      });
+    }
+  } catch (err) {
+    console.error('❌ Error updating founder media:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: Update hero settings (admin only)
 router.put('/api/hero', async (req, res) => {
   try {

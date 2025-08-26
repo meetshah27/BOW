@@ -179,6 +179,73 @@ router.post('/story', upload.single('image'), async (req, res) => {
   }
 });
 
+// Upload founder media
+router.post('/founder', upload.single('media'), async (req, res) => {
+  try {
+    console.log('🚀 POST /api/upload/founder called');
+    console.log('📁 Request headers:', req.headers);
+    console.log('📁 Request body:', req.body);
+    console.log('📁 Request file:', req.file);
+    console.log('📁 Request files:', req.files);
+    
+    if (!req.file) {
+      console.log('❌ No file uploaded');
+      console.log('📁 Checking if this is a multer error...');
+      return res.status(400).json({ 
+        error: 'No media uploaded',
+        details: 'File was not received by multer middleware'
+      });
+    }
+
+    console.log('📋 File details:', {
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    const result = await uploadToS3(req.file, S3_CONFIG.FOLDERS.FOUNDERS);
+    console.log('✅ Upload to S3 successful:', result);
+
+    res.json({
+      success: true,
+      message: 'Founder media uploaded successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('❌ Founder media upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Upload failed'
+    });
+  }
+});
+
+// Error handling middleware for multer errors
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    console.error('❌ Multer error:', error);
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ 
+        error: 'File too large. Maximum size is 50MB.' 
+      });
+    } else if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ 
+        error: 'Too many files. Maximum is 1 file.' 
+      });
+    } else {
+      return res.status(400).json({ 
+        error: `Upload error: ${error.message}` 
+      });
+    }
+  } else if (error) {
+    console.error('❌ General upload error:', error);
+    return res.status(400).json({ 
+      error: error.message || 'Upload failed' 
+    });
+  }
+  next();
+});
+
 // Delete file
 router.delete('/:fileName', async (req, res) => {
   try {

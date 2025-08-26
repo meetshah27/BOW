@@ -27,9 +27,28 @@ const AboutPage = () => {
     missionLegacy: ''
   });
   const [loadingMission, setLoadingMission] = useState(true);
+  const [founderMedia, setFounderMedia] = useState({
+    mediaType: 'image',
+    mediaUrl: '',
+    thumbnailUrl: '',
+    title: '',
+    description: '',
+    altText: '',
+    isActive: true,
+    overlayOpacity: 0.1
+  });
+  const [loadingFounder, setLoadingFounder] = useState(true);
 
   useEffect(() => {
     fetchMissionMedia();
+    fetchFounderMedia();
+    
+    // Refresh founder media every 30 seconds to catch updates
+    const interval = setInterval(() => {
+      fetchFounderMedia();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchMissionMedia = async () => {
@@ -63,6 +82,30 @@ const AboutPage = () => {
       console.error('Error fetching mission media:', error);
     } finally {
       setLoadingMission(false);
+    }
+  };
+
+  const fetchFounderMedia = async () => {
+    try {
+      setLoadingFounder(true);
+      const res = await api.get('founder-media');
+      if (res.ok) {
+        const data = await res.json();
+        console.log('📡 Founder media response:', data);
+        console.log('🔍 Checking media display conditions:');
+        console.log('  - mediaUrl:', data.mediaUrl);
+        console.log('  - isActive:', data.isActive);
+        console.log('  - mediaType:', data.mediaType);
+        console.log('  - Will display media:', !!(data.mediaUrl && data.isActive));
+        setFounderMedia(data);
+        console.log('✅ Founder media loaded:', data);
+      } else {
+        console.error('Failed to fetch founder media');
+      }
+    } catch (error) {
+      console.error('Error fetching founder media:', error);
+    } finally {
+      setLoadingFounder(false);
     }
   };
 
@@ -345,12 +388,15 @@ const AboutPage = () => {
                   <p className="text-primary-600 font-semibold text-xl mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
                     Board Chair & Co-Founder
                   </p>
+                  <p className="text-secondary-600 font-medium text-lg mb-4">
+                    Partnering with Deepali Sane
+                  </p>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-center text-lg group-hover:text-gray-800 transition-colors duration-300">
-                  Aand Sane is the visionary founder of Beats of Washington, whose passion 
-                  for community building through music has inspired thousands across Washington State. 
+                  <strong>Aand Sane & Deepali Sane</strong> are the visionary co-founders of Beats of Washington, 
+                  whose shared passion for community building through music has inspired thousands across Washington State. 
                   As Board Chair, Aand continues to lead our organization with dedication and 
-                  innovative thinking.
+                  innovative thinking, working closely with Deepali to guide our mission together.
                 </p>
                 <div className="mt-8 flex justify-center space-x-4">
                   <div className="flex items-center space-x-2 text-primary-600">
@@ -365,44 +411,63 @@ const AboutPage = () => {
               </div>
             </div>
 
-            {/* Deepali Sane */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
-              <div className="relative bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">
-                <div className="text-center mb-8">
-                  <div className="relative mb-6">
-                    <div className="w-28 h-28 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full flex items-center justify-center mx-auto shadow-2xl transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 founder-avatar">
-                      <span className="text-white font-bold text-3xl">D</span>
+                         {/* Deepali Sane - Media Placeholder */}
+             <div className="group relative">
+               <div className="absolute inset-0 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
+               <div className="relative bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">
+                 {/* Media Display */}
+                  {loadingFounder ? (
+                    <div className="w-full h-96 bg-gradient-to-br from-secondary-100 to-primary-100 rounded-2xl shadow-lg flex items-center justify-center mb-6">
+                      <div className="text-center text-secondary-600">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary-600 mx-auto mb-3"></div>
+                        <p className="text-sm font-medium">Loading media...</p>
+                      </div>
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-pink-400 rounded-full flex items-center justify-center shadow-lg">
-                      <Heart className="w-4 h-4 text-white" />
+                  ) : founderMedia.mediaUrl && founderMedia.isActive ? (
+                    <div className="relative w-full h-96 mb-6">
+                      {founderMedia.mediaType === 'image' ? (
+                        <img
+                          src={founderMedia.mediaUrl}
+                          alt={founderMedia.altText || 'Deepali Sane'}
+                          className="w-full h-full object-cover rounded-2xl shadow-lg"
+                        />
+                      ) : (
+                        <video
+                          src={founderMedia.mediaUrl}
+                          controls
+                          className="w-full h-full object-cover rounded-2xl shadow-lg bg-black"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      )}
+                      {/* Dynamic overlay based on founder media settings */}
+                      <div 
+                        className="absolute inset-0 bg-secondary-600 rounded-2xl pointer-events-none"
+                        style={{ opacity: founderMedia.overlayOpacity || 0.1 }}
+                      ></div>
                     </div>
-                  </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3 group-hover:text-secondary-600 transition-colors duration-300">
-                    Deepali Sane
-                  </h3>
-                  <p className="text-secondary-600 font-semibold text-xl mb-6 bg-gradient-to-r from-secondary-500 to-primary-500 bg-clip-text text-transparent">
-                    Vice Chair & Co-Founder
-                  </p>
-                </div>
-                <p className="text-gray-700 leading-relaxed text-center text-lg group-hover:text-gray-800 transition-colors duration-300">
-                  Deepali Sane co-founded Beats of Washington with a deep commitment to 
-                  fostering cultural connections through music. As Vice Chair, Deepali 
-                  brings strategic vision and community expertise to ensure our programs 
-                  continue to serve and inspire diverse communities.
-                </p>
-                <div className="mt-8 flex justify-center space-x-4">
-                  <div className="flex items-center space-x-2 text-secondary-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="text-sm font-medium">Strategic Vision</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-primary-600">
-                    <Users className="w-5 h-5" />
-                    <span className="text-sm font-medium">Cultural Expert</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  ) : (
+                    <div className="w-full h-96 bg-gradient-to-br from-secondary-100 to-primary-100 rounded-2xl shadow-lg flex items-center justify-center mb-6">
+                      <div className="text-center text-secondary-600">
+                        <Music className="w-20 h-20 mx-auto mb-6" />
+                        <p className="text-xl font-semibold">Deepali Sane Media</p>
+                        <p className="text-base text-gray-500">Upload photo/video from admin panel</p>
+                      </div>
+                    </div>
+                  )}
+                 
+                 <div className="mt-6 flex justify-center space-x-4">
+                   <div className="flex items-center space-x-2 text-secondary-600">
+                     <CheckCircle className="w-5 h-5" />
+                     <span className="text-sm font-medium">Strategic Vision</span>
+                   </div>
+                   <div className="flex items-center space-x-2 text-primary-600">
+                     <Users className="w-5 h-5" />
+                     <span className="text-sm font-medium">Cultural Expert</span>
+                   </div>
+                 </div>
+               </div>
+             </div>
           </div>
         </div>
       </section>
