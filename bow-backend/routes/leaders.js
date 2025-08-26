@@ -2,14 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Leader = require('../models-dynamodb/Leader');
 const multer = require('multer');
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 
 // Configure AWS S3
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'us-west-2'
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-west-2',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
 });
 
 // Configure multer for memory storage
@@ -202,12 +204,16 @@ router.post('/:id/upload', upload.single('image'), handleMulterError, async (req
       ContentType: uploadParams.ContentType
     });
     
-    const s3Result = await s3.upload(uploadParams).promise();
-    console.log('S3 upload successful:', s3Result.Location);
+    const putObjectCommand = new PutObjectCommand(uploadParams);
+    const s3Result = await s3Client.send(putObjectCommand);
+    console.log('S3 upload successful');
+    
+    // Construct the S3 URL since PutObjectCommand doesn't return Location
+    const imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-west-2'}.amazonaws.com/${fileName}`;
     
     // Update leader with image URL and key
     const updateData = {
-      imageUrl: s3Result.Location,
+      imageUrl: imageUrl,
       imageKey: fileName
     };
     
@@ -216,7 +222,7 @@ router.post('/:id/upload', upload.single('image'), handleMulterError, async (req
     
     res.json({
       message: 'Image uploaded successfully',
-      imageUrl: s3Result.Location,
+      imageUrl: imageUrl,
       imageKey: fileName,
       leader: updatedLeader
     });

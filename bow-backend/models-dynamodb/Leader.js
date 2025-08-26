@@ -1,6 +1,16 @@
-const AWS = require('aws-sdk');
-const dynamodb = new AWS.DynamoDB.DocumentClient();
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
+
+const dynamodbClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-west-2',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
+
+const dynamodb = DynamoDBDocumentClient.from(dynamodbClient);
 
 class Leader {
   constructor(data) {
@@ -26,7 +36,8 @@ class Leader {
     };
 
     try {
-      await dynamodb.put(params).promise();
+      const putCommand = new PutCommand(params);
+      await dynamodb.send(putCommand);
       return leader;
     } catch (error) {
       console.error('Error creating leader:', error);
@@ -45,7 +56,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.scan(params).promise();
+      const scanCommand = new ScanCommand(params);
+      const result = await dynamodb.send(scanCommand);
       return result.Items.sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error getting leaders:', error);
@@ -60,7 +72,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.scan(params).promise();
+      const scanCommand = new ScanCommand(params);
+      const result = await dynamodb.send(scanCommand);
       return result.Items.sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error getting all leaders for admin:', error);
@@ -76,7 +89,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.get(params).promise();
+      const getCommand = new GetCommand(params);
+      const result = await dynamodb.send(getCommand);
       return result.Item;
     } catch (error) {
       console.error('Error getting leader by ID:', error);
@@ -113,7 +127,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.update(params).promise();
+      const updateCommand = new UpdateCommand(params);
+      const result = await dynamodb.send(updateCommand);
       return result.Attributes;
     } catch (error) {
       console.error('Error updating leader:', error);
@@ -129,7 +144,8 @@ class Leader {
     };
 
     try {
-      await dynamodb.delete(params).promise();
+      const deleteCommand = new DeleteCommand(params);
+      await dynamodb.send(deleteCommand);
       return { success: true };
     } catch (error) {
       console.error('Error deleting leader:', error);
@@ -179,7 +195,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.scan(params).promise();
+      const scanCommand = new ScanCommand(params);
+      const result = await dynamodb.send(scanCommand);
       return result.Items.sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error searching leaders:', error);
@@ -202,7 +219,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.scan(params).promise();
+      const scanCommand = new ScanCommand(params);
+      const result = await dynamodb.send(scanCommand);
       return result.Items.sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error getting leaders by position:', error);
@@ -225,7 +243,8 @@ class Leader {
     };
 
     try {
-      const result = await dynamodb.scan(params).promise();
+      const scanCommand = new ScanCommand(params);
+      const result = await dynamodb.send(scanCommand);
       return result.Items.sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error getting leaders by role:', error);
