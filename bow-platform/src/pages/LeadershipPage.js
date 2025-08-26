@@ -30,6 +30,7 @@ const LeadershipPage = () => {
       const response = await api.get('leaders');
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched leaders data:', data);
         setLeadershipTeam(data);
       } else {
         console.error('Failed to fetch leaders');
@@ -46,6 +47,7 @@ const LeadershipPage = () => {
   };
 
   const openModal = (leader) => {
+    console.log('Opening modal for leader:', leader);
     setSelectedLeader(leader);
     setModalOpen(true);
   };
@@ -248,6 +250,11 @@ const LeadershipPage = () => {
                   <p className="text-primary-600 font-semibold mb-3">
                     {member.roles.join(', ')}
                   </p>
+                  {member.bio && (
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {member.bio}
+                    </p>
+                  )}
                   <button className="w-full btn-outline text-sm py-2" onClick={() => openModal(member)}>
                     More Info
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -293,9 +300,11 @@ const LeadershipPage = () => {
                   </span>
                 ))}
               </div>
-              <p className="text-gray-700 text-center leading-relaxed mt-2">
-                {selectedLeader.description}
-              </p>
+              {selectedLeader.bio && (
+                <p className="text-gray-700 text-center leading-relaxed mt-2">
+                  {selectedLeader.bio}
+                </p>
+              )}
             </div>
           </div>
         </div>
