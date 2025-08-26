@@ -38,10 +38,79 @@ const AboutPage = () => {
     overlayOpacity: 0.1
   });
   const [loadingFounder, setLoadingFounder] = useState(true);
+  
+  // New state for dynamic content
+  const [aboutPageContent, setAboutPageContent] = useState({
+    storyTitle: 'Our Story',
+    storySubtitle: 'From humble beginnings to a statewide movement, here\'s how BOW has grown and evolved over the years.',
+    foundingYear: '2019',
+    foundingTitle: 'Founded in 2019',
+    foundingDescription: 'Beats of Washington was founded by Aand Sane and Deepali Sane, visionary community leaders who recognized the power of music to bring people together. What started as a small neighborhood drum circle has grown into one of Washington State\'s most impactful community organizations.',
+    founderBelief: 'Our founders believed that music transcends barriers of language, culture, and background, creating opportunities for genuine connection and understanding between diverse communities.',
+    todayVision: 'Today, we continue to honor that vision while adapting to meet the evolving needs of our communities through innovative programming and partnerships.',
+    achievements: [
+      {
+        year: '2019',
+        title: 'Foundation Established',
+        description: 'BOW was founded with a vision of community building through music.'
+      },
+      {
+        year: '2020',
+        title: 'First Community Event',
+        description: 'Successfully organized our first major community music festival.'
+      },
+      {
+        year: '2021',
+        title: 'Statewide Expansion',
+        description: 'Extended programs to multiple cities across Washington State.'
+      },
+      {
+        year: '2022',
+        title: 'Cultural Partnerships',
+        description: 'Formed partnerships with diverse cultural organizations.'
+      },
+      {
+        year: '2023',
+        title: 'Digital Innovation',
+        description: 'Launched online programs and virtual community events.'
+      },
+      {
+        year: '2024',
+        title: 'Community Impact',
+        description: 'Reached over 50,000 community members across the state.'
+      }
+    ],
+    isActive: true
+  });
+  const [founderContent, setFounderContent] = useState({
+    sectionTitle: 'Our Founders',
+    sectionSubtitle: 'Meet the visionary leaders who founded Beats of Washington and continue to guide our mission of empowering communities through music.',
+    aandSane: {
+      name: 'Aand Sane',
+      role: 'Board Chair & Co-Founder',
+      partnership: 'Partnering with Deepali Sane',
+      description: 'Aand Sane & Deepali Sane are the visionary co-founders of Beats of Washington, whose shared passion for community building through music has inspired thousands across Washington State. As Board Chair, Aand continues to lead our organization with dedication and innovative thinking, working closely with Deepali to guide our mission together.',
+      traits: ['Visionary Leader', 'Community Builder'],
+      avatar: 'A',
+      isActive: true
+    },
+    deepaliSane: {
+      name: 'Deepali Sane',
+      role: 'Co-Founder & Strategic Director',
+      description: 'Deepali Sane brings her strategic vision and cultural expertise to BOW, working alongside Aand to create meaningful community connections through music and cultural exchange.',
+      traits: ['Strategic Vision', 'Cultural Expert'],
+      isActive: true
+    },
+    isActive: true
+  });
+  const [loadingAboutContent, setLoadingAboutContent] = useState(true);
+  const [loadingFounderContent, setLoadingFounderContent] = useState(true);
 
   useEffect(() => {
     fetchMissionMedia();
     fetchFounderMedia();
+    fetchAboutPageContent();
+    fetchFounderContent();
     
     // Refresh founder media every 30 seconds to catch updates
     const interval = setInterval(() => {
@@ -109,6 +178,38 @@ const AboutPage = () => {
     }
   };
 
+  const fetchAboutPageContent = async () => {
+    try {
+      setLoadingAboutContent(true);
+      const res = await api.get('/about-page');
+      if (res.ok) {
+        const data = await res.json();
+        setAboutPageContent(data);
+        console.log('✅ About page content loaded:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching about page content:', error);
+    } finally {
+      setLoadingAboutContent(false);
+    }
+  };
+
+  const fetchFounderContent = async () => {
+    try {
+      setLoadingFounderContent(true);
+      const res = await api.get('/founder-content');
+      if (res.ok) {
+        const data = await res.json();
+        setFounderContent(data);
+        console.log('✅ Founder content loaded:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching founder content:', error);
+    } finally {
+      setLoadingFounderContent(false);
+    }
+  };
+
 
   const boardMembers = [
     {
@@ -146,28 +247,7 @@ const AboutPage = () => {
     }
   ];
 
-  const achievements = [
-    {
-      year: "2023",
-      title: "Community Impact Award",
-      description: "Recognized by the Washington State Governor's Office for outstanding community service"
-    },
-    {
-      year: "2022",
-      title: "Cultural Diversity Grant",
-      description: "Received $500,000 grant to expand cultural programming across the state"
-    },
-    {
-      year: "2023",
-      title: "50,000 Member Milestone",
-      description: "Reached our goal of serving 50,000 community members across Washington"
-    },
-    {
-      year: "2021",
-      title: "Virtual Programming Success",
-      description: "Successfully pivoted to online programming, reaching 10,000+ participants"
-    }
-  ];
+
 
   return (
     <>
@@ -365,29 +445,24 @@ const AboutPage = () => {
         <div className="container-custom">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Story
+              {aboutPageContent.storyTitle}
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              From humble beginnings to a statewide movement, here's how BOW has grown 
-              and evolved over the years.
+              {aboutPageContent.storySubtitle}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-8 shadow-xl animate-fade-in">
             <div className="border-l-4 border-primary-400 pl-8 bg-white/80 rounded-2xl shadow p-6">
-              <h3 className="text-2xl font-bold text-primary-700 mb-6">Founded in 2019</h3>
+              <h3 className="text-2xl font-bold text-primary-700 mb-6">{aboutPageContent.foundingTitle}</h3>
               <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                Beats of Washington was founded by
-                <span className="font-extrabold bg-gradient-to-r from-blue-500 via-green-400 to-green-600 bg-clip-text text-transparent underline decoration-wavy decoration-2 mx-1">Aand Sane</span>
-                and
-                <span className="font-extrabold bg-gradient-to-r from-pink-500 via-purple-400 to-purple-700 bg-clip-text text-transparent underline decoration-wavy decoration-2 mx-1">Deepali Sane</span>,
-                visionary community leaders who recognized the power of music to bring people together. What started as a small neighborhood drum circle has grown into one of Washington State's most impactful community organizations.
+                {aboutPageContent.foundingDescription}
               </p>
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">Our founders believed that music transcends barriers of language, culture, and background, creating opportunities for genuine connection and understanding between diverse communities.</p>
-              <p className="text-lg text-gray-700 leading-relaxed">Today, we continue to honor that vision while adapting to meet the evolving needs of our communities through innovative programming and partnerships.</p>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">{aboutPageContent.founderBelief}</p>
+              <p className="text-lg text-gray-700 leading-relaxed">{aboutPageContent.todayVision}</p>
             </div>
             <div className="space-y-6">
-              {achievements.map((achievement, index) => (
+              {aboutPageContent.achievements.map((achievement, index) => (
                 <div key={index} className="flex items-start gap-4 bg-white rounded-xl shadow-lg p-5 border-l-4 border-primary-200 hover:border-secondary-400 transition-all animate-fade-in">
                   <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full flex items-center justify-center">
                     <span className="text-primary-600 font-bold text-lg">{achievement.year}</span>
@@ -424,11 +499,10 @@ const AboutPage = () => {
               </div>
             </div>
             <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-6">
-              Our Founders
+              {founderContent.sectionTitle}
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Meet the visionary leaders who founded Beats of Washington and continue 
-              to guide our mission of empowering communities through music.
+              {founderContent.sectionSubtitle}
             </p>
           </div>
 
@@ -447,30 +521,25 @@ const AboutPage = () => {
                     </div>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">
-                    Aand Sane
+                    {founderContent.aandSane.name}
                   </h3>
                   <p className="text-primary-600 font-semibold text-xl mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
-                    Board Chair & Co-Founder
+                    {founderContent.aandSane.role}
                   </p>
                   <p className="text-secondary-600 font-medium text-lg mb-4">
-                    Partnering with Deepali Sane
+                    {founderContent.aandSane.partnership}
                   </p>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-center text-lg group-hover:text-gray-800 transition-colors duration-300">
-                  <strong>Aand Sane & Deepali Sane</strong> are the visionary co-founders of Beats of Washington, 
-                  whose shared passion for community building through music has inspired thousands across Washington State. 
-                  As Board Chair, Aand continues to lead our organization with dedication and 
-                  innovative thinking, working closely with Deepali to guide our mission together.
+                  {founderContent.aandSane.description}
                 </p>
                 <div className="mt-8 flex justify-center space-x-4">
-                  <div className="flex items-center space-x-2 text-primary-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="text-sm font-medium">Visionary Leader</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-secondary-600">
-                    <Heart className="w-5 h-5" />
-                    <span className="text-sm font-medium">Community Builder</span>
-                  </div>
+                  {founderContent.aandSane.traits.map((trait, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-primary-600">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="text-sm font-medium">{trait}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -521,14 +590,12 @@ const AboutPage = () => {
                   )}
                  
                  <div className="mt-6 flex justify-center space-x-4">
-                   <div className="flex items-center space-x-2 text-secondary-600">
-                     <CheckCircle className="w-5 h-5" />
-                     <span className="text-sm font-medium">Strategic Vision</span>
-                   </div>
-                   <div className="flex items-center space-x-2 text-primary-600">
-                     <Users className="w-5 h-5" />
-                     <span className="text-sm font-medium">Cultural Expert</span>
-                   </div>
+                   {founderContent.deepaliSane.traits.map((trait, index) => (
+                     <div key={index} className="flex items-center space-x-2 text-secondary-600">
+                       <CheckCircle className="w-5 h-5" />
+                       <span className="text-sm font-medium">{trait}</span>
+                     </div>
+                   ))}
                  </div>
                </div>
              </div>

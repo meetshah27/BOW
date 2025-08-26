@@ -15,7 +15,9 @@ const TABLES = {
   VOLUNTEERS: 'bow-volunteers',
   GALLERY: 'bow-gallery',
   HERO: 'bow-hero',
-  MISSION_MEDIA: 'bow-mission-media'
+  MISSION_MEDIA: 'bow-mission-media',
+  ABOUT_PAGE: 'bow-about-page',
+  FOUNDER_CONTENT: 'bow-founder-content'
 };
 
 // Table schemas for creation
@@ -177,6 +179,32 @@ const TABLE_SCHEMAS = {
   },
   [TABLES.MISSION_MEDIA]: {
     TableName: TABLES.MISSION_MEDIA,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.ABOUT_PAGE]: {
+    TableName: TABLES.ABOUT_PAGE,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.FOUNDER_CONTENT]: {
+    TableName: TABLES.FOUNDER_CONTENT,
     KeySchema: [
       { AttributeName: 'id', KeyType: 'HASH' }
     ],
