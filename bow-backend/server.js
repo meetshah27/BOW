@@ -19,6 +19,7 @@ const galleryRouter = require('./routes/gallery');
 const newsletterRouter = require('./routes/newsletter');
 const newsletterCampaignRouter = require('./routes/newsletter-campaigns');
 const volunteerOpportunitiesRouter = require('./routes/volunteer-opportunities');
+const leadersRouter = require('./routes/leaders');
 
 const app = express();
 
@@ -106,6 +107,7 @@ app.use('/api/gallery', galleryRouter);
 app.use('/api/newsletter', newsletterRouter);
 app.use('/api/newsletter', newsletterCampaignRouter);
 app.use('/api/volunteer-opportunities', volunteerOpportunitiesRouter);
+app.use('/api/leaders', leadersRouter);
 app.use('/api/upload', require('./routes/upload'));
 
 // Handle missing sponsor images gracefully

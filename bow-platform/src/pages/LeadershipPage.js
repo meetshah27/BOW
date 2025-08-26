@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Users, 
@@ -10,106 +10,40 @@ import {
   Heart,
   ArrowRight
 } from 'lucide-react';
+import api from '../config/api';
 
 const volunteerStory = `Our volunteers are the heartbeat of Beats of Washington. They bring energy, skills, and commitment, driving our mission forward with every action they take. Whether they are working directly with the community, supporting events, or lending their expertise behind the scenes, our volunteers make a significant impact. Discover the stories of these incredible individuals and learn why they choose to be part of the Beats of Washington family, contributing to our shared vision of a brighter future.`;
-
-const leadershipTeam = [
-  {
-    name: 'Amit Bonde',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Chaitalee Karale',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Kedar Pathak',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer', 'Dance Performer', 'Event Coordinator'],
-    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Kunal Dhavale',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Priyanka Pokale',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Rasika Dhumal',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer', 'Event Coordinator'],
-    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Sailatha Sarode',
-    position: 'Volunteer',
-    roles: ['Event Coordinator'],
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Sandeep Sarode',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Sharvari Magar',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Smita Kadam',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Sujit Magar',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Venuka Bonde',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer', 'Dance Performer', 'Event Coordinator'],
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  },
-  {
-    name: 'Vinay Pawar',
-    position: 'Volunteer',
-    roles: ['Dhol-Tasha Performer'],
-    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-    description: volunteerStory
-  }
-];
 
 const LeadershipPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState(null);
+  const [leadershipTeam, setLeadershipTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaders();
+  }, []);
+
+  const fetchLeaders = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('leaders');
+      if (response.ok) {
+        const data = await response.json();
+        setLeadershipTeam(data);
+      } else {
+        console.error('Failed to fetch leaders');
+        // Fallback to empty array
+        setLeadershipTeam([]);
+      }
+    } catch (error) {
+      console.error('Error fetching leaders:', error);
+      // Fallback to empty array
+      setLeadershipTeam([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (leader) => {
     setSelectedLeader(leader);
@@ -274,15 +208,34 @@ const LeadershipPage = () => {
       {/* Leadership Team Grid */}
       <section className="bg-gray-50 py-20">
         <div className="container-custom">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {leadershipTeam.map((member, index) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+          ) : leadershipTeam.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No leaders found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Check back later or contact us for more information about our leadership team.
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {leadershipTeam.map((member, index) => (
               <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
                 <div className="relative">
-                  <img
-                    src={member.photo}
-                    alt={`${member.name} - ${member.position}`}
-                    className="w-full h-64 object-cover"
-                  />
+                  {member.imageUrl ? (
+                    <img
+                      src={member.imageUrl}
+                      alt={`${member.name} - ${member.position}`}
+                      className="w-full h-64 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
+                      <Users className="w-16 h-16 text-gray-400" />
+                    </div>
+                  )}
                   <div className="absolute top-4 right-4 bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                     {member.position}
                   </div>
@@ -301,8 +254,9 @@ const LeadershipPage = () => {
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -318,11 +272,17 @@ const LeadershipPage = () => {
               &times;
             </button>
             <div className="flex flex-col items-center">
-              <img
-                src={selectedLeader.photo}
-                alt={selectedLeader.name}
-                className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-primary-100"
-              />
+              {selectedLeader.imageUrl ? (
+                <img
+                  src={selectedLeader.imageUrl}
+                  alt={selectedLeader.name}
+                  className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-primary-100"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center mb-4 border-4 border-primary-100">
+                  <Users className="w-16 h-16 text-gray-400" />
+                </div>
+              )}
               <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedLeader.name}</h3>
               <p className="text-primary-600 font-semibold mb-2">{selectedLeader.position}</p>
               <div className="flex flex-wrap gap-2 mb-4">
