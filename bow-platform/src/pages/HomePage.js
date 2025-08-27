@@ -653,8 +653,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Upcoming Events Section */}
-      <section className="bg-white py-20">
+             {/* Upcoming Events Section */}
+       <section id="upcoming-events-section" className="bg-white py-16">
         <div className="container-custom">
           <div className="text-center mb-16 relative">
             {/* Decorative background elements */}
@@ -678,9 +678,20 @@ const HomePage = () => {
                 <div className="absolute top-1/2 -left-4 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '1.2s'}}></div>
                 <div className="absolute top-1/2 -right-4 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
                 
-                <h2 className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-default">
-              Upcoming Events
-            </h2>
+                                 <h2 
+                   onClick={() => {
+                     const eventsSection = document.getElementById('upcoming-events-section');
+                     if (eventsSection) {
+                       eventsSection.scrollIntoView({ 
+                         behavior: 'smooth', 
+                         block: 'start' 
+                       });
+                     }
+                   }}
+                   className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                 >
+                   Upcoming Events
+                 </h2>
               </div>
               
               {/* Enhanced description with better typography and animation */}
