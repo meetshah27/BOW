@@ -127,7 +127,12 @@ const StoriesManagement = () => {
                 <tr key={story.id}>
                   <td className="px-4 py-2 border">{story.title}</td>
                   <td className="px-4 py-2 border">{story.author}</td>
-                  <td className="px-4 py-2 border">{story.date ? new Date(story.date).toLocaleDateString() : ''}</td>
+                  <td className="px-4 py-2 border">{story.date ? (() => {
+                    // Parse the date string manually to avoid timezone issues
+                    const [year, month, day] = story.date.split('-').map(Number);
+                    const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                    return localDate.toLocaleDateString();
+                  })() : ''}</td>
                   <td className="px-4 py-2 border">
                     {story.tags && story.tags.map((tag, i) => (
                       <span key={i} className="inline-flex items-center px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-xs mr-1 mb-1">

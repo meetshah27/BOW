@@ -87,9 +87,10 @@ function CountdownTimer({ targetDate }) {
 
   useEffect(() => {
     function parseTargetDate(dateStr) {
-      // If dateStr is date-only (YYYY-MM-DD), treat as end of that day
+      // Parse the date string manually to avoid timezone issues
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        return new Date(dateStr + 'T23:59:59');
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day, 23, 59, 59); // month is 0-indexed, set to end of day
       }
       // Otherwise, let Date parse it
       return new Date(dateStr);
@@ -136,7 +137,14 @@ function LiveEventTimer({ event }) {
 
     function updateCountdown() {
       const now = new Date();
-      const target = new Date(event.date);
+      // Parse the date string manually to avoid timezone issues
+      let target;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(event.date)) {
+        const [year, month, day] = event.date.split('-').map(Number);
+        target = new Date(year, month - 1, day, 23, 59, 59); // month is 0-indexed, set to end of day
+      } else {
+        target = new Date(event.date);
+      }
       const diff = target - now;
       
       if (diff <= 0) {
@@ -199,12 +207,19 @@ function LiveEventTimer({ event }) {
               </div>
             </div>
             <div className="text-xs text-gray-200">
-              📅 {new Date(event.date).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+              📅 {(() => {
+                // Parse the date string manually to avoid timezone issues
+                const [year, month, day] = event.date.split('-').map(Number);
+                const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                return localDate.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                });
+              })()}
+              {event.time && (
+                <span className="ml-2">🕐 {event.time}</span>
+              )}
             </div>
           </>
         ) : (
@@ -563,11 +578,26 @@ const HomePage = () => {
                     <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 mr-2">Live</span>
                     <span className="text-xs text-gray-500 font-medium truncate">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
                   </div>
-                  <div className="font-bold text-gray-900 text-base truncate w-full mb-2">{liveEvent.title}</div>
+                  <div className="font-bold text-gray-900 text-base w-full mb-2 break-words leading-tight">{liveEvent.title}</div>
                   <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
                     <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{liveEvent.date}</span>
+                    <span className="truncate">{(() => {
+                      // Parse the date string manually to avoid timezone issues
+                      const [year, month, day] = liveEvent.date.split('-').map(Number);
+                      const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                      return localDate.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      });
+                    })()}</span>
                   </div>
+                  {liveEvent.time && (
+                    <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
+                      <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">{liveEvent.time}</span>
+                    </div>
+                  )}
                   {/* Countdown Timer */}
                   <div className="mb-2 w-full">
                     <CountdownTimer targetDate={liveEvent.date} />
@@ -603,7 +633,7 @@ const HomePage = () => {
           {heroSettings.description && (
             <p className="text-xl md:text-2xl mb-4 text-gray-100 leading-relaxed">
               {heroSettings.description}
-            </p>
+          </p>
           )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/events" className="btn-secondary text-lg px-8 py-4">
@@ -649,16 +679,16 @@ const HomePage = () => {
                 <div className="absolute top-1/2 -right-4 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
                 
                 <h2 className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-default">
-                  Upcoming Events
-                </h2>
+              Upcoming Events
+            </h2>
               </div>
               
               {/* Enhanced description with better typography and animation */}
               <div className="relative">
                 <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-                  Join us for exciting community events, workshops, and performances 
-                  that bring people together through the power of music.
-                </p>
+              Join us for exciting community events, workshops, and performances 
+              that bring people together through the power of music.
+            </p>
                 
                 {/* Animated underline */}
                 <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary-400 via-secondary-500 to-primary-600 rounded-full animate-pulse"></div>

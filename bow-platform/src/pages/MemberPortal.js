@@ -170,7 +170,12 @@ const Dashboard = () => {
                         <h4 className="font-semibold text-gray-900 mb-2">{event.eventTitle || event.title}</h4>
                         <div className="flex items-center text-sm text-gray-600 mb-1">
                           <Calendar className="w-4 h-4 mr-2 text-blue-500" />
-                          {event.date ? new Date(event.date).toLocaleDateString() : '-'}
+                          {event.date ? (() => {
+                            // Parse the date string manually to avoid timezone issues
+                            const [year, month, day] = event.date.split('-').map(Number);
+                            const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                            return localDate.toLocaleDateString();
+                          })() : '-'}
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                           <MapPin className="w-4 h-4 mr-2 text-red-500" />
@@ -294,7 +299,12 @@ const MyEvents = () => {
                 ) : events.map((event) => (
                   <tr key={event.eventId || event.id}>
                     <td className="px-6 py-4 whitespace-nowrap">{event.eventTitle || event.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{event.date ? new Date(event.date).toLocaleString() : '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{event.date ? (() => {
+                      // Parse the date string manually to avoid timezone issues
+                      const [year, month, day] = event.date.split('-').map(Number);
+                      const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                      return localDate.toLocaleString();
+                    })() : '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{event.location || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{event.status || 'registered'}</span>

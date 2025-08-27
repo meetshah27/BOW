@@ -152,4 +152,55 @@ export const compareDates = (date1, date2) => {
   if (d1 < d2) return -1;
   if (d1 > d2) return 1;
   return 0;
+};
+
+/**
+ * Check if a date is within a specific range
+ * @param {Date|string} date - Date to check
+ * @param {Date|string} startDate - Start of range
+ * @param {Date|string} endDate - End of range
+ * @returns {boolean} - True if date is within range
+ */
+export const isDateInRange = (date, startDate, endDate) => {
+  const dateObj = parseDateString(date);
+  const startObj = parseDateString(startDate);
+  const endObj = parseDateString(endDate);
+  
+  if (!dateObj || !startObj || !endObj) return false;
+  
+  dateObj.setHours(0, 0, 0, 0);
+  startObj.setHours(0, 0, 0, 0);
+  endObj.setHours(0, 0, 0, 0);
+  
+  return dateObj >= startObj && dateObj <= endObj;
+};
+
+/**
+ * Get the start and end of current week
+ * @returns {object} - { start: Date, end: Date }
+ */
+export const getCurrentWeekRange = () => {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  return { start: startOfWeek, end: endOfWeek };
+};
+
+/**
+ * Get the start and end of current month
+ * @returns {object} - { start: Date, end: Date }
+ */
+export const getCurrentMonthRange = () => {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  endOfMonth.setHours(23, 59, 59, 999);
+  
+  return { start: startOfMonth, end: endOfMonth };
 }; 
