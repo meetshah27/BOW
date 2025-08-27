@@ -705,7 +705,7 @@ const AboutPage = () => {
 
           <div className="mt-12 text-center">
             <p className="text-lg mb-6">
-              <strong>EIN:</strong> 12-3456789 | <strong>Founded:</strong> 2019
+              <strong>EIN:</strong> 84-4396168 | <strong>Founded:</strong> 2019
             </p>
             <Link to="/contact" className="btn-secondary">
               Request Financial Information
