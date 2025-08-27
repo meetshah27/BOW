@@ -17,6 +17,14 @@ class Registration {
     this.checkedIn = data.checkedIn || false;
     this.checkInTime = data.checkInTime || null;
     this.notes = data.notes || '';
+    
+    // Payment information for paid events
+    this.paymentAmount = data.paymentAmount || 0;
+    this.paymentIntentId = data.paymentIntentId || null;
+    this.paymentDate = data.paymentDate || null;
+    this.paymentStatus = data.paymentStatus || 'none'; // none, pending, completed, failed
+    this.paymentMethod = data.paymentMethod || null; // card type and last 4 digits
+    this.isPaidEvent = data.isPaidEvent || false;
   }
 
   // Create a new registration

@@ -4,7 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 
 class Event {
   constructor(data = {}) {
-    this.id = data.id || uuidv4();
+    // Handle both id and _id fields for compatibility
+    this.id = data.id || data._id || uuidv4();
     this.title = data.title;
     this.description = data.description;
     this.longDescription = data.longDescription;
@@ -62,13 +63,26 @@ class Event {
 
   // Update event
   async update(updateData) {
+    // Validate update data
+    if (!updateData || Object.keys(updateData).length === 0) {
+      throw new Error('No update data provided');
+    }
+    
+    // Validate that we have an ID to update
+    if (!this.id) {
+      throw new Error('Event ID is missing. Cannot update event without ID.');
+    }
+    
+    console.log('[Event.update] Updating event with ID:', this.id);
+    console.log('[Event.update] Update data:', updateData);
+    
     const updateExpressions = [];
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
 
     let updatingUpdatedAt = false;
     Object.keys(updateData).forEach(key => {
-      if (key !== 'id') { // Don't allow updating ID
+      if (key !== 'id' && key !== '_id') { // Don't allow updating ID fields
         updateExpressions.push(`#${key} = :${key}`);
         expressionAttributeNames[`#${key}`] = key;
         expressionAttributeValues[`:${key}`] = updateData[key];
@@ -83,6 +97,10 @@ class Event {
       expressionAttributeValues[':updatedAt'] = new Date().toISOString();
     }
 
+    console.log('[Event.update] Update expressions:', updateExpressions);
+    console.log('[Event.update] Expression attribute names:', expressionAttributeNames);
+    console.log('[Event.update] Expression attribute values:', expressionAttributeValues);
+    
     const command = new UpdateCommand({
       TableName: TABLES.EVENTS,
       Key: { id: this.id },
@@ -91,6 +109,8 @@ class Event {
       ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: 'ALL_NEW'
     });
+    
+    console.log('[Event.update] DynamoDB command:', JSON.stringify(command, null, 2));
 
     try {
       const result = await docClient.send(command);
