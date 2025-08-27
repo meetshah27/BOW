@@ -647,6 +647,8 @@ router.delete('/registrations/:eventId/:userId', async (req, res) => {
 // POST create a new event
 router.post('/', async (req, res) => {
   try {
+    console.log('[POST /api/events] Creating event with data:', req.body);
+    
     const {
       title,
       description,
@@ -697,7 +699,9 @@ router.post('/', async (req, res) => {
         registeredCount: 0
       };
 
+      console.log('[POST /api/events] Event data to save:', eventData);
       const event = await Event.create(eventData);
+      console.log('[POST /api/events] Event created:', event);
       res.status(201).json(event);
     } else {
       // Fallback demo response

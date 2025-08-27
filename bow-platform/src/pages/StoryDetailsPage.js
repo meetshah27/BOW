@@ -75,7 +75,12 @@ const StoryDetailsPage = () => {
               />
               <div>
                 <h4 className="font-semibold text-gray-900">{story.author}</h4>
-                <p className="text-sm text-gray-600">{story.date ? new Date(story.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</p>
+                <p className="text-sm text-gray-600">{story.date ? (() => {
+                  // Parse the date string manually to avoid timezone issues
+                  const [year, month, day] = story.date.split('-').map(Number);
+                  const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                  return localDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                })() : ''}</p>
               </div>
             </div>
           </div>

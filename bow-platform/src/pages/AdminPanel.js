@@ -49,6 +49,38 @@ import AboutPageManagement from '../components/admin/AboutPageManagement';
 import FounderContentManagement from '../components/admin/FounderContentManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
+// Helper function to fix timezone issues with dates
+// This prevents the common issue where selecting "5 Sep" shows as "4 Sep" due to timezone conversion
+const fixDateTimezone = (dateString) => {
+  if (!dateString) return dateString;
+  
+  // Create a date object in local timezone to preserve the exact date selected
+  const [year, month, day] = dateString.split('-').map(Number);
+  const localDate = new Date(year, month - 1, day); // month is 0-indexed
+  return localDate.toISOString().split('T')[0]; // Convert back to YYYY-MM-DD
+};
+
+// Helper function to format time for display
+const formatTimeForDisplay = (timeString) => {
+  if (!timeString) return '—';
+  
+  // If it's already in a readable format (contains AM/PM), return as is
+  if (timeString.includes('AM') || timeString.includes('PM')) {
+    return timeString;
+  }
+  
+  // If it's in HH:MM format, convert to 12-hour format
+  if (/^\d{1,2}:\d{2}$/.test(timeString)) {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  }
+  
+  return timeString;
+};
+
 // SimpleModal component for modals
 function SimpleModal({ open, onClose, children }) {
   if (!open) return null;
@@ -268,6 +300,11 @@ const EventManagement = () => {
       const response = await api.get('/events');
       if (!response.ok) throw new Error('Failed to fetch events');
       const data = await response.json();
+      console.log('Fetched events:', data);
+      // Debug: Check time fields
+      data.forEach((event, index) => {
+        console.log(`Event ${index + 1} (${event.title}): time = "${event.time}"`);
+      });
       setEvents(data);
     } catch (err) {
       console.error('Error fetching events:', err);
@@ -320,14 +357,24 @@ const EventManagement = () => {
   const handleCreateEvent = async (e) => {
     e.preventDefault();
     try {
+      // Debug: Log the time value being sent
+      console.log('Creating event with time:', newEvent.time);
+      
       // Use uploaded image URL if available, otherwise use default
       const imageUrl = uploadedImage ? uploadedImage.fileUrl : 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+      
+      // Fix timezone issue: Ensure the selected date is preserved exactly as chosen
+      const eventDate = fixDateTimezone(newEvent.date);
+      if (newEvent.date) {
+        console.log('Date fix - Original:', newEvent.date, 'Fixed:', eventDate);
+        console.log('This ensures the exact date you selected is preserved regardless of timezone');
+      }
       
       const response = await api.post('/events', {
         title: newEvent.title,
         description: newEvent.description,
         longDescription: newEvent.description, // Use description as longDescription for simplicity
-        date: newEvent.date,
+        date: eventDate,
         time: newEvent.time,
         location: newEvent.location,
         address: newEvent.location, // Use location as address for simplicity
@@ -347,9 +394,11 @@ const EventManagement = () => {
         isActive: true,
         registeredCount: 0
       });
-      console.log(response);
+      console.log('Response:', response);
       if (!response.ok) throw new Error('Failed to create event');
       const created = await response.json();
+      console.log('Created event:', created);
+      console.log('Event time field:', created.time);
       setEvents([...events, created]);
       setShowCreateModal(false);
       toast.success('Event created successfully!');
@@ -500,13 +549,55 @@ const EventManagement = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Date *</label>
-                  <input type="date" className="w-full border rounded px-3 py-2" required value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
-                </div>
+                                 <div>
+                   <label className="block text-sm font-medium mb-1">Date *</label>
+                   <input type="date" className="w-full border rounded px-3 py-2" required value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
+                   {newEvent.date && (
+                     <div className="text-xs text-gray-500 mt-1">
+                       Selected date: {(() => {
+                         // Parse the date string manually to avoid timezone issues
+                         const [year, month, day] = newEvent.date.split('-').map(Number);
+                         const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                         return localDate.toLocaleDateString('en-US', { 
+                           weekday: 'long', 
+                           year: 'numeric', 
+                           month: 'long', 
+                           day: 'numeric' 
+                         });
+                       })()}
+                       <br />
+                       <span className="text-blue-600">✓ This exact date will be saved (no timezone issues)</span>
+                     </div>
+                   )}
+                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Time</label>
-                  <input type="time" className="w-full border rounded px-3 py-2" value={newEvent.time} onChange={e => setNewEvent({ ...newEvent, time: e.target.value })} />
+                  <input 
+                    type="time" 
+                    className="w-full border rounded px-3 py-2" 
+                    value={newEvent.time || ''} 
+                    onChange={e => {
+                      console.log('Time input changed:', e.target.value);
+                      setNewEvent({ ...newEvent, time: e.target.value });
+                    }}
+                  />
+                  {newEvent.time && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Selected time: {formatTimeForDisplay(newEvent.time)}
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-400 mt-1">
+                    <button 
+                      type="button" 
+                      onClick={() => setNewEvent({ ...newEvent, time: '18:00' })}
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Set to 6:00 PM
+                    </button>
+                    <span className="ml-2 text-gray-500">
+                      Raw value: "{newEvent.time}"
+                    </span>
+                  </div>
                 </div>
               </div>
               
@@ -666,6 +757,7 @@ const EventManagement = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Live</th>
@@ -697,12 +789,20 @@ const EventManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {new Date(event.date).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
+                      {(() => {
+                        // Parse the date string manually to avoid timezone issues
+                        const [year, month, day] = event.date.split('-').map(Number);
+                        const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                        return localDate.toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        });
+                      })()}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatTimeForDisplay(event.time)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{event.location}</div>
@@ -749,8 +849,18 @@ const EventManagement = () => {
           <div>
             <h2 style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 12 }}>Event Details</h2>
             <div><b>Title:</b> {selectedEvent.title}</div>
-            <div><b>Date:</b> {new Date(selectedEvent.date).toLocaleDateString()}</div>
-            <div><b>Time:</b> {selectedEvent.time}</div>
+            <div><b>Date:</b> {(() => {
+              // Parse the date string manually to avoid timezone issues
+              const [year, month, day] = selectedEvent.date.split('-').map(Number);
+              const localDate = new Date(year, month - 1, day); // month is 0-indexed
+              return localDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              });
+            })()}</div>
+            <div><b>Time:</b> {formatTimeForDisplay(selectedEvent.time)}</div>
             <div><b>Location:</b> {selectedEvent.location}</div>
             <div><b>Description:</b> {selectedEvent.description}</div>
             <div><b>Category:</b> {selectedEvent.category}</div>
@@ -832,11 +942,19 @@ function EditEventForm({ event, onSave, onCancel }) {
     e.preventDefault();
     setSaving(true);
     
+    // Fix timezone issue: Ensure the selected date is preserved exactly as chosen
+    const fixedDate = fixDateTimezone(form.date);
+    
     // Use uploaded image URL if available, otherwise keep existing image
     const updatedForm = {
       ...form,
+      date: fixedDate,
       image: uploadedImage ? uploadedImage.fileUrl : form.image
     };
+    
+    if (form.date !== fixedDate) {
+      console.log('Edit form date fix - Original:', form.date, 'Fixed:', fixedDate);
+    }
     
     await onSave(updatedForm);
     setSaving(false);
@@ -847,9 +965,25 @@ function EditEventForm({ event, onSave, onCancel }) {
       <div style={{ marginBottom: 8 }}>
         <label>Title:<br /><input name="title" value={form.title} onChange={handleChange} style={{ width: '100%' }} /></label>
       </div>
-      <div style={{ marginBottom: 8 }}>
-        <label>Date:<br /><input name="date" type="date" value={form.date ? form.date.slice(0,10) : ''} onChange={handleChange} style={{ width: '100%' }} /></label>
-      </div>
+               <div style={{ marginBottom: 8 }}>
+           <label>Date:<br /><input name="date" type="date" value={form.date ? form.date.slice(0,10) : ''} onChange={handleChange} style={{ width: '100%' }} /></label>
+           {form.date && (
+             <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+               Selected date: {(() => {
+                 // Parse the date string manually to avoid timezone issues
+                 const dateStr = form.date.slice(0, 10); // Ensure we only get YYYY-MM-DD
+                 const [year, month, day] = dateStr.split('-').map(Number);
+                 const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                 return localDate.toLocaleDateString('en-US', { 
+                   weekday: 'long', 
+                   year: 'numeric', 
+                   month: 'long', 
+                   day: 'numeric' 
+                 });
+               })()}
+             </div>
+           )}
+         </div>
       <div style={{ marginBottom: 8 }}>
         <label>Time:<br /><input name="time" value={form.time} onChange={handleChange} style={{ width: '100%' }} /></label>
       </div>

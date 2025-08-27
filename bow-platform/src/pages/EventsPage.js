@@ -116,23 +116,35 @@ const EventsPage = () => {
   ];
 
   const dateFilters = [
-    { value: 'all', label: 'All Dates' },
-    { value: 'today', label: 'Today' },
-    { value: 'week', label: 'This Week' },
-    { value: 'month', label: 'This Month' },
-    { value: 'upcoming', label: 'Upcoming' }
+    { value: 'all', label: 'All Events' },
+    { value: 'upcoming', label: 'Upcoming Events' },
+    { value: 'past', label: 'Past Events' }
   ];
 
   // Filter events based on search and filters
   const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = searchTerm === '' || 
+                         event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchTerm.toLowerCase());
+                         event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
     
-    // Simple date filtering (in a real app, you'd use proper date logic)
-    const matchesDate = selectedDate === 'all' || true; // Placeholder
+    // Date filtering logic
+    let matchesDate = true;
+    if (selectedDate === 'upcoming') {
+      matchesDate = event.date && isFuture(event.date);
+    } else if (selectedDate === 'past') {
+      matchesDate = event.date && !isFuture(event.date);
+    }
+    // 'all' case: matchesDate remains true
+    
+    // Debug logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Event: ${event.title}, Date: ${event.date}, isFuture: ${isFuture(event.date)}, selectedDate: ${selectedDate}, matchesDate: ${matchesDate}`);
+    }
     
     return matchesSearch && matchesCategory && matchesDate;
   });
@@ -301,9 +313,28 @@ const EventsPage = () => {
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
                   {filteredEvents.length} Events Found
                 </h2>
-                <p className="text-gray-600">
-                  {searchTerm && `Searching for "${searchTerm}"`}
-                </p>
+                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                  {searchTerm && (
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                      Search: "{searchTerm}"
+                    </span>
+                  )}
+                  {selectedCategory !== 'all' && (
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                      Category: {selectedCategory}
+                    </span>
+                  )}
+                  {selectedDate !== 'all' && (
+                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+                      {selectedDate === 'upcoming' ? 'Upcoming Events' : 'Past Events'}
+                    </span>
+                  )}
+                  {!searchTerm && selectedCategory === 'all' && selectedDate === 'all' && (
+                    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+                      No filters active
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -436,7 +467,7 @@ const EventsPage = () => {
                       }}
                       className="btn-primary"
                     >
-                      Clear Filters
+                      Clear All Filters
                     </button>
                     <Link to="/" className="btn-outline">
                       Go Back to Home
