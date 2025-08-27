@@ -549,9 +549,9 @@ const EventManagement = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                                 <div>
-                   <label className="block text-sm font-medium mb-1">Date *</label>
-                   <input type="date" className="w-full border rounded px-3 py-2" required value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
+                <div>
+                  <label className="block text-sm font-medium mb-1">Date *</label>
+                  <input type="date" className="w-full border rounded px-3 py-2" required value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
                    {newEvent.date && (
                      <div className="text-xs text-gray-500 mt-1">
                        Selected date: {(() => {
@@ -569,7 +569,7 @@ const EventManagement = () => {
                        <span className="text-blue-600">✓ This exact date will be saved (no timezone issues)</span>
                      </div>
                    )}
-                 </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Time</label>
                   <input 
@@ -794,9 +794,9 @@ const EventManagement = () => {
                         const [year, month, day] = event.date.split('-').map(Number);
                         const localDate = new Date(year, month - 1, day); // month is 0-indexed
                         return localDate.toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
                         });
                       })()}
                     </div>
@@ -960,13 +960,13 @@ function EditEventForm({ event, onSave, onCancel }) {
     setSaving(false);
   };
   return (
-    <form onSubmit={handleSubmit} style={{ maxHeight: 400, overflowY: 'auto', paddingBottom: 48, position: 'relative' }}>
+    <form onSubmit={handleSubmit} style={{ maxHeight: 400, overflowY: 'auto' }}>
       <h2 style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 12 }}>Edit Event</h2>
       <div style={{ marginBottom: 8 }}>
         <label>Title:<br /><input name="title" value={form.title} onChange={handleChange} style={{ width: '100%' }} /></label>
       </div>
-               <div style={{ marginBottom: 8 }}>
-           <label>Date:<br /><input name="date" type="date" value={form.date ? form.date.slice(0,10) : ''} onChange={handleChange} style={{ width: '100%' }} /></label>
+      <div style={{ marginBottom: 8 }}>
+        <label>Date:<br /><input name="date" type="date" value={form.date ? form.date.slice(0,10) : ''} onChange={handleChange} style={{ width: '100%' }} /></label>
            {form.date && (
              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
                Selected date: {(() => {
@@ -983,7 +983,7 @@ function EditEventForm({ event, onSave, onCancel }) {
                })()}
              </div>
            )}
-         </div>
+      </div>
       <div style={{ marginBottom: 8 }}>
         <label>Time:<br /><input name="time" value={form.time} onChange={handleChange} style={{ width: '100%' }} /></label>
       </div>
@@ -991,7 +991,7 @@ function EditEventForm({ event, onSave, onCancel }) {
         <label>Location:<br /><input name="location" value={form.location} onChange={handleChange} style={{ width: '100%' }} /></label>
       </div>
       <div style={{ marginBottom: 8 }}>
-        <label>Description:<br /><textarea name="description" value={form.description} onChange={handleChange} style={{ width: '100%' }} /></label>
+        <label>Description:<br /><textarea name="description" value={form.description} onChange={handleChange} style={{ width: '100%', minHeight: '120px', resize: 'vertical' }} rows="6" /></label>
       </div>
       <div style={{ marginBottom: 8 }}>
         <label>Category:<br /><input name="category" value={form.category} onChange={handleChange} style={{ width: '100%' }} /></label>
@@ -1125,11 +1125,12 @@ function EditEventForm({ event, onSave, onCancel }) {
         )}
       </div>
       
+      {/* Save and Cancel Buttons */}
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, background: '#fff', padding: 16, display: 'flex', gap: 12, borderTop: '1px solid #eee', justifyContent: 'flex-end'
+        display: 'flex', gap: 16, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '2px solid #e5e7eb'
       }}>
-        <button type="submit" disabled={saving} style={{ background: '#2563eb', color: 'white', padding: '8px 16px', borderRadius: 4 }}>{saving ? 'Saving...' : 'Save'}</button>
-        <button type="button" onClick={onCancel} style={{ background: '#e5e7eb', color: '#111', padding: '8px 16px', borderRadius: 4 }}>Cancel</button>
+        <button type="submit" disabled={saving} style={{ background: '#2563eb', color: 'white', padding: '12px 24px', borderRadius: 6, fontWeight: 'bold', fontSize: '14px' }}>{saving ? 'Saving...' : 'Save'}</button>
+        <button type="button" onClick={onCancel} style={{ background: '#e5e7eb', color: '#111', padding: '12px 24px', borderRadius: 6, fontWeight: 'bold', fontSize: '14px' }}>Cancel</button>
       </div>
     </form>
   );
