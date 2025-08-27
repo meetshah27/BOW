@@ -577,10 +577,23 @@ const HomePage = () => {
                 </div>
               ) : eventsError ? null : liveEvent ? (
                 <div className="bg-white rounded-2xl shadow-2xl border-2 border-orange-200 px-5 py-5 min-w-[240px] max-w-[280px] h-[280px] flex flex-col items-start hover:shadow-2xl transition-all duration-200 text-left text-base">
-                  <div className="flex items-center mb-3 w-full">
-                    <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 mr-2">Live</span>
-                    <span className="text-xs text-gray-500 font-medium truncate">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
-                  </div>
+                                     <div className="flex items-center mb-3 w-full">
+                     <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 mr-2">Live</span>
+                     <span className="text-xs text-gray-500 font-medium truncate mr-2">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
+                     
+                     {/* Dhol Animation next to Live/Available icons */}
+                     <div className="dhol-animation-container relative">
+                       {/* Dhol Drum */}
+                       <div className="dhol-drum"></div>
+                       
+                       {/* Two Dhol Sticks */}
+                       <div className="dhol-stick"></div>
+                       <div className="dhol-stick"></div>
+                       
+                       {/* Ripple Effect */}
+                       <div className="dhol-ripple"></div>
+                     </div>
+                   </div>
                   <div className="font-bold text-gray-900 text-base w-full mb-2 break-words leading-tight">{liveEvent.title}</div>
                   <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
                     <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -613,14 +626,14 @@ const HomePage = () => {
                     <span className="mr-2">/</span>
                     <span className="font-medium text-green-700 truncate">{liveEvent.registeredCount || 0}{liveEvent.capacity ? ` / ${liveEvent.capacity}` : ''} registered</span>
                   </div>
-                  <div className="mt-auto w-full">
-                    <Link
-                      to={`/events/${liveEvent.id}`}
-                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
-                    >
-                      Register Now
-                    </Link>
-                  </div>
+                                     <div className="mt-auto w-full">
+                     <Link
+                       to={`/events/${liveEvent.id}`}
+                       className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
+                     >
+                       Register Now
+                     </Link>
+                   </div>
                 </div>
               ) : null}
             </div>
@@ -671,31 +684,34 @@ const HomePage = () => {
             <div className="relative z-10">
 
               
-              {/* Enhanced title with button effect and animation */}
-              <div className="relative inline-block">
-                {/* Small floating bubbles around the title */}
-                <div className="absolute -top-2 -left-2 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
-                <div className="absolute -bottom-1 -left-3 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
-                <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
-                <div className="absolute top-1/2 -left-4 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '1.2s'}}></div>
-                <div className="absolute top-1/2 -right-4 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
-                
-                                 <h2 
-                   onClick={() => {
-                     const eventsSection = document.getElementById('upcoming-events-section');
-                     if (eventsSection) {
-                       eventsSection.scrollIntoView({ 
-                         behavior: 'smooth', 
-                         block: 'start' 
-                       });
-                     }
-                   }}
-                   className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
-                 >
-              Upcoming Events
-            </h2>
-              </div>
+                             {/* Enhanced title with button effect and animation */}
+               <div className="relative inline-block">
+                                                     {/* Enhanced title with button effect and animation */}
+                  <div className="relative inline-block">
+                    {/* Small floating bubbles around the title */}
+                    <div className="absolute -top-2 -left-2 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                    <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                    <div className="absolute -bottom-1 -left-3 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
+                    <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
+                    <div className="absolute top-1/2 -left-4 w-1.5 h-1.5 bg-orange-300 rounded-full animate-bounce" style={{animationDelay: '1.2s'}}></div>
+                    <div className="absolute top-1/2 -right-4 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
+                    
+                    <h2 
+                      onClick={() => {
+                        const eventsSection = document.getElementById('upcoming-events-section');
+                        if (eventsSection) {
+                          eventsSection.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                          });
+                        }
+                      }}
+                      className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer dhol-enhanced"
+                    >
+                      Upcoming Events
+                    </h2>
+                  </div>
+               </div>
               
               {/* Enhanced description with better typography and animation */}
               <div className="relative">
@@ -761,12 +777,12 @@ const HomePage = () => {
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <Link to="/events" className="btn-primary">
-              View All Events
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </div>
+                                           <div className="text-center mt-12">
+                        <Link to="/events" className="btn-primary dhol-enhanced">
+                          View All Events
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </Link>
+                      </div>
         </div>
       </section>
 

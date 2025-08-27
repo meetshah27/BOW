@@ -1019,4 +1019,317 @@ dark html, dark body, html.dark, body.dark {
   }
 }
 
+/* Dhol Drum Animation for Upcoming Events Button */
+@keyframes dhol-beat {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.95) rotate(-3deg);
+    opacity: 0.9;
+  }
+  75% {
+    transform: scale(1.05) rotate(2deg);
+    opacity: 1;
+  }
+}
+
+@keyframes dhol-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 20px rgba(245, 101, 101, 0);
+  }
+}
+
+@keyframes dhol-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes dhol-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40%, 43% {
+    transform: translateY(-8px);
+  }
+  70% {
+    transform: translateY(-4px);
+  }
+  90% {
+    transform: translateY(-2px);
+  }
+}
+
+.dhol-animation-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dhol-beat {
+  animation: dhol-beat 1.2s ease-in-out infinite;
+}
+
+.dhol-pulse {
+  animation: dhol-pulse 2s ease-in-out infinite;
+}
+
+.dhol-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(245, 101, 101, 0.8) 0%, rgba(245, 101, 101, 0.4) 50%, transparent 100%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.dhol-ripple:nth-child(3) {
+  animation: dhol-ripple 3s ease-out infinite;
+  animation-delay: 0s;
+}
+
+.dhol-drum {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, #8B4513 0%, #654321 50%, #3E2723 100%);
+  border-radius: 50%;
+  border: 3px solid #654321;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.dhol-drum::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #D2691E 0%, #CD853F 100%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.dhol-drum:nth-child(1) {
+  top: -50px;
+  right: -70px;
+  animation: dhol-bounce 1.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.dhol-stick {
+  position: absolute;
+  width: 4px;
+  height: 25px;
+  background: linear-gradient(to bottom, #8B4513 0%, #654321 100%);
+  border-radius: 2px;
+  transform-origin: top center;
+  pointer-events: none;
+}
+
+.dhol-stick::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #8B4513;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.dhol-stick:nth-child(2) {
+  top: -35px;
+  right: -55px;
+  transform: rotate(45deg);
+  animation: dhol-bounce 1.2s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.dhol-stick:nth-child(3) {
+  top: -25px;
+  right: -65px;
+  transform: rotate(-30deg);
+  animation: dhol-bounce 1.2s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+/* Enhanced button with dhol effect */
+.btn-primary.dhol-enhanced {
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+  border: none;
+  box-shadow: 
+    0 10px 25px rgba(220, 38, 38, 0.3),
+    0 0 0 0 rgba(220, 38, 38, 0.7);
+  animation: dhol-pulse 2s ease-in-out infinite;
+}
+
+.btn-primary.dhol-enhanced:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 15px 35px rgba(220, 38, 38, 0.4),
+    0 0 0 0 rgba(220, 38, 38, 0.9);
+}
+
+.btn-primary.dhol-enhanced:active {
+  transform: scale(0.98);
+}
+
+/* Enhanced title button with orange color scheme */
+h2.dhol-enhanced {
+  position: relative;
+  overflow: visible;
+  box-shadow: 
+    0 10px 25px rgba(245, 101, 101, 0.3),
+    0 0 0 0 rgba(245, 101, 101, 0.7);
+  animation: dhol-pulse 2s ease-in-out infinite;
+}
+
+h2.dhol-enhanced:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 15px 35px rgba(245, 101, 101, 0.4),
+    0 0 0 0 rgba(245, 101, 101, 0.9);
+}
+
+h2.dhol-enhanced:active {
+  transform: scale(0.98);
+}
+
+/* Small dhol animation for register button */
+.dhol-animation-container .dhol-drum {
+  width: 25px;
+  height: 25px;
+}
+
+.dhol-animation-container .dhol-drum::before {
+  width: 12px;
+  height: 12px;
+}
+
+.dhol-animation-container .dhol-stick {
+  width: 3px;
+  height: 18px;
+}
+
+.dhol-animation-container .dhol-stick::before {
+  width: 5px;
+  height: 5px;
+}
+
+/* Dhol animation next to Live/Available icons */
+.dhol-animation-container.relative .dhol-drum {
+  position: absolute;
+  top: -15px;
+  right: -30px;
+  width: 20px;
+  height: 20px;
+  animation: dhol-bounce 1.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.dhol-animation-container.relative .dhol-drum::before {
+  width: 10px;
+  height: 10px;
+}
+
+.dhol-animation-container.relative .dhol-stick {
+  position: absolute;
+  width: 2px;
+  height: 15px;
+  animation: dhol-bounce 1.2s ease-in-out infinite;
+}
+
+.dhol-animation-container.relative .dhol-stick:nth-child(2) {
+  top: -10px;
+  right: -25px;
+  transform: rotate(45deg);
+  animation-delay: 0.3s;
+}
+
+.dhol-animation-container.relative .dhol-stick:nth-child(3) {
+  top: -8px;
+  right: -30px;
+  transform: rotate(-30deg);
+  animation-delay: 0.6s;
+}
+
+.dhol-animation-container.relative .dhol-stick::before {
+  width: 4px;
+  height: 4px;
+}
+
+.dhol-animation-container.relative .dhol-ripple {
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  width: 15px;
+  height: 15px;
+  animation: dhol-ripple 3s ease-out infinite;
+  animation-delay: 0s;
+}
+
+/* Responsive adjustments for dhol animation */
+@media (max-width: 768px) {
+  .dhol-drum {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .dhol-drum::before {
+    width: 15px;
+    height: 15px;
+  }
+  
+  .dhol-stick {
+    width: 3px;
+    height: 20px;
+  }
+  
+  .dhol-stick::before {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .dhol-drum:nth-child(1) { top: -40px; right: -60px; }
+  .dhol-stick:nth-child(2) { top: -30px; right: -45px; }
+  .dhol-stick:nth-child(3) { top: -20px; right: -55px; }
+}
+
+@media (max-width: 480px) {
+  .dhol-animation-container {
+    display: block;
+    text-align: center;
+  }
+  
+  .dhol-drum, .dhol-stick {
+    display: none;
+  }
+}
+
 
