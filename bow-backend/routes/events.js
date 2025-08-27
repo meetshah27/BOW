@@ -84,7 +84,14 @@ const sampleRegistrations = [
     registrationDate: new Date().toISOString(),
     status: 'confirmed',
     checkedIn: false,
-    checkInTime: null
+    checkInTime: null,
+    // Payment information for paid event
+    paymentAmount: 25,
+    paymentIntentId: 'pi_sample_paid_12345678',
+    paymentDate: new Date().toISOString(),
+    paymentStatus: 'completed',
+    paymentMethod: 'Card',
+    isPaidEvent: true
   },
   {
     id: 'reg_2',
@@ -99,7 +106,14 @@ const sampleRegistrations = [
     registrationDate: new Date().toISOString(),
     status: 'pending',
     checkedIn: false,
-    checkInTime: null
+    checkInTime: null,
+    // Payment information for paid event
+    paymentAmount: 15,
+    paymentIntentId: 'pi_sample_paid_87654321',
+    paymentDate: new Date().toISOString(),
+    paymentStatus: 'completed',
+    paymentMethod: 'Card',
+    isPaidEvent: true
   },
   {
     id: 'reg_3',
@@ -114,7 +128,14 @@ const sampleRegistrations = [
     registrationDate: new Date().toISOString(),
     status: 'confirmed',
     checkedIn: true,
-    checkInTime: new Date().toISOString()
+    checkInTime: new Date().toISOString(),
+    // Free event - no payment required
+    paymentAmount: 0,
+    paymentIntentId: null,
+    paymentDate: null,
+    paymentStatus: 'none',
+    paymentMethod: null,
+    isPaidEvent: false
   }
 ];
 
@@ -319,7 +340,7 @@ router.post('/:id/register', async (req, res) => {
     }
     
     console.log('[Backend] Final parsed body data:', bodyData);
-    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests } = bodyData;
+    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, cardNumber } = bodyData;
     
     // Validate required fields
     if (!userId) {
@@ -334,6 +355,28 @@ router.post('/:id/register', async (req, res) => {
       console.error('[Backend] Missing userName');
       return res.status(400).json({ message: 'Missing userName' });
     }
+    
+    // Check if event exists first to validate price
+    let event;
+    if (Event) {
+      event = await Event.findById(req.params.id);
+      if (!event) {
+        console.error('[Backend] Event not found:', req.params.id);
+        return res.status(404).json({ message: 'Event not found' });
+      }
+      
+      // Validate payment requirements based on event price
+      if (event.price > 0) {
+        if (!cardNumber) {
+          console.error('[Backend] Card number required for paid event');
+          return res.status(400).json({ message: 'Card number is required for paid events' });
+        }
+        console.log('[Backend] Paid event registration - payment details provided');
+      } else {
+        console.log('[Backend] Free event registration - no payment required');
+      }
+    }
+    
     // Phone number is now optional
 
     if (Event && Registration) {
@@ -379,7 +422,13 @@ router.post('/:id/register', async (req, res) => {
         specialRequests: specialRequests || '',
         ticketNumber: ticketNumber,
         registrationDate: new Date().toISOString(),
-        status: 'confirmed'
+        status: 'confirmed',
+        
+        // Payment information
+        paymentAmount: event.price || 0,
+        isPaidEvent: event.price > 0,
+        paymentStatus: event.price > 0 ? 'pending' : 'none',
+        paymentDate: event.price > 0 ? new Date().toISOString() : null
       };
 
       const savedRegistration = await Registration.create(registrationData);
@@ -437,6 +486,111 @@ router.post('/:id/register', async (req, res) => {
   } catch (error) {
     console.error('[Backend] Registration error:', error);
     res.status(500).json({ message: error.message || 'Registration failed. Please try again.' });
+  }
+});
+
+// POST update payment information after successful payment
+router.post('/:id/update-payment', async (req, res) => {
+  try {
+    const { userId, paymentIntentId, paymentMethod, paymentStatus } = req.body;
+    
+    if (!userId || !paymentIntentId) {
+      return res.status(400).json({ error: 'User ID and payment intent ID are required.' });
+    }
+    
+    if (Registration) {
+      const registration = await Registration.findByEventAndUser(req.params.id, userId);
+      if (!registration) {
+        return res.status(404).json({ error: 'Registration not found' });
+      }
+      
+      // Update payment information
+      const updatedRegistration = await registration.update({
+        paymentIntentId: paymentIntentId,
+        paymentMethod: paymentMethod || 'Card',
+        paymentStatus: paymentStatus || 'completed',
+        paymentDate: new Date().toISOString()
+      });
+      
+      res.json(updatedRegistration);
+    } else {
+      // Fallback demo response
+      res.json({ 
+        message: 'Payment updated (demo mode)',
+        userId: userId,
+        paymentIntentId: paymentIntentId,
+        paymentStatus: paymentStatus || 'completed'
+      });
+    }
+  } catch (error) {
+    console.error('[Backend] Error updating payment:', error);
+    res.status(500).json({ error: error.message || 'Failed to update payment' });
+  }
+});
+
+// POST create payment intent for event registration
+router.post('/:id/create-payment-intent', async (req, res) => {
+  try {
+    const { amount, userEmail, userName, userId } = req.body;
+    
+    // Validate required fields
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount. Amount must be greater than 0.' });
+    }
+    if (!userEmail || !userName || !userId) {
+      return res.status(400).json({ error: 'User email, name, and ID are required.' });
+    }
+    
+    // Check if event exists
+    if (Event) {
+      const event = await Event.findById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+      
+      // Verify the amount matches the event price
+      if (event.price !== amount) {
+        return res.status(400).json({ error: 'Payment amount does not match event price' });
+      }
+    }
+    
+    // Initialize Stripe
+    const Stripe = require('stripe');
+    let stripe;
+    try {
+      stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    } catch (error) {
+      console.error('Stripe initialization error:', error);
+      return res.status(500).json({ error: 'Payment processing is not configured.' });
+    }
+    
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: 'usd',
+      metadata: {
+        source: 'bow_event_registration',
+        eventId: req.params.id,
+        userEmail,
+        userName,
+        userId,
+        timestamp: new Date().toISOString()
+      },
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    
+    console.log('[Backend] Payment intent created for event registration:', paymentIntent.id);
+    
+    res.json({ 
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id
+    });
+    
+  } catch (error) {
+    console.error('[Backend] Error creating payment intent for event:', error);
+    res.status(500).json({ error: error.message || 'Failed to create payment intent' });
   }
 });
 
@@ -744,9 +898,33 @@ router.put('/:id', async (req, res) => {
   try {
     console.log('[PUT /api/events/:id] Update request for event:', req.params.id);
     console.log('[PUT /api/events/:id] Request body:', req.body);
+    console.log('[PUT /api/events/:id] Request body type:', typeof req.body);
+    
+    // Handle case where body might be a string
+    let updateData = req.body;
+    if (typeof req.body === 'string') {
+      try {
+        updateData = JSON.parse(req.body);
+        console.log('[PUT /api/events/:id] Parsed body:', updateData);
+      } catch (parseError) {
+        console.error('[PUT /api/events/:id] Failed to parse body:', parseError);
+        return res.status(400).json({ message: 'Invalid JSON in request body' });
+      }
+    }
+    
+    // Validate update data
+    if (!updateData || Object.keys(updateData).length === 0) {
+      console.error('[PUT /api/events/:id] No update data provided');
+      return res.status(400).json({ message: 'No update data provided' });
+    }
+    
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
-    const updated = await event.update(req.body);
+    
+    console.log('[PUT /api/events/:id] Found event:', event.id);
+    console.log('[PUT /api/events/:id] Update data:', updateData);
+    
+    const updated = await event.update(updateData);
     console.log('[PUT /api/events/:id] Event updated:', updated);
     res.json(updated);
   } catch (error) {

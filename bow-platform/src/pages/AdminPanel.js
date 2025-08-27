@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/common/FileUpload';
 import ImagePlaceholder from '../components/common/ImagePlaceholder';
 import api from '../config/api';
+import PaymentReceipt from '../components/PaymentReceipt';
 
 import { 
   Users, 
@@ -458,6 +459,14 @@ const EventManagement = () => {
 
   const handleEditSave = async (updatedEvent) => {
     try {
+      console.log('handleEditSave called with:', updatedEvent);
+      console.log('Event ID for update:', updatedEvent.id);
+      console.log('Event _id for update:', updatedEvent._id);
+      
+      if (!updatedEvent.id) {
+        throw new Error('Event ID is missing. Cannot update event.');
+      }
+      
       const response = await api.put(`/events/${updatedEvent.id}`, updatedEvent);
       if (!response.ok) throw new Error('Failed to update event');
       await fetchEvents();
@@ -465,6 +474,7 @@ const EventManagement = () => {
       setSelectedEvent(null);
       toast.success('Event updated successfully!');
     } catch (err) {
+      console.error('Error in handleEditSave:', err);
       alert('Error updating event: ' + err.message);
     }
   };
@@ -477,8 +487,11 @@ const EventManagement = () => {
       const response = await api.get(`/events/${event._id}/registrations`);
       if (!response.ok) throw new Error('Failed to fetch registrations');
       const data = await response.json();
+      console.log('Registrations data received:', data);
+      console.log('Sample registration:', data[0]);
       setRegistrations(data);
     } catch (err) {
+      console.error('Error fetching registrations:', err);
       setRegistrations([]);
     } finally {
       setLoadingRegistrations(false);
@@ -892,10 +905,8 @@ const EventManagement = () => {
       <SimpleModal open={showRegistrationsModal} onClose={() => setShowRegistrationsModal(false)}>
         <div>
           <h2 style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 12 }}>Registrations for {selectedEvent?.title}</h2>
-          {loadingRegistrations ? (
+                    {loadingRegistrations ? (
             <div>Loading...</div>
-          ) : registrations.length === 0 ? (
-            <div>No registrations found for this event.</div>
           ) : (
             <div style={{ maxHeight: 350, overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -904,20 +915,60 @@ const EventManagement = () => {
                     <th style={{ padding: 8, border: '1px solid #eee' }}>Name</th>
                     <th style={{ padding: 8, border: '1px solid #eee' }}>Email</th>
                     <th style={{ padding: 8, border: '1px solid #eee' }}>Ticket #</th>
-                    <th style={{ padding: 8, border: '1px solid #eee' }}>Fee</th>
+                    <th style={{ padding: 8, border: '1px solid #eee' }}>Payment</th>
                     <th style={{ padding: 8, border: '1px solid #eee' }}>Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {registrations.map(r => (
-                    <tr key={r._id}>
-                      <td style={{ padding: 8, border: '1px solid #eee' }}>{r.userName || r.name || '-'}</td>
-                      <td style={{ padding: 8, border: '1px solid #eee' }}>{r.userEmail || '-'}</td>
-                      <td style={{ padding: 8, border: '1px solid #eee' }}>{r.ticketNumber || '-'}</td>
-                      <td style={{ padding: 8, border: '1px solid #eee' }}>{selectedEvent?.price ? `$${selectedEvent.price}` : 'Free'}</td>
-                      <td style={{ padding: 8, border: '1px solid #eee' }}>{r.registrationDate ? new Date(r.registrationDate).toLocaleString() : '-'}</td>
-                    </tr>
-                  ))}
+                  {registrations.length === 0 ? (
+                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>No registrations found for this event.</td></tr>
+                  ) : (
+                    registrations.map(r => (
+                      <tr key={r._id}>
+                        <td style={{ padding: 8, border: '1px solid #eee' }}>{r.userName || r.name || '-'}</td>
+                        <td style={{ padding: 8, border: '1px solid #eee' }}>{r.userEmail || '-'}</td>
+                        <td style={{ padding: 8, border: '1px solid #eee' }}>{r.ticketNumber || '-'}</td>
+                                              <td style={{ padding: 8, border: '1px solid #eee', minWidth: '200px' }}>
+                        {r.paymentAmount > 0 ? (
+                          <div>
+                            <div style={{ fontWeight: 'bold', color: '#059669' }}>${r.paymentAmount}</div>
+                            {r.paymentIntentId && (
+                              <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                                Receipt: {r.paymentIntentId.slice(-8)}
+                              </div>
+                            )}
+                            {r.paymentStatus === 'completed' && (
+                              <span style={{ 
+                                background: '#dcfce7', 
+                                color: '#166534', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                fontSize: '11px',
+                                fontWeight: 'bold'
+                              }}>
+                                ✓ Paid
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#6b7280', fontStyle: 'italic' }}>Free Event</span>
+                        )}
+                        {/* PaymentReceipt Component */}
+                        <div style={{ marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
+                          <PaymentReceipt
+                            paymentAmount={r.paymentAmount || 0}
+                            paymentStatus={r.paymentStatus || 'none'}
+                            paymentIntentId={r.paymentIntentId}
+                            paymentDate={r.paymentDate}
+                            isPaidEvent={r.paymentAmount > 0}
+                            showDetails={true}
+                          />
+                        </div>
+                      </td>
+                        <td style={{ padding: 8, border: '1px solid #eee' }}>{r.registrationDate ? new Date(r.registrationDate).toLocaleString() : '-'}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -952,9 +1003,18 @@ function EditEventForm({ event, onSave, onCancel }) {
       image: uploadedImage ? uploadedImage.fileUrl : form.image
     };
     
+    // Ensure we have the correct ID field for the update
+    if (updatedForm._id && !updatedForm.id) {
+      updatedForm.id = updatedForm._id;
+    }
+    
     if (form.date !== fixedDate) {
       console.log('Edit form date fix - Original:', form.date, 'Fixed:', fixedDate);
     }
+    
+    console.log('Submitting updated form:', updatedForm);
+    console.log('Form ID field:', updatedForm.id);
+    console.log('Form _id field:', updatedForm._id);
     
     await onSave(updatedForm);
     setSaving(false);
@@ -2135,6 +2195,15 @@ const RegistrationManagement = () => {
       console.log(`Filtering out registration ${reg.ticketNumber}: status "${reg.status}" doesn't match filter "${filter.status}"`);
       return false;
     }
+    // Payment filter
+    if (filter.payment === 'paid' && (!reg.paymentAmount || reg.paymentAmount === 0)) {
+      console.log(`Filtering out registration ${reg.ticketNumber}: not a paid event`);
+      return false;
+    }
+    if (filter.payment === 'free' && (reg.paymentAmount && reg.paymentAmount > 0)) {
+      console.log(`Filtering out registration ${reg.ticketNumber}: not a free event`);
+      return false;
+    }
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -2162,7 +2231,7 @@ const RegistrationManagement = () => {
 
   const exportRegistrations = () => {
     const csvContent = [
-      ['Ticket Number', 'Event', 'Name', 'Email', 'Phone', 'Status', 'Registration Date', 'Check-in Status'],
+      ['Ticket Number', 'Event', 'Name', 'Email', 'Phone', 'Status', 'Payment Receipt', 'Registration Date', 'Check-in Status'],
       ...filteredRegistrations.map(reg => [
         reg.ticketNumber,
         reg.eventTitle || 'N/A',
@@ -2170,6 +2239,7 @@ const RegistrationManagement = () => {
         reg.userEmail,
         reg.phone,
         reg.status,
+        reg.paymentAmount > 0 ? `$${reg.paymentAmount} - ${reg.paymentStatus}` : 'Free Event',
         new Date(reg.registrationDate).toLocaleDateString(),
         reg.checkedIn ? 'Checked In' : 'Not Checked In'
       ])
@@ -2180,6 +2250,58 @@ const RegistrationManagement = () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = `registrations-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const downloadPaymentReceipt = (registration) => {
+    if (!registration.paymentAmount || registration.paymentAmount === 0) {
+      return; // No receipt for free events
+    }
+
+    // Create a professional receipt content
+    const receiptContent = `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              PAYMENT RECEIPT                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Event Details:
+═══════════════
+Event Name:     ${registration.eventTitle || 'N/A'}
+Event Date:     ${registration.registrationDate ? new Date(registration.registrationDate).toLocaleDateString() : 'N/A'}
+
+Attendee Information:
+══════════════════════
+Name:           ${registration.userName}
+Email:          ${registration.userEmail}
+Phone:          ${registration.phone || 'N/A'}
+Ticket Number:  ${registration.ticketNumber}
+
+Payment Information:
+════════════════════
+Amount:         $${registration.paymentAmount}
+Status:         ${registration.paymentStatus || 'N/A'}
+Payment Method: ${registration.paymentMethod || 'Card'}
+Receipt ID:     ${registration.paymentIntentId || 'N/A'}
+Payment Date:   ${registration.paymentDate ? new Date(registration.paymentDate).toLocaleDateString() : 'N/A'}
+
+Registration Details:
+════════════════════
+Registration Date: ${new Date(registration.registrationDate).toLocaleDateString()}
+Status:            ${registration.status}
+Check-in Status:   ${registration.checkedIn ? 'Checked In' : 'Not Checked In'}
+
+══════════════════════════════════════════════════════════════════════════════
+Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+This receipt serves as proof of payment for the above event registration.
+    `.trim();
+
+    // Create and download the receipt
+    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receipt-${registration.ticketNumber}-${new Date().toISOString().split('T')[0]}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -2196,32 +2318,33 @@ const RegistrationManagement = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Registration Management</h2>
-        <div className="flex space-x-2">
-          {/* Bulk Delete Button */}
-          {selectedRegistrations.size > 0 && (
-            <button
-              onClick={bulkDeleteRegistrations}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center space-x-2"
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Registration Management</h2>
+          <div className="flex space-x-2">
+            {/* Bulk Delete Button */}
+            {selectedRegistrations.size > 0 && (
+              <button
+                onClick={bulkDeleteRegistrations}
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white font-medium px-5 py-2 rounded-xl shadow hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center space-x-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Selected ({selectedRegistrations.size})</span>
+              </button>
+            )}
+            <button 
+              onClick={exportRegistrations}
+              className="btn-outline"
             >
-              <Trash2 className="w-4 h-4" />
-              <span>Delete Selected ({selectedRegistrations.size})</span>
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
             </button>
-          )}
-          <button 
-            onClick={exportRegistrations}
-            className="btn-outline"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </button>
+          </div>
         </div>
-      </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -2275,6 +2398,23 @@ const RegistrationManagement = () => {
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Paid Events</p>
+              <p className="text-2xl font-bold text-green-600">
+                ${registrations.filter(r => r.paymentAmount > 0).reduce((sum, r) => sum + (r.paymentAmount || 0), 0).toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500">
+                {registrations.filter(r => r.paymentAmount > 0).length} paid • {registrations.filter(r => !r.paymentAmount || r.paymentAmount === 0).length} free
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <CreditCard className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -2323,9 +2463,22 @@ const RegistrationManagement = () => {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Payment</label>
+            <select
+              value={filter.payment || 'all'}
+              onChange={(e) => setFilter({...filter, payment: e.target.value})}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="all">All Payments</option>
+              <option value="paid">Paid Events</option>
+              <option value="free">Free Events</option>
+            </select>
+          </div>
+
+          <div>
             <button
               onClick={() => {
-                setFilter({ event: 'all', status: 'all', date: 'all' });
+                setFilter({ event: 'all', status: 'all', date: 'all', payment: 'all' });
                 setSearchTerm('');
               }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -2340,9 +2493,16 @@ const RegistrationManagement = () => {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Registrations ({filteredRegistrations.length} of {registrations.length})
-            </h3>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Registrations ({filteredRegistrations.length} of {registrations.length})
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {filteredRegistrations.filter(r => r.paymentAmount > 0).length} paid events • 
+                {filteredRegistrations.filter(r => !r.paymentAmount || r.paymentAmount === 0).length} free events • 
+                Total Revenue: ${filteredRegistrations.filter(r => r.paymentAmount > 0).reduce((sum, r) => sum + (r.paymentAmount || 0), 0).toFixed(2)}
+              </p>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -2371,6 +2531,9 @@ const RegistrationManagement = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Payment Receipt
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Check-in
@@ -2418,6 +2581,50 @@ const RegistrationManagement = () => {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(registration.status)}`}>
                       {registration.status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {registration.paymentAmount > 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">${registration.paymentAmount}</span>
+                          <button
+                            onClick={() => downloadPaymentReceipt(registration)}
+                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:text-blue-800 transition-colors duration-200"
+                            title="Download Payment Receipt"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Receipt
+                          </button>
+                        </div>
+                        {registration.paymentStatus === 'completed' && (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            ✓ Paid
+                          </span>
+                        )}
+                        {registration.paymentStatus === 'pending' && (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            ⏳ Pending
+                          </span>
+                        )}
+                        {registration.paymentIntentId && (
+                          <div className="text-xs text-gray-500">
+                            Receipt ID: {registration.paymentIntentId.slice(-8)}
+                          </div>
+                        )}
+                        {registration.paymentDate && (
+                          <div className="text-xs text-gray-500">
+                            Paid: {new Date(registration.paymentDate).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Free Event
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {registration.checkedIn ? (
@@ -2580,6 +2787,7 @@ const RegistrationManagement = () => {
           </div>
         )}
       </SimpleModal>
+      </div>
     </div>
   );
 };

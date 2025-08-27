@@ -22,6 +22,7 @@ import {
   Gift
 } from 'lucide-react';
 import api from '../config/api';
+import PaymentReceipt from '../components/PaymentReceipt';
 
 // Member Portal Sub-components
 const Dashboard = () => {
@@ -290,6 +291,7 @@ const MyEvents = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
@@ -306,6 +308,16 @@ const MyEvents = () => {
                       return localDate.toLocaleString();
                     })() : '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{event.location || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <PaymentReceipt
+                        paymentAmount={event.paymentAmount || 0}
+                        paymentIntentId={event.paymentIntentId}
+                        paymentStatus={event.paymentStatus || 'none'}
+                        paymentDate={event.paymentDate}
+                        isPaidEvent={event.paymentAmount > 0}
+                        showDetails={true}
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{event.status || 'registered'}</span>
                     </td>
