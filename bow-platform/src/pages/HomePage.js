@@ -220,6 +220,9 @@ function LiveEventTimer({ event }) {
               {event.time && (
                 <span className="ml-2">🕐 {event.time}</span>
               )}
+              {event.location && (
+                <span className="ml-2">📍 {event.location}</span>
+              )}
             </div>
           </>
         ) : (
