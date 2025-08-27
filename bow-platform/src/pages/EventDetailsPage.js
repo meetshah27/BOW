@@ -344,6 +344,8 @@ const EventDetailsPage = () => {
     }
   };
 
+
+
   return (
     <>
       <Helmet>
@@ -393,38 +395,48 @@ const EventDetailsPage = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Event Details */}
-              <div className="bg-white rounded-xl shadow-lg p-8">
+              {/* Event Details Section */}
+              <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-primary-500 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-4">
+                      <Star className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+                  </div>
                   <div className="flex space-x-2">
-                    <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                    <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors hover:bg-primary-50 rounded-lg">
                       <Share2 className="w-5 h-5" />
                     </button>
-                    <button className="p-2 text-gray-600 hover:text-red-600 transition-colors">
+                    <button className="p-2 text-gray-600 hover:text-red-600 transition-colors hover:bg-red-50 rounded-lg">
                       <Heart className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
                 <div className="prose max-w-none">
-                  <p className="text-lg text-gray-600 mb-6">
+                  <p className="text-lg text-gray-600 mb-6 leading-relaxed">
                     {event.description}
                   </p>
-                  <div className="whitespace-pre-line text-gray-700 leading-relaxed">
+                  <div className="whitespace-pre-line text-gray-700 leading-relaxed bg-gray-50 p-6 rounded-lg border-l-4 border-primary-200">
                     {event.longDescription}
                   </div>
                 </div>
               </div>
 
-              {/* Tags */}
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Event Tags</h3>
-                <div className="flex flex-wrap gap-2">
+              {/* Tags Section */}
+              <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-secondary-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white text-sm font-bold">#</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Event Tags</h3>
+                </div>
+                <div className="flex flex-wrap gap-3">
                   {event.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm font-medium"
+                      className="px-4 py-2 bg-secondary-100 text-secondary-800 rounded-full text-sm font-medium hover:bg-secondary-200 transition-colors duration-200 cursor-default"
                     >
                       {tag}
                     </span>
@@ -435,36 +447,39 @@ const EventDetailsPage = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Registration Card */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Registration</h3>
+              {/* Registration Section */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
+                    <Ticket className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Registration</h3>
+                </div>
                 
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-600">Price:</span>
                     <span className="font-semibold text-gray-900">{event.price}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-600">Capacity:</span>
                     <span className="font-semibold text-gray-900">{event.capacity}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-600">Registered:</span>
                     <span className="font-semibold text-gray-900">{event.registeredCount}</span>
                   </div>
-                  
-
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Registration Progress</span>
                       <span className="text-gray-900">{Math.round(registrationPercentage)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
-                        className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${registrationPercentage}%` }}
                       ></div>
                     </div>
@@ -489,9 +504,9 @@ const EventDetailsPage = () => {
                   ) : event.isLive ? (
                     <button 
                       onClick={() => setShowRegistrationModal(true)}
-                      className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
+                      className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 ${
                         isRegistrationOpen 
-                          ? 'bg-primary-600 hover:bg-primary-700 text-white' 
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                       disabled={!isRegistrationOpen}
@@ -512,56 +527,66 @@ const EventDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Event Info */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Event Information</h3>
+              {/* Event Information Section */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <Calendar className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Event Information</h3>
+                </div>
                 
                 <div className="space-y-4">
-                  <div className="flex items-start">
-                    <Calendar className="w-5 h-5 mr-3 mt-0.5 text-gray-500" />
+                  <div className="flex items-start p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                    <Calendar className="w-5 h-5 mr-3 mt-0.5 text-blue-500" />
                     <div>
                       <p className="font-medium text-gray-900">{event.date}</p>
                       <p className="text-sm text-gray-600">{event.time}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start">
-                    <MapPin className="w-5 h-5 mr-3 mt-0.5 text-gray-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">{event.location}</p>
-                      <p className="text-sm text-gray-600">{event.address}</p>
-                    </div>
-                  </div>
+                                     <div className="flex items-start p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                     <MapPin className="w-5 h-5 mr-3 mt-0.5 text-blue-500" />
+                     <div>
+                       <p className="font-medium text-gray-900">{event.location}</p>
+                       <p className="text-sm text-gray-600">{event.address || event.location}</p>
+                     </div>
+                   </div>
                   
-                  <div className="flex items-center">
-                    <Users className="w-5 h-5 mr-3 text-gray-500" />
+                  <div className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                    <Users className="w-5 h-5 mr-3 text-blue-500" />
                     <span className="text-gray-900">{event.organizer}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Contact Info */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h3>
+              {/* Contact Information Section */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                    <Phone className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Contact Information</h3>
+                </div>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center">
-                    <Phone className="w-4 h-4 mr-3 text-gray-500" />
-                    <a href={`tel:${event.contact.phone}`} className="text-gray-900 hover:text-primary-600">
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <Phone className="w-4 h-4 mr-3 text-purple-500" />
+                    <a href={`tel:${event.contact.phone}`} className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
                       {event.contact.phone}
                     </a>
                   </div>
                   
-                  <div className="flex items-center">
-                    <Mail className="w-4 h-4 mr-3 text-gray-500" />
-                    <a href={`mailto:${event.contact.email}`} className="text-gray-900 hover:text-primary-600">
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <Mail className="w-4 h-4 mr-3 text-purple-500" />
+                    <a href={`mailto:${event.contact.email}`} className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
                       {event.contact.email}
                     </a>
                   </div>
                   
-                  <div className="flex items-center">
-                    <Globe className="w-4 h-4 mr-3 text-gray-500" />
-                    <a href={event.contact.website} target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-primary-600">
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <Globe className="w-4 h-4 mr-3 text-purple-500" />
+                    <a href={event.contact.website} target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
                       Visit Website
                     </a>
                   </div>
@@ -574,21 +599,26 @@ const EventDetailsPage = () => {
 
       {/* Registration Modal */}
       {showRegistrationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100 animate-in">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Register for Event</h3>
-                  {currentUser ? (
-                    <p className="text-sm text-green-600 mt-1">✓ Logged in as {currentUser.displayName || currentUser.email}</p>
-                  ) : (
-                    <p className="text-sm text-orange-600 mt-1">⚠ Guest registration - please provide your details</p>
-                  )}
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
+                    <Ticket className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Register for Event</h3>
+                    {currentUser ? (
+                      <p className="text-sm text-green-600 mt-1">✓ Logged in as {currentUser.displayName || currentUser.email}</p>
+                    ) : (
+                      <p className="text-sm text-orange-600 mt-1">⚠ Guest registration - please provide your details</p>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowRegistrationModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all duration-200"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -743,36 +773,37 @@ const EventDetailsPage = () => {
 
       {/* Ticket Success Modal */}
       {ticketInfo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 animate-in">
             <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h3>
-              <p className="text-gray-600 mb-4">Your ticket has been generated and sent to your email.</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h3>
+              <p className="text-gray-600 mb-6">Your ticket has been generated and sent to your email.</p>
               
-                              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-2">
-                    <Ticket className="w-5 h-5 text-primary-600" />
-                    <p className="text-lg font-mono text-primary-600">{ticketInfo.ticketNumber}</p>
-                    <button
-                      onClick={copyTicketToClipboard}
-                      className="p-2 text-gray-500 hover:text-primary-600 transition-colors duration-200"
-                      title="Copy ticket number"
-                    >
-                      {copiedTicket ? (
-                        <Check className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <Copy className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-6 border border-green-200">
+                <div className="flex items-center justify-center space-x-3">
+                  <Ticket className="w-6 h-6 text-green-600" />
+                  <p className="text-xl font-mono text-green-700 font-bold">{ticketInfo.ticketNumber}</p>
+                  <button
+                    onClick={copyTicketToClipboard}
+                    className="p-2 text-gray-500 hover:text-green-600 transition-all duration-200 hover:bg-green-100 rounded-lg"
+                    title="Copy ticket number"
+                  >
+                    {copiedTicket ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <Copy className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
+                <p className="text-sm text-gray-600 mt-2">Click the copy button to save your ticket number</p>
+              </div>
               
               <button
                 onClick={() => setTicketInfo(null)}
-                className="w-full py-2 px-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                className="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 Close
               </button>

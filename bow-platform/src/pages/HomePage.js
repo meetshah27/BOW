@@ -653,7 +653,7 @@ const HomePage = () => {
         </div>
       </section>
 
-             {/* Upcoming Events Section */}
+      {/* Upcoming Events Section */}
        <section id="upcoming-events-section" className="bg-white py-16">
         <div className="container-custom">
           <div className="text-center mb-16 relative">
@@ -690,8 +690,8 @@ const HomePage = () => {
                    }}
                    className="inline-block text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white animate-fade-in px-6 py-3 rounded-2xl shadow-lg hover:from-orange-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
                  >
-                   Upcoming Events
-                 </h2>
+              Upcoming Events
+            </h2>
               </div>
               
               {/* Enhanced description with better typography and animation */}
