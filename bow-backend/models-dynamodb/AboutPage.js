@@ -26,6 +26,7 @@ class AboutPage {
     this.foundingDescription = data.foundingDescription || 'Beats of Washington was founded by Aand Sane and Deepali Sane, visionary community leaders who recognized the power of music to bring people together. What started as a small neighborhood drum circle has grown into one of Washington State\'s most impactful community organizations.';
     this.founderBelief = data.founderBelief || 'Our founders believed that music transcends barriers of language, culture, and background, creating opportunities for genuine connection and understanding between diverse communities.';
     this.todayVision = data.todayVision || 'Today, we continue to honor that vision while adapting to meet the evolving needs of our communities through innovative programming and partnerships.';
+    this.logo = data.logo || ''; // Initialize logo field
     this.achievements = data.achievements || [
       {
         year: '2019',
@@ -71,10 +72,17 @@ class AboutPage {
 
     try {
       const result = await docClient.send(command);
+      console.log('🔍 Raw database result:', result);
       if (result.Item) {
-        return new AboutPage(result.Item);
+        console.log('🔍 Raw database item:', result.Item);
+        console.log('🔍 Logo field in raw item:', result.Item.logo);
+        const aboutPage = new AboutPage(result.Item);
+        console.log('🔍 AboutPage instance created:', aboutPage);
+        console.log('🔍 Logo in instance:', aboutPage.logo);
+        return aboutPage;
       }
       // Return default settings if none exist
+      console.log('🔍 No existing record, creating default');
       return new AboutPage();
     } catch (error) {
       console.error('Error getting about page settings:', error);
@@ -95,6 +103,7 @@ class AboutPage {
         foundingDescription: this.foundingDescription,
         founderBelief: this.founderBelief,
         todayVision: this.todayVision,
+        logo: this.logo, // Include logo field
         achievements: this.achievements,
         isActive: this.isActive,
         updatedAt: new Date().toISOString()
@@ -141,7 +150,20 @@ class AboutPage {
 
     try {
       const result = await docClient.send(command);
-      Object.assign(this, result.Attributes);
+      console.log('🔍 Update result from DynamoDB:', result);
+      console.log('🔍 Attributes after update:', result.Attributes);
+      
+      // Ensure all fields are properly updated, including logo
+      if (result.Attributes) {
+        Object.assign(this, result.Attributes);
+        // If logo was in the updates but not in the result, preserve it
+        if (updates.logo !== undefined && !result.Attributes.logo) {
+          this.logo = updates.logo;
+        }
+      }
+      
+      console.log('🔍 Final instance after update:', this);
+      console.log('🔍 Logo after update:', this.logo);
       return this;
     } catch (error) {
       console.error('Error updating about page settings:', error);
@@ -178,6 +200,24 @@ class AboutPage {
       console.error('Error getting all about page settings:', error);
       throw error;
     }
+  }
+
+  // Ensure all fields are properly serialized
+  toJSON() {
+    return {
+      id: this.id,
+      storyTitle: this.storyTitle,
+      storySubtitle: this.storySubtitle,
+      foundingYear: this.foundingYear,
+      foundingTitle: this.foundingTitle,
+      foundingDescription: this.foundingDescription,
+      founderBelief: this.founderBelief,
+      todayVision: this.todayVision,
+      logo: this.logo || '', // Ensure logo field is always included
+      achievements: this.achievements,
+      isActive: this.isActive,
+      updatedAt: this.updatedAt
+    };
   }
 }
 

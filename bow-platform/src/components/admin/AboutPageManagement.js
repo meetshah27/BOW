@@ -70,6 +70,12 @@ const AboutPageManagement = () => {
     fetchAboutPageContent();
   }, []);
 
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log('🔍 aboutPage state changed:', aboutPage);
+    console.log('🔍 Logo in state:', aboutPage.logo);
+  }, [aboutPage]);
+
   // Removed the problematic useEffect that was re-fetching and overwriting the logo
 
   const fetchAboutPageContent = async () => {
@@ -80,13 +86,19 @@ const AboutPageManagement = () => {
         const data = await response.json();
         console.log('🔍 Fetched about page data:', data);
         console.log('🔍 Logo field in fetched data:', data.logo);
+        console.log('🔍 Full fetched data:', JSON.stringify(data));
         
         // Ensure logo field is preserved
-        setAboutPage(prev => ({
-          ...prev,
-          ...data,
-          logo: data.logo || prev.logo || ''
-        }));
+        setAboutPage(prev => {
+          const newState = {
+            ...prev,
+            ...data,
+            logo: data.logo || prev.logo || ''
+          };
+          console.log('🔍 New state after fetch:', newState);
+          console.log('🔍 Logo in new state:', newState.logo);
+          return newState;
+        });
       }
     } catch (error) {
       console.error('Error fetching about page content:', error);
@@ -114,17 +126,24 @@ const AboutPageManagement = () => {
       console.log('💾 Final save data:', saveData);
 
       const response = await api.post('/about-page', saveData);
+      console.log('📡 Save response status:', response.status, response.ok);
+      
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Save response:', result);
+        console.log('🔍 Logo in response:', result.aboutPage?.logo);
         
         // Update the local state with the saved data to preserve the logo
         if (result.aboutPage) {
-          setAboutPage(prev => ({
-            ...prev,
-            ...result.aboutPage,
-            logo: result.aboutPage.logo || prev.logo || ''
-          }));
+          setAboutPage(prev => {
+            const newState = {
+              ...prev,
+              ...result.aboutPage,
+              logo: result.aboutPage.logo || prev.logo || ''
+            };
+            console.log('🔄 Final state after save:', newState.logo);
+            return newState;
+          });
         }
         
         setMessage('About page content saved successfully!');
@@ -170,11 +189,19 @@ const AboutPageManagement = () => {
   const handleLogoUpload = (fileData) => {
     console.log('🖼️ Logo upload successful:', fileData);
     console.log('🔍 Logo URL:', fileData.fileUrl);
+    console.log('🔍 Previous aboutPage state:', aboutPage);
+    console.log('🔍 File data structure:', JSON.stringify(fileData));
     
-    setAboutPage(prev => ({
-      ...prev,
-      logo: fileData.fileUrl
-    }));
+    // Update the state immediately
+    setAboutPage(prev => {
+      const newState = {
+        ...prev,
+        logo: fileData.fileUrl
+      };
+      console.log('🔄 Updated aboutPage state with logo:', newState.logo);
+      console.log('🔄 Full new state:', newState);
+      return newState;
+    });
     
     // Show success message
     setMessage('Logo uploaded successfully!');
@@ -276,6 +303,7 @@ const AboutPageManagement = () => {
               </h2>
               
               <div className="space-y-4">
+                {console.log('🔍 Rendering logo section, logo value:', aboutPage.logo)}
                 {aboutPage.logo ? (
                   <div className="text-center">
                     <div className="relative inline-block">
