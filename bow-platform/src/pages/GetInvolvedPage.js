@@ -38,6 +38,26 @@ const GetInvolvedPage = () => {
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [volunteerOpportunities, setVolunteerOpportunities] = useState([]);
   const [loadingOpportunities, setLoadingOpportunities] = useState(true);
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get('/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.logo) {
+            setLogoUrl(data.logo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    
+    fetchLogo();
+  }, []);
 
   // Fetch volunteer opportunities from API
   useEffect(() => {
@@ -349,8 +369,16 @@ const GetInvolvedPage = () => {
             {activeTab === 'volunteer' && (
               <div id="volunteer-section" className="space-y-8">
                 <div className="text-center mb-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-6 shadow-lg animate-pulse">
-                    <Users className="w-10 h-10 text-white animate-bounce" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-6 shadow-lg animate-pulse overflow-hidden">
+                    {logoUrl ? (
+                      <img 
+                        src={logoUrl} 
+                        alt="BOW Logo" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Users className="w-10 h-10 text-white animate-bounce" />
+                    )}
                   </div>
                   <h3 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
                     Volunteer Opportunities

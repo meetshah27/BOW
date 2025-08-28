@@ -103,6 +103,16 @@ app.use(healthCheckMiddleware);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/payment', paymentRouter);
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 app.use('/api/events', eventsRouter);
 app.use('/api/volunteers', volunteersRouter);
 app.use('/api/stories', storiesRouter);

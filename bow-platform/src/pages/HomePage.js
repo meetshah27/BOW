@@ -271,6 +271,7 @@ const HomePage = () => {
   });
   const [loadingMissionMedia, setLoadingMissionMedia] = useState(true);
   const [missionMediaFetched, setMissionMediaFetched] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
 
   // Fetch functions defined outside useEffect to prevent recreation
   const fetchEvents = useCallback(async () => {
@@ -330,6 +331,20 @@ const HomePage = () => {
     }
   }, [heroFetched]);
 
+  const fetchLogo = useCallback(async () => {
+    try {
+      const response = await api.get('/about-page');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.logo) {
+          setLogoUrl(data.logo);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching logo:', error);
+    }
+  }, []);
+
   const fetchMissionMedia = useCallback(async () => {
     if (missionMediaFetched) {
       console.log('⚠️ Mission media already fetched, skipping duplicate request');
@@ -370,6 +385,7 @@ const HomePage = () => {
     fetchEvents();
     fetchHeroSettings();
     fetchMissionMedia();
+    fetchLogo();
   }, []); // Empty dependency array - only run on mount
 
   // Debug: Log whenever heroSettings changes
@@ -858,8 +874,16 @@ const HomePage = () => {
         <div className="container-custom relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-fade-in-up">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full mb-8 shadow-lg animate-pulse">
-                <Music className="w-10 h-10 text-white animate-bounce" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full mb-8 shadow-lg animate-pulse overflow-hidden">
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="BOW Logo" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Music className="w-10 h-10 text-white animate-bounce" />
+                )}
               </div>
               
               <h2 className="text-5xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">

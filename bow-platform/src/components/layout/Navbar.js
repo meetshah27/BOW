@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Menu, X, LogOut, UserCircle, Calendar, Shield } from 'lucide-react';
+import api from '../../config/api';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [logoUrl, setLogoUrl] = useState('');
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -65,6 +67,30 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get('/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.logo) {
+            setLogoUrl(data.logo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    
+    fetchLogo();
+    
+    // Refresh logo every 30 seconds to catch updates
+    const logoRefreshInterval = setInterval(fetchLogo, 30000);
+    
+    return () => clearInterval(logoRefreshInterval);
+  }, []);
+
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
@@ -82,8 +108,16 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-1 -ml-12">
-            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">B</span>
+            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-bold text-lg">B</span>
+              )}
             </div>
             <span className="text-xl font-bold text-gray-900">Beats of Washington</span>
           </Link>

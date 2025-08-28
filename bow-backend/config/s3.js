@@ -43,7 +43,8 @@ const S3_CONFIG = {
     PROFILES: 'profiles',
     SPONSORS: 'sponsors',
     STORIES: 'stories',
-    FOUNDERS: 'founders'
+    FOUNDERS: 'founders',
+    ABOUT: 'about'
   }
 };
 

@@ -48,6 +48,7 @@ const AboutPage = () => {
     foundingDescription: 'Beats of Washington was founded by Aand Sane and Deepali Sane, visionary community leaders who recognized the power of music to bring people together. What started as a small neighborhood drum circle has grown into one of Washington State\'s most impactful community organizations.',
     founderBelief: 'Our founders believed that music transcends barriers of language, culture, and background, creating opportunities for genuine connection and understanding between diverse communities.',
     todayVision: 'Today, we continue to honor that vision while adapting to meet the evolving needs of our communities through innovative programming and partnerships.',
+    logo: '', // New logo field
     achievements: [
       {
         year: '2019',
@@ -184,8 +185,9 @@ const AboutPage = () => {
       const res = await api.get('/about-page');
       if (res.ok) {
         const data = await res.json();
-        setAboutPageContent(data);
         console.log('✅ About page content loaded:', data);
+        console.log('🔍 Logo field value:', data.logo);
+        setAboutPageContent(data);
       }
     } catch (error) {
       console.error('Error fetching about page content:', error);
@@ -325,8 +327,16 @@ const AboutPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-fade-in-up">
               <div className="inline-block mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Music className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
+                  {aboutPageContent.logo ? (
+                    <img 
+                      src={aboutPageContent.logo} 
+                      alt="BOW Logo" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Music className="w-8 h-8 text-white" />
+                  )}
                 </div>
               </div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
@@ -684,12 +694,22 @@ const AboutPage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8" />
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                {aboutPageContent.logo ? (
+                  <img 
+                    src={aboutPageContent.logo} 
+                    alt="BOW Logo" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">B</span>
+                  </div>
+                )}
               </div>
-              <h3 className="text-xl font-semibold mb-3">Transparent</h3>
+              <h3 className="text-xl font-semibold mb-3">Logo</h3>
               <p className="text-gray-100">
-                Annual reports and financial statements are publicly available.
+                Our organization logo represents our mission and values.
               </p>
             </div>
             <div className="text-center">

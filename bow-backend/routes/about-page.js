@@ -28,6 +28,8 @@ router.get('/admin', async (req, res) => {
 // Create/Update about page content (protected route)
 router.post('/', async (req, res) => {
   try {
+    console.log('🔍 Received request body:', req.body);
+    
     const {
       storyTitle,
       storySubtitle,
@@ -36,9 +38,13 @@ router.post('/', async (req, res) => {
       foundingDescription,
       founderBelief,
       todayVision,
+      logo,
       achievements,
       isActive
     } = req.body;
+    
+    console.log('🔍 Logo field received:', logo);
+    console.log('🔍 Logo field type:', typeof logo);
 
     // Validate required fields
     if (!storyTitle || !storySubtitle || !foundingDescription) {
@@ -55,7 +61,7 @@ router.post('/', async (req, res) => {
     
     if (aboutPage.id === 'about-page-settings') {
       // Update existing content
-      await aboutPage.update({
+      const updateData = {
         storyTitle,
         storySubtitle,
         foundingYear,
@@ -63,9 +69,15 @@ router.post('/', async (req, res) => {
         foundingDescription,
         founderBelief,
         todayVision,
+        logo,
         achievements,
         isActive
-      });
+      };
+      
+      console.log('🔍 Update data being sent:', updateData);
+      console.log('🔍 Logo in update data:', updateData.logo);
+      
+      await aboutPage.update(updateData);
     } else {
       // Create new content
       aboutPage = new AboutPage({
@@ -76,6 +88,7 @@ router.post('/', async (req, res) => {
         foundingDescription,
         founderBelief,
         todayVision,
+        logo,
         achievements,
         isActive
       });

@@ -14,7 +14,8 @@ const FileUpload = ({
   folder = 'general',
   className = '',
   disabled = false,
-  showPreview = true
+  showPreview = true,
+  isLogo = false
 }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -28,16 +29,26 @@ const FileUpload = ({
     try {
       for (const file of acceptedFiles) {
         const formData = new FormData();
-        formData.append('file', file);
+        // Use 'logo' field for logo uploads, 'file' for others
+        const fieldName = isLogo ? 'logo' : 'file';
+        formData.append(fieldName, file);
         formData.append('folder', folder);
 
-        const response = await api.upload('/upload/single', formData);
+        // Use specific endpoint for logos
+        const endpoint = isLogo ? '/upload/about-logo' : '/upload/single';
+        console.log('🔄 Uploading file:', file.name, 'to endpoint:', endpoint, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+        
+        const response = await api.upload(endpoint, formData);
+        console.log('📡 Upload response status:', response.status, response.ok);
 
         if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
+          const errorText = await response.text();
+          console.error('❌ Upload failed with status:', response.status, 'Error:', errorText);
+          throw new Error(`Failed to upload ${file.name}: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
+        console.log('📋 Upload result:', result);
         
         if (result.success) {
           const fileData = {

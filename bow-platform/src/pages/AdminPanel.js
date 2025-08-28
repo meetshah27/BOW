@@ -114,6 +114,26 @@ const Dashboard = () => {
     loading: true,
     error: null
   });
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get('/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.logo) {
+            setLogoUrl(data.logo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -209,8 +229,16 @@ const Dashboard = () => {
           <p className="text-primary-100 text-lg">Welcome, Admin! Manage your platform with ease.</p>
         </div>
         <div className="hidden md:block">
-          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="BOW Logo" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
             <Users className="w-12 h-12 text-white" />
+            )}
           </div>
         </div>
       </div>
