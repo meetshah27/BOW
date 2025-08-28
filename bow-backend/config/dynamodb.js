@@ -9,6 +9,7 @@ const TABLES = {
   USERS: 'bow-users',
   EVENTS: 'bow-events',
   STORIES: 'bow-stories',
+  STORIES_MEDIA: 'bow-stories-media',
   FOUNDERS: 'bow-founders',
   DONATIONS: 'bow-donations',
   REGISTRATIONS: 'bow-registrations',
@@ -205,6 +206,19 @@ const TABLE_SCHEMAS = {
   },
   [TABLES.FOUNDER_CONTENT]: {
     TableName: TABLES.FOUNDER_CONTENT,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.STORIES_MEDIA]: {
+    TableName: TABLES.STORIES_MEDIA,
     KeySchema: [
       { AttributeName: 'id', KeyType: 'HASH' }
     ],
