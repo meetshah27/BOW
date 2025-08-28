@@ -58,6 +58,8 @@ router.post('/', async (req, res) => {
 
     // Check if content already exists
     let aboutPage = await AboutPage.getSettings();
+    console.log('🔍 Existing about page found:', aboutPage);
+    console.log('🔍 Existing logo:', aboutPage.logo);
     
     if (aboutPage.id === 'about-page-settings') {
       // Update existing content
@@ -95,9 +97,15 @@ router.post('/', async (req, res) => {
       await aboutPage.save();
     }
 
+    // Get the updated about page to ensure we return the latest data
+    const updatedAboutPage = await AboutPage.getSettings();
+    console.log('🔍 Final about page data being sent in response:', updatedAboutPage);
+    console.log('🔍 Logo in final response:', updatedAboutPage.logo);
+    console.log('🔍 Updated about page JSON:', JSON.stringify(updatedAboutPage));
+    
     res.json({ 
       message: 'About page content updated successfully',
-      aboutPage 
+      aboutPage: updatedAboutPage
     });
     
   } catch (error) {
