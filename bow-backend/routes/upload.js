@@ -156,22 +156,31 @@ router.post('/sponsor', upload.single('image'), async (req, res) => {
   }
 });
 
-// Upload story image
-router.post('/story', upload.single('image'), async (req, res) => {
+// Upload story media (image or video)
+router.post('/story', upload.single('media'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No image uploaded' });
+      return res.status(400).json({ error: 'No media uploaded' });
+    }
+
+    // Check if it's an image or video
+    const isImage = req.file.mimetype.startsWith('image/');
+    const isVideo = req.file.mimetype.startsWith('video/');
+    
+    if (!isImage && !isVideo) {
+      return res.status(400).json({ error: 'Only images and videos are allowed for stories' });
     }
 
     const result = await uploadToS3(req.file, S3_CONFIG.FOLDERS.STORIES);
 
     res.json({
       success: true,
-      message: 'Story image uploaded successfully',
-      data: result
+      message: `Story ${isImage ? 'image' : 'video'} uploaded successfully`,
+      data: result,
+      mediaType: isImage ? 'image' : 'video'
     });
   } catch (error) {
-    console.error('Story upload error:', error);
+    console.error('Story media upload error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Upload failed'

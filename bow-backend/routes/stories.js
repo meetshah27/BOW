@@ -133,12 +133,43 @@ router.post('/', verifyCognito, async (req, res) => {
   }
 });
 
+// POST create new story (unprotected - for testing)
+router.post('/test', async (req, res) => {
+  try {
+    console.log('📝 Creating test story:', req.body);
+    
+    if (Story) {
+      const story = await Story.create(req.body);
+      console.log('✅ Story created successfully:', story);
+      res.status(201).json(story);
+    } else {
+      // Fallback response for demo mode
+      const newStory = {
+        id: `story_${Date.now()}`,
+        ...req.body,
+        date: new Date().toISOString(),
+        likes: 0,
+        comments: 0
+      };
+      console.log('✅ Test story created (demo mode):', newStory);
+      res.status(201).json(newStory);
+    }
+  } catch (error) {
+    console.error('❌ Error creating test story:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // PUT update story (protected)
 router.put('/:id', verifyCognito, async (req, res) => {
   try {
     if (Story) {
-      const story = await Story.updateById(req.params.id, req.body);
-      res.json(story);
+      const story = await Story.findById(req.params.id);
+      if (!story) {
+        return res.status(404).json({ error: 'Story not found' });
+      }
+      const updatedStory = await story.update(req.body);
+      res.json(updatedStory);
     } else {
       // Fallback response for demo mode
       res.json({ message: 'Story updated (demo mode)', id: req.params.id });
@@ -149,11 +180,39 @@ router.put('/:id', verifyCognito, async (req, res) => {
   }
 });
 
+// PUT update story (unprotected - for testing)
+router.put('/test/:id', async (req, res) => {
+  try {
+    console.log('📝 Updating test story:', req.params.id, req.body);
+    
+    if (Story) {
+      const story = await Story.findById(req.params.id);
+      if (!story) {
+        return res.status(404).json({ error: 'Story not found' });
+      }
+      const updatedStory = await story.update(req.body);
+      console.log('✅ Story updated successfully:', updatedStory);
+      res.json(updatedStory);
+    } else {
+      // Fallback response for demo mode
+      console.log('✅ Test story updated (demo mode)');
+      res.json({ message: 'Story updated (demo mode)', id: req.params.id });
+    }
+  } catch (error) {
+    console.error('❌ Error updating test story:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // DELETE story (protected)
 router.delete('/:id', verifyCognito, async (req, res) => {
   try {
     if (Story) {
-      await Story.deleteById(req.params.id);
+      const story = await Story.findById(req.params.id);
+      if (!story) {
+        return res.status(404).json({ error: 'Story not found' });
+      }
+      await story.delete();
       res.json({ message: 'Story deleted successfully' });
     } else {
       // Fallback response for demo mode
@@ -161,6 +220,30 @@ router.delete('/:id', verifyCognito, async (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting story:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE story (unprotected - for testing)
+router.delete('/test/:id', async (req, res) => {
+  try {
+    console.log('🗑️ Deleting test story:', req.params.id);
+    
+    if (Story) {
+      const story = await Story.findById(req.params.id);
+      if (!story) {
+        return res.status(404).json({ error: 'Story not found' });
+      }
+      await story.delete();
+      console.log('✅ Test story deleted successfully');
+      res.json({ message: 'Story deleted successfully' });
+    } else {
+      // Fallback response for demo mode
+      console.log('✅ Test story deleted (demo mode)');
+      res.json({ message: 'Story deleted (demo mode)' });
+    }
+  } catch (error) {
+    console.error('❌ Error deleting test story:', error);
     res.status(500).json({ error: error.message });
   }
 });
