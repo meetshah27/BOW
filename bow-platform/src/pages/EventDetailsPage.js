@@ -44,6 +44,7 @@ const EventDetailsPage = () => {
   const [copiedTicket, setCopiedTicket] = useState(false);
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
   const [existingRegistration, setExistingRegistration] = useState(null);
+  const [logoUrl, setLogoUrl] = useState('');
 
   // Mock event data - in a real app, this would come from your backend
   const mockEvents = [
@@ -134,6 +135,25 @@ const EventDetailsPage = () => {
     };
     fetchEvent();
   }, [id]);
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get('/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.logo) {
+            setLogoUrl(data.logo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    
+    fetchLogo();
+  }, []);
 
   // Keep registrationData in sync with currentUser
   useEffect(() => {
@@ -399,8 +419,16 @@ const EventDetailsPage = () => {
               <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-primary-500 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-4">
-                      <Star className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
+                      {logoUrl ? (
+                        <img 
+                          src={logoUrl} 
+                          alt="BOW Logo" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Star className="w-5 h-5 text-white" />
+                      )}
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
                   </div>

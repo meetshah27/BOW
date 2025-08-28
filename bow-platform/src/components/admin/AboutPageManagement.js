@@ -9,9 +9,11 @@ import {
   Calendar,
   Award,
   Users,
-  Music
+  Music,
+  Image
 } from 'lucide-react';
 import api from '../../config/api';
+import FileUpload from '../common/FileUpload';
 
 const AboutPageManagement = () => {
   const [aboutPage, setAboutPage] = useState({
@@ -54,7 +56,8 @@ const AboutPageManagement = () => {
         description: 'Reached over 50,000 community members across the state.'
       }
     ],
-    isActive: true
+    isActive: true,
+    logo: '' // Added logo field
   });
 
   const [loading, setLoading] = useState(true);
@@ -67,13 +70,23 @@ const AboutPageManagement = () => {
     fetchAboutPageContent();
   }, []);
 
+  // Removed the problematic useEffect that was re-fetching and overwriting the logo
+
   const fetchAboutPageContent = async () => {
     try {
       setLoading(true);
       const response = await api.get('/about-page/admin');
       if (response.ok) {
         const data = await response.json();
-        setAboutPage(data);
+        console.log('🔍 Fetched about page data:', data);
+        console.log('🔍 Logo field in fetched data:', data.logo);
+        
+        // Ensure logo field is preserved
+        setAboutPage(prev => ({
+          ...prev,
+          ...data,
+          logo: data.logo || prev.logo || ''
+        }));
       }
     } catch (error) {
       console.error('Error fetching about page content:', error);
@@ -88,13 +101,37 @@ const AboutPageManagement = () => {
     try {
       setSaving(true);
       setMessage('');
+      
+      console.log('💾 Saving about page content:', aboutPage);
+      console.log('🔍 Logo field being sent:', aboutPage.logo);
+      
+      // Ensure logo field is included in the save data
+      const saveData = {
+        ...aboutPage,
+        logo: aboutPage.logo || ''
+      };
+      
+      console.log('💾 Final save data:', saveData);
 
-      const response = await api.post('/about-page', aboutPage);
+      const response = await api.post('/about-page', saveData);
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Save response:', result);
+        
+        // Update the local state with the saved data to preserve the logo
+        if (result.aboutPage) {
+          setAboutPage(prev => ({
+            ...prev,
+            ...result.aboutPage,
+            logo: result.aboutPage.logo || prev.logo || ''
+          }));
+        }
+        
         setMessage('About page content saved successfully!');
         setMessageType('success');
       } else {
         const errorData = await response.json();
+        console.error('❌ Save error:', errorData);
         setMessage(errorData.error || 'Failed to save content');
         setMessageType('error');
       }
@@ -128,6 +165,30 @@ const AboutPageManagement = () => {
   const removeAchievement = (index) => {
     const newAchievements = aboutPage.achievements.filter((_, i) => i !== index);
     setAboutPage({ ...aboutPage, achievements: newAchievements });
+  };
+
+  const handleLogoUpload = (fileData) => {
+    console.log('🖼️ Logo upload successful:', fileData);
+    console.log('🔍 Logo URL:', fileData.fileUrl);
+    
+    setAboutPage(prev => ({
+      ...prev,
+      logo: fileData.fileUrl
+    }));
+    
+    // Show success message
+    setMessage('Logo uploaded successfully!');
+    setMessageType('success');
+    
+    // Clear message after 3 seconds
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const removeLogo = () => {
+    setAboutPage(prev => ({
+      ...prev,
+      logo: ''
+    }));
   };
 
   const showMessage = (msg, type) => {
@@ -207,6 +268,55 @@ const AboutPageManagement = () => {
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Edit Form */}
           <div className="space-y-6">
+            {/* Logo Section */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <Image className="w-5 h-5 mr-2 text-primary-600" />
+                About Page Logo
+              </h2>
+              
+              <div className="space-y-4">
+                {aboutPage.logo ? (
+                  <div className="text-center">
+                    <div className="relative inline-block">
+                      <img 
+                        src={aboutPage.logo} 
+                        alt="About page logo" 
+                        className="w-32 h-32 object-cover rounded-full border-4 border-primary-200 shadow-lg"
+                      />
+                      <button
+                        onClick={removeLogo}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                        title="Remove logo"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">Current logo</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="w-32 h-32 bg-gray-100 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center mx-auto mb-4">
+                      <Image className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">No logo uploaded</p>
+                  </div>
+                )}
+                
+                <FileUpload
+                  onUpload={handleLogoUpload}
+                  folder="about"
+                  accept="image/*"
+                  multiple={false}
+                  className="w-full"
+                  isLogo={true}
+                />
+                <p className="text-xs text-gray-500 text-center">
+                  Upload a circular logo image. Recommended size: 256x256px or larger.
+                </p>
+              </div>
+            </div>
+
             {/* Story Section */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
@@ -415,9 +525,23 @@ const AboutPageManagement = () => {
           {previewMode && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Live Preview</h2>
-                <div className="prose max-w-none">
-                  {/* Story Section Preview */}
+                                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Live Preview</h2>
+                  <div className="prose max-w-none">
+                    {/* Logo Preview */}
+                    {aboutPage.logo && (
+                      <div className="text-center mb-8">
+                        <div className="inline-block">
+                          <img 
+                            src={aboutPage.logo} 
+                            alt="BOW Logo Preview" 
+                            className="w-24 h-24 object-cover rounded-full border-4 border-primary-200 shadow-lg mx-auto"
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2">Logo will appear in the "Transparent" section</p>
+                      </div>
+                    )}
+
+                    {/* Story Section Preview */}
                   <div className="text-center mb-8">
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">
                       {aboutPage.storyTitle}

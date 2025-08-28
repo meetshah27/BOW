@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
 
   const footerLinks = {
     organization: [
@@ -49,13 +50,13 @@ const Footer = () => {
       icon: () => (
         <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
           <rect width="24" height="24" rx="6" fill="url(#ig-gradient)"/>
-          <defs>
-            <linearGradient id="ig-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#f58529"/>
-              <stop offset="0.5" stop-color="#dd2a7b"/>
-              <stop offset="1" stop-color="#515bd4"/>
-            </linearGradient>
-          </defs>
+                     <defs>
+             <linearGradient id="ig-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+               <stop stopColor="#f58529"/>
+               <stop offset="0.5" stopColor="#dd2a7b"/>
+               <stop offset="1" stopColor="#515bd4"/>
+             </linearGradient>
+           </defs>
           <circle cx="12" cy="12" r="5" stroke="#fff" strokeWidth="2"/>
           <circle cx="18" cy="6" r="1" fill="#fff"/>
         </svg>
@@ -72,6 +73,25 @@ const Footer = () => {
       )
     }
   ];
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get('/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.logo) {
+            setLogoUrl(data.logo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    
+    fetchLogo();
+  }, []);
 
   const handleNewsletterSubscribe = async (e) => {
     e.preventDefault();
@@ -116,8 +136,16 @@ const Footer = () => {
           {/* Organization Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
+              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="BOW Logo" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-lg">B</span>
+                )}
               </div>
               <span className="text-xl font-bold">Beats of Washington</span>
             </div>

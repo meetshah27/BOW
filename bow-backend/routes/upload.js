@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const { upload, uploadToS3, deleteFromS3, S3_CONFIG } = require('../config/s3');
 
 // Upload single file
@@ -222,6 +223,63 @@ router.post('/founder', upload.single('media'), async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Founder media upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Upload failed'
+    });
+  }
+});
+
+// Test endpoint to check if server is working
+router.get('/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Upload route is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Upload about page logo
+router.post('/about-logo', upload.single('logo'), async (req, res) => {
+  try {
+    console.log('🚀 POST /api/upload/about-logo called');
+    console.log('📋 Request headers:', req.headers);
+    console.log('📋 Request body keys:', Object.keys(req.body));
+    console.log('📋 Request files:', req.files);
+    console.log('📋 Request file:', req.file);
+    
+    if (!req.file) {
+      console.log('❌ No file received in request');
+      return res.status(400).json({ 
+        error: 'No logo uploaded',
+        details: 'Logo file was not received'
+      });
+    }
+
+    // Validate that it's an image
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ 
+        error: 'Invalid file type',
+        details: 'Only image files are allowed for logos'
+      });
+    }
+
+    console.log('📋 Logo file details:', {
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    const result = await uploadToS3(req.file, 'about');
+    console.log('✅ Logo upload to S3 successful:', result);
+
+    res.json({
+      success: true,
+      message: 'About page logo uploaded successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('❌ About logo upload error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Upload failed'
