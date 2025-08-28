@@ -117,8 +117,16 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="hidden md:block">
-            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
-              <User className="w-12 h-12 text-white" />
+            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+              {currentUser?.photoURL ? (
+                <img 
+                  src={currentUser.photoURL} 
+                  alt={`${currentUser?.displayName || currentUser?.name || 'Member'} profile`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-12 h-12 text-white" />
+              )}
             </div>
           </div>
         </div>
