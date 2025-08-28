@@ -327,7 +327,7 @@ const AboutPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-fade-in-up">
               <div className="inline-block mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
+                <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
                   {aboutPageContent.logo ? (
                     <img 
                       src={aboutPageContent.logo} 
@@ -335,7 +335,7 @@ const AboutPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Music className="w-8 h-8 text-white" />
+                    <Music className="w-12 h-12 text-white" />
                   )}
                 </div>
               </div>
@@ -504,8 +504,16 @@ const AboutPage = () => {
         <div className="container-custom relative z-10">
           <div className="text-center mb-16">
             <div className="inline-block mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg pulse-glow">
-                <Star className="w-8 h-8 text-white" />
+              <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg pulse-glow overflow-hidden">
+                {aboutPageContent.logo ? (
+                  <img 
+                    src={aboutPageContent.logo} 
+                    alt="BOW Logo" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Star className="w-12 h-12 text-white" />
+                )}
               </div>
             </div>
             <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-6">
@@ -694,7 +702,7 @@ const AboutPage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+              <div className="w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
                 {aboutPageContent.logo ? (
                   <img 
                     src={aboutPageContent.logo} 
@@ -703,14 +711,10 @@ const AboutPage = () => {
                   />
                 ) : (
                   <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">B</span>
+                    <span className="text-white font-bold text-4xl">B</span>
                   </div>
                 )}
               </div>
-              <h3 className="text-xl font-semibold mb-3">Logo</h3>
-              <p className="text-gray-100">
-                Our organization logo represents our mission and values.
-              </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
