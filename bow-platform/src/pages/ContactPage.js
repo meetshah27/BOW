@@ -47,8 +47,8 @@ const ContactPage = () => {
     {
       icon: Mail,
       title: "Email",
-      value: "contact@beatsofwa.org",
-      link: "mailto:contact@beatsofwa.org"
+              value: "beatsofredmond@gmail.com",
+        link: "mailto:beatsofredmond@gmail.com"
     },
     {
       icon: Phone,
@@ -78,22 +78,22 @@ const ContactPage = () => {
   const departments = [
     {
       name: "General Inquiries",
-      email: "contact@beatsofwa.org",
+      email: "beatsofredmond@gmail.com",
       description: "For general questions about our organization and programs"
     },
     {
       name: "Event Planning",
-      email: "contact@beatsofwa.org",
+      email: "beatsofredmond@gmail.com",
       description: "For questions about hosting or participating in events"
     },
     {
       name: "Volunteer Coordination",
-      email: "contact@beatsofwa.org",
+      email: "beatsofredmond@gmail.com",
       description: "For volunteer opportunities and coordination"
     },
     {
       name: "Media & Press",
-      email: "contact@beatsofwa.org",
+      email: "beatsofredmond@gmail.com",
       description: "For press inquiries and media partnerships"
     }
   ];
@@ -501,7 +501,7 @@ const ContactPage = () => {
                 </h3>
                 <p className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
                   Visit our Get Involved page to learn about volunteer opportunities. 
-                  You can also email us at contact@beatsofwa.org for more information.
+                  You can also email us at beatsofredmond@gmail.com for more information.
                 </p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 transform transition-all duration-300 hover:scale-105 hover:-translate-y-2 hover:shadow-xl group cursor-pointer">
@@ -521,7 +521,7 @@ const ContactPage = () => {
                 </h3>
                 <p className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
                   Yes! We love partnering with community members. Contact our events team 
-                  at contact@beatsofwa.org to discuss your idea.
+                  at beatsofredmond@gmail.com to discuss your idea.
                 </p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 transform transition-all duration-300 hover:scale-105 hover:-translate-y-2 hover:shadow-xl group cursor-pointer">
