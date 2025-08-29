@@ -88,7 +88,7 @@ const PrivacyPolicyPage = () => {
                     Our website does not automatically recognize your email address. We collect the email addresses of those who communicate with us by email 
                     and we ask for your email address via our website. If you communicate with us by email or give us your email address, we may send you 
                     periodical email updates. If you do not want to receive our periodical email updates email us at{' '}
-                    <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a> and we will remove you from our list.
+                    <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a> and we will remove you from our list.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
                     We use email links to allow you to contact us directly with questions or comments. This information is used to respond directly to your 
@@ -122,10 +122,10 @@ const PrivacyPolicyPage = () => {
                 <div className="prose prose-gray max-w-none">
                   <p className="text-gray-700 leading-relaxed">
                     If you wish to remove yourself from any of our mailing lists, send an email to{' '}
-                    <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a>. 
+                    <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a>. 
                     Your privacy is very important to us. If you feel that your privacy has been violated or that Beats of Washington has misused your information in any way, 
                     please contact us at{' '}
-                    <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a>.
+                    <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a>.
                   </p>
                 </div>
               </section>
@@ -135,7 +135,7 @@ const PrivacyPolicyPage = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Us</h3>
                 <p className="text-gray-700">
                   If you have any questions about this Privacy Policy, please contact us at:{' '}
-                  <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a>
+                  <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a>
                 </p>
               </section>
 

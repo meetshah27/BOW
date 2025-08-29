@@ -187,7 +187,7 @@ const TermsOfServicePage = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Us</h3>
                 <p className="text-gray-700">
                   If you have any questions about these Terms of Service, please contact us at:{' '}
-                  <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a>
+                  <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a>
                 </p>
               </section>
 

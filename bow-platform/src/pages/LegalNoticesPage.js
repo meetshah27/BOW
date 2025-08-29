@@ -48,7 +48,7 @@ const LegalNoticesPage = () => {
                     in digital or electronic form by means of the World Wide Web, e-mail, online services or any other medium now existing or hereafter developed. 
                     To use any material posted on this site for purposes other than for your individual reading or viewing, prior permission from Beats of Washington is required. 
                     You can request for such permission specifying the sections of the website or any material on the website and the usage, by sending an email to{' '}
-                    <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a>. 
+                    <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a>. 
                     Requests by regular mail, telephonic, facsimile or requests by any form other than email will not be addressed.
                   </p>
                   <p className="text-gray-700 leading-relaxed">
@@ -161,7 +161,7 @@ const LegalNoticesPage = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Us</h3>
                 <p className="text-gray-700">
                   If you have any questions about these Legal Notices, please contact us at:{' '}
-                  <a href="mailto:contact@beatsofwa.org" className="text-primary-600 hover:underline">contact@beatsofwa.org</a>
+                  <a href="mailto:beatsofredmond@gmail.com" className="text-primary-600 hover:underline">beatsofredmond@gmail.com</a>
                 </p>
               </section>
 
