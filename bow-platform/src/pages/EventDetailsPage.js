@@ -804,8 +804,16 @@ const EventDetailsPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 animate-in">
             <div className="p-6 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <CheckCircle className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="BOW Logo" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <CheckCircle className="w-10 h-10 text-white" />
+                )}
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h3>
               <p className="text-gray-600 mb-6">Your ticket has been generated and sent to your email.</p>
