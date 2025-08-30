@@ -11,7 +11,7 @@ import {
   Star
 } from 'lucide-react';
 import {loadStripe} from '@stripe/stripe-js';
-import {Elements, CardElement, useStripe, useElements} from '@stripe/react-stripe-js';
+import {Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements} from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
 import DonorTicker from '../components/common/DonorTicker';
@@ -48,9 +48,19 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
       const {clientSecret, error} = await res.json();
       if (error) throw new Error(error);
       
-      // Confirm payment
+      // Create payment method first
+      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: elements.getElement(CardNumberElement),
+      });
+
+      if (paymentMethodError) {
+        throw new Error(paymentMethodError.message);
+      }
+
+      // Confirm payment with the payment method
       const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {card: elements.getElement(CardElement)},
+        payment_method: paymentMethod.id,
       });
       
       if (result.error) {
@@ -59,7 +69,9 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
         toast.success('Thank you for your donation!');
         triggerConfetti(); // Trigger confetti animation
         // Clear the form
-        elements.getElement(CardElement).clear();
+        elements.getElement(CardNumberElement).clear();
+        elements.getElement(CardExpiryElement).clear();
+        elements.getElement(CardCvcElement).clear();
       }
     } catch (err) {
       console.error('Payment error:', err);
@@ -71,25 +83,85 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-      <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
-        <CardElement 
-          options={{
-            hidePostalCode: true,
-            style: {
-              base: {
-                fontSize: '16px',
-                color: '#424770',
-                '::placeholder': {
-                  color: '#aab7c4',
+      {/* Card Number */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Card Number *
+        </label>
+        <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+          <CardNumberElement 
+            options={{
+              showIcon: true,
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: '#424770',
+                  '::placeholder': {
+                    color: '#aab7c4',
+                  },
+                },
+                invalid: {
+                  color: '#9e2146',
                 },
               },
-              invalid: {
-                color: '#9e2146',
-              },
-            },
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
+
+      {/* Card Details Row */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Expiration Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Expiration Date (MM/YY) *
+          </label>
+          <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+            <CardExpiryElement 
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                      color: '#aab7c4',
+                    },
+                  },
+                  invalid: {
+                    color: '#9e2146',
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+
+        {/* CVC */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            CVC *
+          </label>
+          <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+            <CardCvcElement 
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                      color: '#aab7c4',
+                    },
+                  },
+                  invalid: {
+                    color: '#9e2146',
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       <button 
         type="submit" 
         className="btn-primary w-full" 

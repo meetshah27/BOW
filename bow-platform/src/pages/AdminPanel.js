@@ -1799,6 +1799,8 @@ const DonationsManagement = () => {
   });
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [selectedDonations, setSelectedDonations] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchDonations();
@@ -1874,6 +1876,95 @@ const DonationsManagement = () => {
     }
   };
 
+  const deleteDonation = async (donation) => {
+    if (!window.confirm(`Are you sure you want to delete the donation from ${donation.donorName} for $${(donation.amount / 100).toFixed(2)}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await api.delete(`/payment/donations/${donation.paymentIntentId}`);
+      if (response.ok) {
+        toast.success('Donation deleted successfully!');
+        // Refresh the donations list
+        fetchDonations();
+        // Refresh stats
+        fetchStats();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to delete donation');
+      }
+    } catch (error) {
+      console.error('Error deleting donation:', error);
+      toast.error('Failed to delete donation. Please try again.');
+    }
+  };
+
+  const handleSelectDonation = (paymentIntentId) => {
+    const newSelected = new Set(selectedDonations);
+    if (newSelected.has(paymentIntentId)) {
+      newSelected.delete(paymentIntentId);
+    } else {
+      newSelected.add(paymentIntentId);
+    }
+    setSelectedDonations(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDonations.size === donations.length) {
+      setSelectedDonations(new Set());
+    } else {
+      setSelectedDonations(new Set(donations.map(d => d.paymentIntentId)));
+    }
+  };
+
+  const bulkDeleteDonations = async () => {
+    if (selectedDonations.size === 0) {
+      toast.error('Please select donations to delete');
+      return;
+    }
+
+    const selectedDonationsList = Array.from(selectedDonations);
+    const totalAmount = donations
+      .filter(d => selectedDonations.has(d.paymentIntentId))
+      .reduce((sum, d) => sum + d.amount, 0);
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedDonations.size} donation(s) totaling $${(totalAmount / 100).toFixed(2)}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setBulkDeleting(true);
+    try {
+              const response = await api.post('/payment/donations/bulk-delete', {
+          paymentIntentIds: selectedDonationsList
+        });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success(`Bulk delete completed: ${result.summary.successful} successful, ${result.summary.failed} failed`);
+        
+        // Clear selection and refresh data
+        setSelectedDonations(new Set());
+        fetchDonations();
+        fetchStats();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to bulk delete donations');
+      }
+    } catch (error) {
+      console.error('Error bulk deleting donations:', error);
+      toast.error('Failed to bulk delete donations. Please try again.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const getSelectedDonationsCount = () => selectedDonations.size;
+  const getSelectedDonationsTotal = () => {
+    return donations
+      .filter(d => selectedDonations.has(d.paymentIntentId))
+      .reduce((sum, d) => sum + d.amount, 0);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -1929,34 +2020,79 @@ const DonationsManagement = () => {
 
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">Recent Donations</h3>
+            {donations.length > 0 && (
+              <div className="flex items-center space-x-4">
+                {selectedDonations.size > 0 && (
+                  <div className="text-sm text-gray-600">
+                    {getSelectedDonationsCount()} selected • ${(getSelectedDonationsTotal() / 100).toFixed(2)} total
+                  </div>
+                )}
+                <button
+                  onClick={bulkDeleteDonations}
+                  disabled={bulkDeleting || selectedDonations.size === 0}
+                  className="btn-danger text-sm px-3 py-1"
+                >
+                  {bulkDeleting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete Selected ({getSelectedDonationsCount()})
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectedDonations.size === donations.length && donations.length > 0}
+                    onChange={handleSelectAll}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                     Loading donations...
                   </td>
                 </tr>
               ) : donations.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                     No donations found
                   </td>
                 </tr>
               ) : (
                 donations.map(donation => (
                   <tr key={donation._id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedDonations.has(donation.paymentIntentId)}
+                        onChange={() => handleSelectDonation(donation.paymentIntentId)}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{donation.donorName}</div>
                       <div className="text-sm text-gray-500">{donation.donorEmail}</div>
@@ -1979,6 +2115,17 @@ const DonationsManagement = () => {
                       }`}>
                         {donation.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => deleteDonation(donation)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete Donation"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
