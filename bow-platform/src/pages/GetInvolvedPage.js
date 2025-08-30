@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
 import api from '../config/api';
-
+import HeroSection from '../components/common/HeroSection';
 
 const GetInvolvedPage = () => {
   const [activeTab, setActiveTab] = useState('volunteer');
@@ -97,148 +97,66 @@ const GetInvolvedPage = () => {
       category: "Events",
       location: "Seattle Area",
       timeCommitment: "4-8 hours per event",
-      description: "Help plan and coordinate community events, from small workshops to large festivals.",
+      description: "Help coordinate and manage BOW events, including setup, coordination with vendors, and ensuring smooth event execution.",
       requirements: [
         "Strong organizational skills",
-        "Experience with event planning preferred",
-        "Available on weekends",
-        "Passion for community building"
+        "Experience with event planning",
+        "Good communication skills",
+        "Ability to work under pressure"
       ],
       benefits: [
         "Gain event management experience",
         "Network with community leaders",
-        "Free access to BOW events",
-        "Recognition and appreciation"
-      ]
+        "Contribute to cultural events",
+        "Build leadership skills"
+      ],
+      isActive: true
     },
     {
       id: 2,
-      opportunityId: 2, // Add this for compatibility
-      title: "Music Workshop Assistant",
-      category: "Education",
-      location: "Various Locations",
+      opportunityId: 2,
+      title: "Social Media Manager",
+      category: "Marketing",
+      location: "Remote",
       timeCommitment: "2-4 hours per week",
-      description: "Support music education programs for youth and adults in our community.",
+      description: "Manage BOW's social media presence across platforms, create engaging content, and grow our online community.",
       requirements: [
-        "Basic music knowledge",
-        "Patience working with diverse groups",
-        "Background check required",
-        "Reliable transportation"
+        "Experience with social media platforms",
+        "Creative content creation skills",
+        "Understanding of BOW's mission",
+        "Consistent availability"
       ],
       benefits: [
-        "Teaching experience",
-        "Music education training",
-        "Work with inspiring youth",
-        "Flexible scheduling"
-      ]
+        "Build digital marketing portfolio",
+        "Creative freedom",
+        "Remote work opportunity",
+        "Community impact"
+      ],
+      isActive: true
     },
     {
       id: 3,
-      opportunityId: 3, // Add this for compatibility
-      title: "Community Outreach Specialist",
-      category: "Outreach",
-      location: "Washington State",
+      opportunityId: 3,
+      title: "Music Instructor",
+      category: "Education",
+      location: "Seattle Area",
       timeCommitment: "3-6 hours per week",
-      description: "Help spread the word about BOW programs and build partnerships with local organizations.",
+      description: "Teach traditional Indian music and instruments to community members, helping preserve cultural heritage.",
       requirements: [
-        "Excellent communication skills",
-        "Knowledge of local community",
-        "Social media experience",
-        "Self-motivated"
+        "Proficiency in Indian classical music",
+        "Teaching experience preferred",
+        "Patience and enthusiasm",
+        "Cultural knowledge"
       ],
       benefits: [
-        "Networking opportunities",
-        "Marketing experience",
-        "Community connections",
-        "Professional development"
-      ]
-    },
-    {
-      id: 4,
-      opportunityId: 4, // Add this for compatibility
-      title: "Technical Support",
-      category: "Technical",
-      location: "Remote/Seattle",
-      timeCommitment: "2-5 hours per week",
-      description: "Provide technical support for our website, social media, and digital platforms.",
-      requirements: [
-        "Basic web development skills",
-        "Social media management",
-        "Problem-solving abilities",
-        "Reliable internet connection"
+        "Share cultural knowledge",
+        "Teaching experience",
+        "Community recognition",
+        "Cultural preservation"
       ],
-      benefits: [
-        "Tech experience",
-        "Portfolio building",
-        "Remote work opportunity",
-        "Skill development"
-      ]
+      isActive: true
     }
   ];
-
-  const membershipLevels = [
-    {
-      name: "Community Member",
-      price: "Free",
-      description: "Basic membership with access to events and newsletters",
-      benefits: [
-        "Access to all public events",
-        "Monthly newsletter",
-        "Community updates",
-        "Event discounts"
-      ]
-    },
-    {
-      name: "Supporting Member",
-      price: "$25/month",
-      description: "Enhanced membership with additional benefits and support",
-      benefits: [
-        "All Community Member benefits",
-        "Early event registration",
-        "Exclusive member events",
-        "Behind-the-scenes content",
-        "Member recognition"
-      ]
-    },
-    {
-      name: "Patron Member",
-      price: "$50/month",
-      description: "Premium membership with maximum benefits and impact",
-      benefits: [
-        "All Supporting Member benefits",
-        "VIP event access",
-        "Personal thank you calls",
-        "Annual impact report",
-        "Naming opportunities"
-      ]
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Event Coordinator Volunteer",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      content: "Volunteering with BOW has been one of the most rewarding experiences of my life. I've met amazing people and helped create meaningful community connections through music.",
-      rating: 5
-    },
-    {
-      name: "Michael Chen",
-      role: "Supporting Member",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      content: "Being a BOW member has given me a sense of belonging and purpose. The events are incredible, and I love being part of such a vibrant community.",
-      rating: 5
-    },
-    {
-      name: "Maria Rodriguez",
-      role: "Workshop Assistant",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      content: "Teaching music to kids through BOW has been incredibly fulfilling. Seeing their faces light up when they learn something new is priceless.",
-      rating: 5
-    }
-  ];
-
-
 
   const closeCommunityModal = () => setShowCommunityModal(false);
 
@@ -250,70 +168,28 @@ const GetInvolvedPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-12 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-white to-green-200 rounded-full blur-3xl floating-bg"></div>
-          <div className="absolute bottom-20 left-20 w-56 h-56 bg-gradient-to-r from-green-200 to-white rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-white to-blue-200 rounded-full blur-3xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
-        </div>
-        
-        {/* Floating involvement elements */}
-        <div className="absolute top-10 left-10 text-white/20 animate-float-slow">
-          <Users className="w-8 h-8" />
-        </div>
-        <div className="absolute top-20 right-32 text-white/20 animate-float-slow-reverse">
-          <Heart className="w-6 h-6" />
-        </div>
-        <div className="absolute bottom-20 left-32 text-white/20 animate-float-slow">
-          <Calendar className="w-7 h-7" />
-        </div>
-        <div className="absolute bottom-32 right-10 text-white/20 animate-float-slow-reverse">
-          <Star className="w-6 h-6" />
-        </div>
-        
-        <div className="container-custom text-center relative z-10">
-          {/* Welcome badge */}
-          <div className="mb-6 animate-fade-in">
-            <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-6 py-3 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
-              🤝 Join Our Community 🤝
-            </span>
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in-up text-glow-hero">
-            Get Involved
-          </h1>
-          
-          <p className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-            Whether you want to volunteer your time or become a member, 
-            there are many ways to get involved with BOW.
-          </p>
-          
-          {/* Interactive elements */}
-          <div className="mt-8 flex justify-center space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Users className="w-5 h-5 text-green-300" />
-              <span className="text-sm font-medium">Volunteer</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Heart className="w-5 h-5 text-red-300" />
-              <span className="text-sm font-medium">Member</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Calendar className="w-5 h-5 text-blue-300" />
-              <span className="text-sm font-medium">Events</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
+      <HeroSection
+        title="Get Involved"
+        description="Whether you want to volunteer your time or become a member, there are many ways to get involved with BOW."
+        badge="🤝 Join Our Community 🤝"
+        logoUrl={logoUrl}
+        showLogo={true}
+        floatingElements={[
+          { icon: Users, position: 'top-10 left-10', animation: 'animate-float-slow' },
+          { icon: Heart, position: 'top-20 right-32', animation: 'animate-float-slow-reverse' },
+          { icon: Calendar, position: 'bottom-20 left-32', animation: 'animate-float-slow' },
+          { icon: Star, position: 'bottom-32 right-10', animation: 'animate-float-slow-reverse' }
+        ]}
+        interactiveElements={[
+          { icon: Users, label: 'Volunteer', color: 'text-green-300' },
+          { icon: Heart, label: 'Member', color: 'text-red-300' },
+          { icon: Calendar, label: 'Events', color: 'text-blue-300' }
+        ]}
+      />
 
       {/* Tabs Section */}
       <section className="py-20 bg-gray-50">
         <div className="container-custom">
-
-
           {/* Tab Navigation */}
           <div className="flex justify-center mb-16">
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-2 shadow-2xl border border-white/20 flex gap-3">
@@ -377,208 +253,196 @@ const GetInvolvedPage = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Users className="w-10 h-10 text-white animate-bounce" />
+                      <Users className="w-10 h-10 text-white" />
                     )}
                   </div>
-                  <h3 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                     Volunteer Opportunities
-                  </h3>
-                  <div className="relative">
-                    <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up">
-                      Join our dedicated team of volunteers and make a real impact in your community. 
-                      We have opportunities for all skill levels and interests.
-                    </p>
-                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
+                  </h2>
+                  <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                    Make a difference in your community by volunteering with BOW. We have various opportunities that match different skills and interests.
+                  </p>
+                </div>
+
+                {loadingOpportunities ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading volunteer opportunities...</p>
                   </div>
-                </div>
-
-                <div className="grid lg:grid-cols-2 gap-8">
-
-                  
-                  {loadingOpportunities ? (
-                    // Loading skeleton
-                    Array.from({ length: 4 }).map((_, index) => (
-                      <div key={index} className="bg-white rounded-xl shadow-lg p-8 animate-pulse">
-                        <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded mb-6"></div>
-                        <div className="h-20 bg-gray-200 rounded mb-6"></div>
-                        <div className="h-8 bg-gray-200 rounded"></div>
-                      </div>
-                    ))
-                  ) : volunteerOpportunities.length > 0 ? (
-                    volunteerOpportunities.map((opportunity) => (
-                      <div key={opportunity.opportunityId || opportunity.id} className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                      <div className="flex items-start justify-between mb-4">
-                        <h4 className="text-xl font-semibold text-gray-900">
-                          {opportunity.title}
-                        </h4>
-                        <span className="inline-block px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full text-sm font-bold shadow-lg">
-                          {opportunity.category}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center text-gray-600">
-                          <MapPin className="w-4 h-4 mr-2" />
-                          {opportunity.location}
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {volunteerOpportunities.map((opportunity) => (
+                      <div key={opportunity.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                            {opportunity.category}
+                          </span>
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <MapPin className="w-4 h-4" />
+                            <span>{opportunity.location}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center text-gray-600">
+                        
+                        <h3 className="text-xl font-bold text-gray-900 mb-3">{opportunity.title}</h3>
+                        
+                        <div className="flex items-center text-sm text-gray-600 mb-4">
                           <Clock className="w-4 h-4 mr-2" />
-                          {opportunity.timeCommitment}
+                          <span>{opportunity.timeCommitment}</span>
+                        </div>
+                        
+                        <p className="text-gray-600 mb-6 leading-relaxed">
+                          {opportunity.description}
+                        </p>
+                        
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <h5 className="font-semibold text-gray-900 mb-3">Requirements:</h5>
+                            <ul className="space-y-2">
+                              {opportunity.requirements.map((req, index) => (
+                                <li key={index} className="flex items-start text-sm text-gray-600">
+                                  <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                                  {req}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-gray-900 mb-3">Benefits:</h5>
+                            <ul className="space-y-2">
+                              {opportunity.benefits.map((benefit, index) => (
+                                <li key={index} className="flex items-start text-sm text-gray-600">
+                                  <Star className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                                  {benefit}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-6">
+                          <button
+                            onClick={() => {
+                              console.log('Apply Now clicked for opportunity:', opportunity);
+                              console.log('Setting selectedOpportunity to:', opportunity);
+                              console.log('Setting showApplicationForm to true');
+                              
+                              // Test if the state setters are working
+                              try {
+                                setSelectedOpportunity(opportunity);
+                                setShowApplicationForm(true);
+                                console.log('State setters called successfully');
+                              } catch (error) {
+                                console.error('Error setting state:', error);
+                              }
+                              
+                              console.log('State should now be updated');
+                            }}
+                            className="btn-primary w-full justify-center"
+                            type="button"
+                          >
+                            Apply Now
+                          </button>
                         </div>
                       </div>
-                      
-                      <p className="text-gray-600 mb-6 leading-relaxed">
-                        {opportunity.description}
-                      </p>
-                      
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <h5 className="font-semibold text-gray-900 mb-3">Requirements:</h5>
-                          <ul className="space-y-2">
-                            {opportunity.requirements.map((req, index) => (
-                              <li key={index} className="flex items-start text-sm text-gray-600">
-                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                                {req}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <h5 className="font-semibold text-gray-900 mb-3">Benefits:</h5>
-                          <ul className="space-y-2">
-                            {opportunity.benefits.map((benefit, index) => (
-                              <li key={index} className="flex items-start text-sm text-gray-600">
-                                <Star className="w-4 h-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                                {benefit}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <button
-                          onClick={() => {
-                            console.log('Apply Now clicked for opportunity:', opportunity);
-                            console.log('Setting selectedOpportunity to:', opportunity);
-                            console.log('Setting showApplicationForm to true');
-                            
-                            // Test if the state setters are working
-                            try {
-                              setSelectedOpportunity(opportunity);
-                              setShowApplicationForm(true);
-                              console.log('State setters called successfully');
-                            } catch (error) {
-                              console.error('Error setting state:', error);
-                            }
-                            
-                            console.log('State should now be updated');
-                          }}
-                          className="btn-primary w-full justify-center"
-                          type="button"
-                        >
-                          Apply Now
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                  ) : (
-                    <div className="col-span-2 text-center py-12">
-                      <Users className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2">No Volunteer Opportunities</h4>
-                      <p className="text-gray-600">Check back soon for new volunteer opportunities!</p>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'member' && (
               <div id="member-section" className="space-y-8">
                 <div className="text-center mb-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full mb-6 shadow-lg animate-pulse">
-                    <Heart className="w-10 h-10 text-white animate-bounce" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full mb-6 shadow-lg animate-pulse overflow-hidden">
+                    {logoUrl ? (
+                      <img 
+                        src={logoUrl} 
+                        alt="BOW Logo" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Heart className="w-10 h-10 text-white" />
+                    )}
                   </div>
-                  <h3 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-secondary-600 to-primary-600 bg-clip-text text-transparent animate-fade-in">
-                    Membership Levels
-                  </h3>
-                  <div className="relative">
-                    <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up">
-                      Choose the membership level that's right for you and enjoy exclusive benefits 
-                      while supporting our mission.
-                    </p>
-                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-secondary-400 to-primary-500 rounded-full animate-pulse"></div>
-                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Become a Member
+                  </h2>
+                  <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                    Join BOW as a member and become part of our growing community. Enjoy exclusive benefits and help support our mission.
+                  </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8">
-                  {membershipLevels.map((level, index) => (
-                    <div
-                      key={index}
-                      className={`bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 ${
-                        index === 1 ? 'ring-2 ring-primary-600 relative scale-105' : ''
-                      }`}
-                    >
-                      {index === 1 && (
-                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                          <span className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                            ⭐ Most Popular
-                          </span>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Membership Benefits</h3>
+                    <ul className="space-y-4">
+                      <li className="flex items-start">
+                        <Award className="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Exclusive Access</h4>
+                          <p className="text-gray-600">Priority access to events, workshops, and special programs</p>
                         </div>
-                      )}
-                      
-                      <div className="text-center mb-6">
-                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
-                          index === 0 ? 'bg-gradient-to-br from-gray-400 to-gray-600' :
-                          index === 1 ? 'bg-gradient-to-br from-primary-500 to-primary-600' :
-                          'bg-gradient-to-br from-secondary-500 to-secondary-600'
-                        }`}>
-                          <Heart className="w-8 h-8 text-white" />
+                      </li>
+                      <li className="flex items-start">
+                        <Music className="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Cultural Programs</h4>
+                          <p className="text-gray-600">Participate in traditional music and cultural activities</p>
                         </div>
-                        <h4 className="text-2xl font-bold text-gray-900 mb-2">{level.name}</h4>
-                        <div className={`text-4xl font-bold mb-2 ${
-                          index === 0 ? 'text-gray-600' :
-                          index === 1 ? 'text-primary-600' :
-                          'text-secondary-600'
-                        }`}>{level.price}</div>
+                      </li>
+                      <li className="flex items-start">
+                        <Users className="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Community Network</h4>
+                          <p className="text-gray-600">Connect with like-minded individuals and cultural enthusiasts</p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <Calendar className="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Event Discounts</h4>
+                          <p className="text-gray-600">Special pricing on workshops, performances, and merchandise</p>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">How to Join</h3>
+                    <div className="space-y-6">
+                      <div className="flex items-start">
+                        <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-4 mt-1">1</div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Complete Application</h4>
+                          <p className="text-gray-600">Fill out our membership application form with your details</p>
+                        </div>
                       </div>
-                      
-                      <p className="text-gray-600 mb-6 text-center">{level.description}</p>
-                      
-                      <ul className="space-y-3 mb-8">
-                        {level.benefits.map((benefit, benefitIndex) => (
-                          <li key={benefitIndex} className="flex items-start group">
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="text-gray-700 group-hover:text-gray-900 transition-colors duration-200">{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      {index === 0 ? (
-                        <button
-                          className="w-full px-6 py-4 border-2 border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 hover:text-gray-700 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-500/30"
-                          onClick={() => setShowCommunityModal(true)}
-                          type="button"
-                        >
-                          Join Now
-                        </button>
-                      ) : (
-                        <Link
-                          to="/donate"
-                          className={`w-full px-6 py-4 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 ${
-                            index === 1 
-                              ? 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white shadow-lg hover:shadow-xl focus:ring-primary-500/30' 
-                              : 'border-2 border-secondary-600 text-secondary-600 hover:bg-secondary-50 hover:border-secondary-700 hover:text-secondary-700 focus:ring-secondary-500/30'
-                          }`}
-                        >
-                          Join Now
-                        </Link>
-                      )}
+                      <div className="flex items-start">
+                        <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-4 mt-1">2</div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Review Process</h4>
+                          <p className="text-gray-600">Our team will review your application within 2-3 business days</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-4 mt-1">3</div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Welcome Package</h4>
+                          <p className="text-gray-600">Receive your welcome kit and start enjoying member benefits</p>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                    
+                    <div className="mt-8">
+                      <button
+                        onClick={() => setShowCommunityModal(true)}
+                        className="btn-secondary w-full justify-center"
+                      >
+                        <Heart className="w-5 h-5 mr-2" />
+                        Apply for Membership
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -586,274 +450,125 @@ const GetInvolvedPage = () => {
         </div>
       </section>
 
+      {/* Community Modal */}
+      {showCommunityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900">Join Our Community</h3>
+              <p className="text-gray-600 mt-2">Fill out the form below to become a member of BOW</p>
+            </div>
+            
+            <div className="p-6">
+              <form className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-medium mb-1">First Name *</label>
+                  <input 
+                    type="text" 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Last Name *</label>
+                  <input 
+                    type="text" 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Email *</label>
+                  <input 
+                    type="email" 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                    required 
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Phone</label>
+                  <input 
+                    type="tel" 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Age *</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                    <option value="">Select age range</option>
+                    <option>18-25</option>
+                    <option>26-35</option>
+                    <option>36-45</option>
+                    <option>46-55</option>
+                    <option>56+</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Gender</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    <option value="">Select gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Non-binary</option>
+                    <option>Prefer not to say</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Experience *</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                    <option value="">Any Past experience with Dhol Tasha Pathak?</option>
+                    <option>YES</option>
+                    <option>NO</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Your Interest *</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                    <option value="">Select your interest</option>
+                    <option>DHOL</option>
+                    <option>TASHA</option>
+                    <option>ZAANJ</option>
+                    <option>LAZIM</option>
+                    <option>DHWAJ</option>
+                    <option>Shankhnaad (Bring your Own Shankha)</option>
+                    <option>BOW BAND</option>
+                    <option>Dance/Flashmob/Garba/Dandiya/</option>
+                    <option>VOLUNTEER (Decoration, Event management, PR etc.)</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Please Follow us on YouTube / Insta / Facebook *</label>
+                  <p className="text-xs mb-2">𝗡𝗼𝘁𝗲: Before you submit this form you must subscribe to our <a href="https://www.youtube.com/@BeatsOfWashington?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">YouTube Channel</a> and follow us on <a href="https://www.instagram.com/beatsofwa/" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Instagram</a> and <a href="https://www.facebook.com/BORDTP" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Facebook</a>.</p>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
+                    <option value="">Have you followed us?</option>
+                    <option>YES</option>
+                    <option>NO</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <button type="submit" className="btn-primary w-full mt-4 py-2 text-base">Submit (Placeholder)</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Volunteer Application Form Modal */}
-      {showApplicationForm && selectedOpportunity ? (
+      {showApplicationForm && selectedOpportunity && (
         <VolunteerApplicationForm
           opportunity={selectedOpportunity}
+          logoUrl={logoUrl}
           onClose={() => {
-            console.log('Closing application form');
-            setShowApplicationForm(false);
-            setSelectedOpportunity(null);
-          }}
-          onSuccess={(data) => {
-            console.log('Application submitted successfully:', data);
             setShowApplicationForm(false);
             setSelectedOpportunity(null);
           }}
         />
-      ) : (
-        <div style={{ display: 'none' }}>
-          {console.log('Modal should NOT be visible - showApplicationForm:', showApplicationForm, 'selectedOpportunity:', selectedOpportunity)}
-        </div>
-      )}
-
-      {/* Volunteer Benefits Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-6 shadow-lg animate-pulse">
-              <Users className="w-10 h-10 text-white animate-bounce" />
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
-              How You Can Help & Grow
-            </h2>
-            <div className="relative">
-              <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed animate-fade-in-up">
-                Discover the incredible opportunities to make a difference while developing valuable skills and leadership qualities.
-              </p>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-4">
-                  <Heart className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Make a Difference</h3>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Help create meaningful community connections</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Support music education and cultural programs</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Contribute to positive social impact</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Build lasting relationships</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 border border-green-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full mb-4">
-                  <Award className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Develop Leadership</h3>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Lead teams and manage projects</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Develop communication skills</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Build decision-making abilities</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Gain confidence and self-esteem</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 border border-purple-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full mb-4">
-                  <Star className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Explore & Learn</h3>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Discover new skills and talents</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Learn about different cultures</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Gain event planning experience</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-purple-600 mr-3 mt-0.5 flex-shrink-0" />
-                  <span>Network with professionals</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-200/20 to-secondary-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-secondary-200/20 to-primary-200/20 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full mb-8 shadow-lg animate-pulse">
-            <Mail className="w-10 h-10 text-white animate-bounce" />
-          </div>
-          
-          <h2 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent animate-fade-in">
-            Ready to Get Started?
-          </h2>
-          
-          <div className="relative mb-8">
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
-              Have questions about volunteering or membership? We'd love to hear from you 
-              and help you find the perfect way to get involved.
-            </p>
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary-400 to-secondary-500 rounded-full animate-pulse"></div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-10">
-            <a 
-              href="mailto:volunteer@beatsofwashington.org" 
-              className="group relative px-10 py-5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              <div className="relative flex items-center justify-center">
-                <Mail className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
-                Email Us
-              </div>
-            </a>
-            
-            <a 
-              href="tel:+12065550123" 
-              className="group relative px-10 py-5 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-bold text-lg rounded-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-primary-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-              <div className="relative flex items-center justify-center">
-                <Phone className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
-                Call Us
-              </div>
-            </a>
-          </div>
-          
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg">
-            <p className="text-gray-700 font-medium">
-              Or visit our <a href="/contact" className="text-primary-600 hover:text-primary-700 font-semibold underline decoration-2 underline-offset-4 hover:decoration-primary-400 transition-all duration-300">contact page</a> for more ways to reach us.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {showCommunityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 relative mx-4 my-8">
-            <button onClick={closeCommunityModal} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Community Member Registration (Placeholder)</h2>
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <div>
-                <label className="block font-medium mb-1">Email *</label>
-                <input type="email" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your email" />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Full Name *</label>
-                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your full name" />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Company *</label>
-                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="e.g. AMAZON, Microsoft, TCS" />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Mobile *</label>
-                <input type="tel" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your mobile number" />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">City *</label>
-                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your city" />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Zipcode *</label>
-                <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required placeholder="Enter your zipcode" />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">DOB *</label>
-                <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Gender *</label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                  <option value="">Select</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Non-binary</option>
-                  <option>Prefer not to say</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Experience *</label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                  <option value="">Any Past experience with Dhol Tasha Pathak?</option>
-                  <option>YES</option>
-                  <option>NO</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Your Interest *</label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                  <option value="">Select your interest</option>
-                  <option>DHOL</option>
-                  <option>TASHA</option>
-                  <option>ZAANJ</option>
-                  <option>LAZIM</option>
-                  <option>DHWAJ</option>
-                  <option>Shankhnaad (Bring your Own Shankha)</option>
-                  <option>BOW BAND</option>
-                  <option>Dance/Flashmob/Garba/Dandiya/</option>
-                  <option>VOLUNTEER (Decoration, Event management, PR etc.)</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-medium mb-1">Please Follow us on YouTube / Insta / Facebook *</label>
-                <p className="text-xs mb-2">𝗡𝗼𝘁𝗲: Before you submit this form you must subscribe to our <a href="https://www.youtube.com/@BeatsOfWashington?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">YouTube Channel</a> and follow us on <a href="https://www.instagram.com/beatsofwa/" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Instagram</a> and <a href="https://www.facebook.com/BORDTP" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Facebook</a>.</p>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                  <option value="">Have you followed us?</option>
-                  <option>YES</option>
-                  <option>NO</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="btn-primary w-full mt-4 py-2 text-base">Submit (Placeholder)</button>
-              </div>
-            </form>
-          </div>
-        </div>
       )}
     </>
   );
 };
 
-export default GetInvolvedPage; 
+export default GetInvolvedPage;

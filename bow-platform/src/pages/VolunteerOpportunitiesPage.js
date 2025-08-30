@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
 import api from '../config/api';
+import HeroSection from '../components/common/HeroSection';
 
 const VolunteerOpportunitiesPage = () => {
   const [opportunities, setOpportunities] = useState([]);
@@ -24,6 +25,23 @@ const VolunteerOpportunitiesPage = () => {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await fetch('/api/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          setLogoUrl(data.logo || '');
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     fetchOpportunities();
@@ -82,22 +100,24 @@ const VolunteerOpportunitiesPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-20">
-        <div className="container-custom text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-              <Users className="w-10 h-10" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Volunteer Opportunities
-          </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed">
-            Join our dedicated team of volunteers and make a real impact in your community. 
-            We have opportunities for all skill levels and interests.
-          </p>
-        </div>
-      </section>
+      <HeroSection
+        title="Volunteer Opportunities"
+        description="Join our dedicated team of volunteers and make a real impact in your community. We have opportunities for all skill levels and interests."
+        icon={Users}
+        logoUrl={logoUrl}
+        showLogo={true}
+        floatingElements={[
+          { icon: Users, position: 'top-10 left-10', animation: 'animate-float-slow' },
+          { icon: Heart, position: 'top-20 right-32', animation: 'animate-float-slow-reverse' },
+          { icon: Award, position: 'bottom-20 left-32', animation: 'animate-float-slow' },
+          { icon: Star, position: 'bottom-32 right-10', animation: 'animate-float-slow-reverse' }
+        ]}
+        interactiveElements={[
+          { icon: Users, label: 'Community', color: 'text-red-300' },
+          { icon: Heart, label: 'Volunteer', color: 'text-yellow-300' },
+          { icon: Award, label: 'Impact', color: 'text-blue-300' }
+        ]}
+      />
 
       {/* Stats Section */}
       <section className="bg-white py-16">

@@ -13,6 +13,7 @@ import {
   Users,
   ArrowRight
 } from 'lucide-react';
+import HeroSection from '../components/common/HeroSection';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,23 @@ const ContactPage = () => {
     message: ''
   });
   const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Fetch logo from about page content
+  React.useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await fetch('/api/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          setLogoUrl(data.logo || '');
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -106,62 +124,24 @@ const ContactPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-12 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-white to-teal-200 rounded-full blur-3xl floating-bg"></div>
-          <div className="absolute bottom-20 left-20 w-56 h-56 bg-gradient-to-r from-teal-200 to-white rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-white to-cyan-200 rounded-full blur-3xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
-        </div>
-        
-        {/* Floating contact elements */}
-        <div className="absolute top-10 left-10 text-white/20 animate-float-slow">
-          <MessageCircle className="w-8 h-8" />
-        </div>
-        <div className="absolute top-20 right-32 text-white/20 animate-float-slow-reverse">
-          <Mail className="w-6 h-6" />
-        </div>
-        <div className="absolute bottom-20 left-32 text-white/20 animate-float-slow">
-          <Phone className="w-7 h-7" />
-        </div>
-        <div className="absolute bottom-32 right-10 text-white/20 animate-float-slow-reverse">
-          <MapPin className="w-6 h-6" />
-        </div>
-        
-        <div className="container-custom text-center relative z-10">
-          {/* Welcome badge */}
-          <div className="mb-6 animate-fade-in">
-            <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-6 py-3 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
-              💬 Let's Connect 💬
-            </span>
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in-up text-glow-hero">
-            Get in Touch
-          </h1>
-          
-          <p className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-            We'd love to hear from you! Whether you have questions, want to volunteer, 
-            or are interested in partnering with us, we're here to help.
-          </p>
-          
-          {/* Interactive elements */}
-          <div className="mt-8 flex justify-center space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <MessageCircle className="w-5 h-5 text-teal-300" />
-              <span className="text-sm font-medium">Message</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Phone className="w-5 h-5 text-blue-300" />
-              <span className="text-sm font-medium">Call</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Mail className="w-5 h-5 text-cyan-300" />
-              <span className="text-sm font-medium">Email</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection
+        title="Get in Touch"
+        description="We'd love to hear from you! Whether you have questions, want to volunteer, or are interested in partnering with us, we're here to help."
+        badge="💬 Let's Connect 💬"
+        logoUrl={logoUrl}
+        showLogo={true}
+        floatingElements={[
+          { icon: MessageCircle, position: 'top-10 left-10', animation: 'animate-float-slow' },
+          { icon: Mail, position: 'top-20 right-32', animation: 'animate-float-slow-reverse' },
+          { icon: Phone, position: 'bottom-20 left-32', animation: 'animate-float-slow' },
+          { icon: MapPin, position: 'bottom-32 right-10', animation: 'animate-float-slow-reverse' }
+        ]}
+        interactiveElements={[
+          { icon: MessageCircle, label: 'Message', color: 'text-teal-300' },
+          { icon: Phone, label: 'Call', color: 'text-blue-300' },
+          { icon: Mail, label: 'Email', color: 'text-cyan-300' }
+        ]}
+      />
 
       {/* Contact Information */}
       <section className="py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">

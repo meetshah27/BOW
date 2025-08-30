@@ -16,7 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import api from '../../config/api';
 
 
-const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
+const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) => {
   const { currentUser } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -251,14 +251,23 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess }) => {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md mx-4">
-          <div className="text-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Application Submitted!
-            </h3>
+                     <div className="text-center">
+             {logoUrl ? (
+               <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden mx-auto mb-4">
+                 <img 
+                   src={logoUrl} 
+                   alt="BOW Logo" 
+                   className="w-full h-full object-cover"
+                 />
+               </div>
+             ) : (
+               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+             )}
+             <h3 className="text-2xl font-bold text-gray-900 mb-4">
+               Application Submitted!
+             </h3>
             <p className="text-gray-600 mb-6">
-              Thank you for your interest in volunteering with BOW. We'll review your application 
-              and get back to you within 5-7 business days.
+              Thank you for your interest in volunteering with BOW.
             </p>
             <button
               onClick={onClose}
