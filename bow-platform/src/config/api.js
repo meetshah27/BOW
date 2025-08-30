@@ -14,9 +14,18 @@ const API_CONFIG = {
 
 // Get current environment
 const getEnvironment = () => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'development';
-  if (process.env.NODE_ENV === 'production') return 'production';
-  return 'development';
+  // Check if we're on localhost (development)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'development';
+  }
+  
+  // Check if we're on a production domain (not localhost)
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'production';
+  }
+  
+  // Default to production for safety
+  return 'production';
 };
 
 const getApiConfig = () => {

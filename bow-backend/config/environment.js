@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const environment = {
   // Server configuration
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  NODE_ENV: process.env.NODE_ENV || 'production',
   PORT: process.env.PORT || 3000,
   
   // AWS Configuration
@@ -33,7 +33,14 @@ const environment = {
   // CORS Configuration
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS ? 
     process.env.ALLOWED_ORIGINS.split(',') : 
-    ['http://localhost:3000', 'http://localhost:3001'],
+    [
+      'http://localhost:3000', 
+      'http://localhost:3001',
+      // Production domains will be added via environment variable
+      // Example: ALLOWED_ORIGINS=https://yourdomain.amplifyapp.com,https://yourdomain.com
+      // For now, allow all origins in production (you can restrict this later)
+      '*'
+    ],
   
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
