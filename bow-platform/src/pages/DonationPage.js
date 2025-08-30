@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Heart, 
@@ -14,7 +14,7 @@ import {loadStripe} from '@stripe/stripe-js';
 import {Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements} from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
-import DonorTicker from '../components/common/DonorTicker';
+
 import api from '../config/api';
 
 // Live Stripe publishable key
@@ -179,6 +179,26 @@ const DonationPage = () => {
   const [isMonthly, setIsMonthly] = useState(false);
   const [donorEmail, setDonorEmail] = useState('');
   const [donorName, setDonorName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await api.get('/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.logo) {
+            setLogoUrl(data.logo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    
+    fetchLogo();
+  }, []);
 
   const presetAmounts = [25, 50, 100, 250, 500];
 
@@ -309,8 +329,7 @@ const DonationPage = () => {
         </div>
       </section>
 
-      {/* Donor Ticker */}
-      <DonorTicker />
+
 
 
 
@@ -320,9 +339,22 @@ const DonationPage = () => {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Donation Form */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Make a Donation
-              </h2>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+                  {logoUrl ? (
+                    <img 
+                      src={logoUrl} 
+                      alt="BOW Logo" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-xl">B</span>
+                  )}
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Make a Donation
+                </h2>
+              </div>
 
               {/* Amount Selection */}
               <div className="mb-8">
