@@ -53,8 +53,8 @@ const ContactPage = () => {
     {
       icon: Phone,
       title: "Phone",
-      value: "+1 (206) 446 9925",
-      link: "tel:+12064469925"
+      value: "206 369-9576",
+      link: "tel:+12063699576"
     },
     {
       icon: MapPin,

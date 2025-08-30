@@ -160,10 +160,10 @@ const Footer = () => {
                 <MapPin className="w-5 h-5 text-primary-400" />
                 <span className="text-gray-300">9256 225th Way NE, WA 98053</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-primary-400" />
-                <span className="text-gray-300">+1 (206) 446 9925</span>
-              </div>
+                             <div className="flex items-center space-x-3">
+                 <Phone className="w-5 h-5 text-primary-400" />
+                 <span className="text-gray-300">206 369-9576</span>
+               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-primary-400" />
                 <span className="text-gray-300">beatsofredmond@gmail.com</span>
