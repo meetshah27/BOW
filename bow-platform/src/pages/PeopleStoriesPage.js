@@ -2,11 +2,29 @@ import React, { useState, useEffect } from "react";
 import { Heart, Users, Star, Music, BookOpen, Play, Image as ImageIcon, Video as VideoIcon, FileText, Upload } from "lucide-react";
 import api from "../config/api";
 import "../App.css";
+import HeroSection from "../components/common/HeroSection"; // Added import for HeroSection
 
 const StoriesPage = () => {
   const [storiesMedia, setStoriesMedia] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [logoUrl, setLogoUrl] = useState('');
+
+  // Fetch logo from about page content
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await fetch('/api/about-page');
+        if (response.ok) {
+          const data = await response.json();
+          setLogoUrl(data.logo || '');
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   // Fetch stories media from backend
   useEffect(() => {
@@ -43,63 +61,34 @@ const StoriesPage = () => {
     );
   }
 
+
+
   return (
     <div className="min-h-screen bg-white">
-             {/* Hero Section */}
-       <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white overflow-hidden py-8 mb-6 shadow-lg">
-         {/* Background decorative elements */}
-         <div className="absolute inset-0 opacity-20">
-           <div className="absolute top-10 right-10 w-48 h-48 bg-gradient-to-r from-white to-purple-200 rounded-full blur-2xl floating-bg"></div>
-           <div className="absolute bottom-10 left-10 w-40 h-40 bg-gradient-to-r from-purple-200 to-white rounded-full blur-xl floating-bg" style={{animationDelay: '2s'}}></div>
-           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-white to-pink-200 rounded-full blur-2xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
-           <div className="absolute top-20 left-1/4 w-32 h-32 bg-gradient-to-r from-blue-200 to-transparent rounded-full blur-xl floating-bg opacity-40" style={{animationDelay: '3s'}}></div>
-           <div className="absolute bottom-20 right-1/4 w-28 h-28 bg-gradient-to-r from-green-200 to-transparent rounded-full blur-xl floating-bg opacity-30" style={{animationDelay: '5s'}}></div>
-         </div>
-         
-         {/* Floating story elements */}
-         <div className="absolute top-6 left-6 text-white/20 animate-float-slow">
-           <Heart className="w-6 h-6" />
-         </div>
-         <div className="absolute top-16 right-20 text-white/20 animate-float-slow-reverse">
-           <Users className="w-5 h-5" />
-         </div>
-         <div className="absolute bottom-16 left-20 text-white/20 animate-float-slow">
-           <Star className="w-5 h-5" />
-         </div>
-         <div className="absolute bottom-20 right-6 text-white/20 animate-float-slow-reverse">
-           <Music className="w-5 h-5" />
-         </div>
-         <div className="absolute top-1/3 left-1/3 text-white/15 animate-float-slow">
-           <BookOpen className="w-4 h-4" />
-         </div>
-         <div className="absolute top-2/3 right-1/3 text-white/15 animate-float-slow-reverse">
-           <Play className="w-3 h-3" />
-         </div>
-         
-         <div className="container-custom relative z-10 flex flex-col items-center justify-center text-center">
-           {/* Welcome badge */}
-           <div className="mb-4 animate-fade-in">
-             <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
-               📖 Inspiring Stories 📖
-             </span>
-           </div>
-           
-           <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-4 drop-shadow-lg animate-fade-in-up text-glow-hero">
-             {storiesMedia?.storiesTitle || 'Community Stories'}
-           </h1>
-           
-           <p className="text-base md:text-lg max-w-2xl mx-auto mb-4 font-medium drop-shadow text-gray-100 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-             {storiesMedia?.storiesDescription || 'Discover the inspiring journeys of individuals whose lives have been touched by Beats of Washington. Each story reflects the impact of our community and the power of coming together.'}
-           </p>
+      {/* Hero Section */}
+      <HeroSection
+        title={storiesMedia?.storiesTitle || 'Community Stories'}
+        description={storiesMedia?.storiesDescription || 'Discover the inspiring journeys of individuals whose lives have been touched by Beats of Washington. Each story reflects the impact of our community and the power of coming together.'}
+        subtitle={storiesMedia?.storiesSubtitle}
+        badge="📖 Inspiring Stories 📖"
+        logoUrl={logoUrl}
+        showLogo={true}
+        floatingElements={[
+          { icon: Heart, position: 'top-6 left-6', animation: 'animate-float-slow' },
+          { icon: Users, position: 'top-16 right-20', animation: 'animate-float-slow-reverse' },
+          { icon: Star, position: 'bottom-16 left-20', animation: 'animate-float-slow' },
+          { icon: Music, position: 'bottom-20 right-6', animation: 'animate-float-slow-reverse' },
+          { icon: BookOpen, position: 'top-1/3 left-1/3', animation: 'animate-float-slow' },
+          { icon: Play, position: 'top-2/3 right-1/3', animation: 'animate-float-slow-reverse' }
+        ]}
+        interactiveElements={[
+          { icon: Heart, label: 'Stories', color: 'text-red-300' },
+          { icon: Users, label: 'Community', color: 'text-blue-300' },
+          { icon: Music, label: 'Impact', color: 'text-purple-300' }
+        ]}
+      />
 
-           {storiesMedia?.storiesSubtitle && (
-             <p className="text-lg max-w-xl mx-auto mb-4 font-medium drop-shadow text-gray-200 animate-fade-in-up italic" style={{animationDelay: '0.5s'}}>
-               {storiesMedia.storiesSubtitle}
-             </p>
-           )}
-         </div>
-       </section>
-
+      {/* Stories Content */}
              {/* Media Placeholder Section */}
        <section className="container-custom py-8">
          {storiesMedia?.mediaUrl ? (

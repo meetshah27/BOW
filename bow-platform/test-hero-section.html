@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeroSection Component Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 48px 20px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .hero-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .hero-left {
+            flex: 1;
+            text-align: left;
+        }
+        .hero-right {
+            flex-shrink: 0;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 24px;
+        }
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        .description {
+            font-size: 18px;
+            margin-bottom: 32px;
+            opacity: 0.9;
+            max-width: 500px;
+        }
+        .interactive-elements {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .element {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .logo-container {
+            width: 192px;
+            height: 192px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .logo-placeholder {
+            width: 80%;
+            height: 80%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        .floating-element {
+            position: absolute;
+            color: rgba(255,255,255,0.2);
+            font-size: 24px;
+        }
+        .floating-1 { top: 40px; left: 40px; animation: float 6s ease-in-out infinite; }
+        .floating-2 { top: 80px; right: 128px; animation: float 6s ease-in-out infinite reverse; }
+        .floating-3 { bottom: 80px; left: 128px; animation: float 6s ease-in-out infinite; }
+        .floating-4 { bottom: 128px; right: 40px; animation: float 6s ease-in-out infinite reverse; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .hero-left {
+                text-align: center;
+            }
+            .title {
+                font-size: 36px;
+            }
+            .logo-container {
+                width: 144px;
+                height: 144px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>HeroSection Component Test</h1>
+        <p>This is a test of the HeroSection component with logo display on the right side.</p>
+        
+        <div class="hero-section">
+            <div class="floating-elements">
+                <div class="floating-element floating-1">❤️</div>
+                <div class="floating-element floating-2">🎵</div>
+                <div class="floating-element floating-3">👥</div>
+                <div class="floating-element floating-4">⭐</div>
+            </div>
+            
+            <div class="hero-content">
+                <div class="hero-left">
+                    <div class="badge">🎵 Welcome to Our Story 🎵</div>
+                    <h1 class="title">About Beats of Washington</h1>
+                    <p class="description">Empowering communities through music, culture, and connection since 2019.</p>
+                    <div class="interactive-elements">
+                        <div class="element">❤️ Community</div>
+                        <div class="element">🎵 Music</div>
+                        <div class="element">👥 Connection</div>
+                    </div>
+                </div>
+                
+                <div class="hero-right">
+                    <div class="logo-container">
+                        <div class="logo-placeholder">BOW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hero-section">
+            <div class="floating-elements">
+                <div class="floating-element floating-1">💬</div>
+                <div class="floating-element floating-2">📧</div>
+                <div class="floating-element floating-3">📞</div>
+                <div class="floating-element floating-4">📍</div>
+            </div>
+            
+            <div class="hero-content">
+                <div class="hero-left">
+                    <div class="badge">💬 Let's Connect 💬</div>
+                    <h1 class="title">Get in Touch</h1>
+                    <p class="description">We'd love to hear from you! Whether you have questions, want to volunteer, or are interested in partnering with us, we're here to help.</p>
+                    <div class="interactive-elements">
+                        <div class="element">💬 Message</div>
+                        <div class="element">📞 Call</div>
+                        <div class="element">📧 Email</div>
+                    </div>
+                </div>
+                
+                <div class="hero-right">
+                    <div class="logo-container">
+                        <div class="logo-placeholder">BOW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h2>Features Demonstrated:</h2>
+        <ul>
+            <li>✅ Logo displayed on the right side</li>
+            <li>✅ Content on the left side</li>
+            <li>✅ Responsive design (logo moves below content on mobile)</li>
+            <li>✅ Floating decorative elements</li>
+            <li>✅ Interactive elements with icons</li>
+            <li>✅ Welcome badge</li>
+            <li>✅ Gradient background</li>
+            <li>✅ Glassmorphism effects</li>
+        </ul>
+        
+        <h2>Implementation Notes:</h2>
+        <ul>
+            <li>The logo is fetched from the about-page API endpoint</li>
+            <li>Logo is displayed in a rounded container with glassmorphism effect</li>
+            <li>Logo container has hover effects and animations</li>
+            <li>Content layout adjusts based on screen size</li>
+            <li>All hero sections now use the reusable HeroSection component</li>
+            <li>Logo is only shown on pages other than the home page</li>
+        </ul>
+    </div>
+</body>
+</html>

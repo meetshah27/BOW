@@ -11,6 +11,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import api from '../config/api';
+import HeroSection from '../components/common/HeroSection';
 
 const AboutPage = () => {
   const [missionMedia, setMissionMedia] = useState({
@@ -259,61 +260,28 @@ const AboutPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white py-12 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-white to-yellow-200 rounded-full blur-3xl floating-bg"></div>
-          <div className="absolute bottom-20 left-20 w-56 h-56 bg-gradient-to-r from-yellow-200 to-white rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-white to-orange-200 rounded-full blur-3xl floating-bg opacity-30" style={{animationDelay: '4s'}}></div>
-        </div>
-        
-        {/* Floating about elements */}
-        <div className="absolute top-10 left-10 text-white/20 animate-float-slow">
-          <Heart className="w-8 h-8" />
-        </div>
-        <div className="absolute top-20 right-32 text-white/20 animate-float-slow-reverse">
-          <Music className="w-6 h-6" />
-        </div>
-        <div className="absolute bottom-20 left-32 text-white/20 animate-float-slow">
-          <Users className="w-7 h-7" />
-        </div>
-        <div className="absolute bottom-32 right-10 text-white/20 animate-float-slow-reverse">
-          <Star className="w-6 h-6" />
-        </div>
-        
-        <div className="container-custom text-center relative z-10">
-          {/* Welcome badge */}
-          <div className="mb-6 animate-fade-in">
-            <span className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-6 py-3 rounded-full tracking-widest uppercase shadow-lg border border-white/20">
-              🎵 Welcome to Our Story 🎵
-            </span>
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl font-bold mb-6 font-display tracking-tight animate-fade-in-up text-glow-hero">
+      <HeroSection
+        title={
+          <>
             About <span className="text-secondary-300">Beats of Washington</span>
-          </h1>
-          
-          <p className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed text-primary-100 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-            Empowering communities through <span className="text-secondary-200 font-semibold">music</span>, <span className="text-secondary-200 font-semibold">culture</span>, and <span className="text-secondary-200 font-semibold">connection</span> since 2019.
-          </p>
-          
-          {/* Interactive elements */}
-          <div className="mt-8 flex justify-center space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Heart className="w-5 h-5 text-red-300" />
-              <span className="text-sm font-medium">Community</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Music className="w-5 h-5 text-yellow-300" />
-              <span className="text-sm font-medium">Music</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-              <Users className="w-5 h-5 text-blue-300" />
-              <span className="text-sm font-medium">Connection</span>
-            </div>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+        description="Empowering communities through music, culture, and connection since 2019."
+        badge="🎵 Welcome to Our Story 🎵"
+        logoUrl={aboutPageContent.logo}
+        showLogo={true}
+        floatingElements={[
+          { icon: Heart, position: 'top-10 left-10', animation: 'animate-float-slow' },
+          { icon: Music, position: 'top-20 right-32', animation: 'animate-float-slow-reverse' },
+          { icon: Users, position: 'bottom-20 left-32', animation: 'animate-float-slow' },
+          { icon: Star, position: 'bottom-32 right-10', animation: 'animate-float-slow-reverse' }
+        ]}
+        interactiveElements={[
+          { icon: Heart, label: 'Community', color: 'text-red-300' },
+          { icon: Music, label: 'Music', color: 'text-yellow-300' },
+          { icon: Users, label: 'Connection', color: 'text-blue-300' }
+        ]}
+      />
 
       {/* Mission Section */}
       <section className="py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">
