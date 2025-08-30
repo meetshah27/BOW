@@ -19,10 +19,26 @@ const LeadershipPage = () => {
   const [selectedLeader, setSelectedLeader] = useState(null);
   const [leadershipTeam, setLeadershipTeam] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState('');
 
   useEffect(() => {
     fetchLeaders();
+    fetchLogo();
   }, []);
+
+  const fetchLogo = async () => {
+    try {
+      const response = await api.get('/about-page');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.logo) {
+          setLogoUrl(data.logo);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching logo:', error);
+    }
+  };
 
   const fetchLeaders = async () => {
     try {
@@ -171,44 +187,26 @@ const LeadershipPage = () => {
               </div>
             </div>
 
-            {/* Enhanced info box */}
-            <div className="bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/50 rounded-3xl p-10 shadow-2xl border border-blue-100/50 backdrop-blur-sm transform hover:scale-105 transition-all duration-700 hover:shadow-3xl relative overflow-hidden">
-              {/* Decorative corner elements */}
-              <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-br-3xl opacity-20"></div>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-purple-400 to-pink-500 rounded-bl-3xl opacity-20"></div>
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-indigo-400 to-blue-500 rounded-tr-3xl opacity-20"></div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-pink-400 to-purple-500 rounded-tl-3xl opacity-20"></div>
-              
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full animate-shimmer"></div>
-              
-              <div className="relative z-10">
-                <h3 className="text-3xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  ✨ Why They Are Part of Beats of Washington ✨
-                </h3>
-                <p className="text-lg text-gray-700 leading-relaxed max-w-4xl mx-auto">
-                  Our leaders are <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-semibold">passionate about making a difference</span>. 
-                  They are dedicated to the mission of Beats of Washington and are inspired by the 
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-semibold"> impact we create in the community</span>. 
-                  Their involvement is not just professional but deeply personal, fueled by a 
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 font-semibold">shared vision of a better future</span>.
-                </p>
-                
-                {/* Additional decorative elements */}
-                <div className="flex justify-center items-center mt-8 space-x-4">
-                  <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full animate-pulse delay-100"></div>
-                  <div className="w-3 h-3 bg-gradient-to-r from-pink-400 to-indigo-500 rounded-full animate-pulse delay-200"></div>
-                  <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full animate-pulse delay-300"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Leadership Team Grid */}
-      <section className="bg-gray-50 py-20">
+                                      {/* Logo Display */}
+             <div className="flex justify-center mb-0">
+               <div className="w-64 h-64 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-2xl transform hover:scale-110 transition-all duration-500">
+                 {logoUrl ? (
+                   <img 
+                     src={logoUrl} 
+                     alt="BOW Logo" 
+                     className="w-full h-full object-cover"
+                   />
+                 ) : (
+                   <span className="text-white font-bold text-7xl">B</span>
+                 )}
+               </div>
+             </div>
+           </div>
+         </div>
+       </section>
+ 
+       {/* Leadership Team Grid */}
+       <section className="bg-gray-50 py-2">
         <div className="container-custom">
           {loading ? (
             <div className="flex items-center justify-center py-12">
