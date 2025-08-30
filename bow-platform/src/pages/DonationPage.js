@@ -20,7 +20,7 @@ import api from '../config/api';
 // Live Stripe publishable key
 const stripePromise = loadStripe('pk_live_YOUR_ACTUAL_LIVE_PUBLISHABLE_KEY');
 
-function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
+function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl}) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,35 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly}) {
       if (result.error) {
         toast.error(result.error.message);
       } else if (result.paymentIntent.status === 'succeeded') {
-        toast.success('Thank you for your donation!');
+        // Custom success toast with logo
+        toast.success(
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-bold text-sm">B</span>
+              )}
+            </div>
+            <div>
+              <div className="font-semibold text-green-800">Thank you for your donation!</div>
+              <div className="text-sm text-green-600">Your contribution makes a difference</div>
+            </div>
+          </div>,
+          {
+            duration: 5000,
+            style: {
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '12px',
+              padding: '16px',
+            },
+          }
+        );
         triggerConfetti(); // Trigger confetti animation
         // Clear the form
         elements.getElement(CardNumberElement).clear();
@@ -482,15 +510,16 @@ const DonationPage = () => {
                 </div>
               </div>
 
-              {/* Donate Button */}
-              <Elements stripe={stripePromise}>
-                <StripeDonationForm 
-                  amount={getAmount()} 
-                  donorEmail={donorEmail}
-                  donorName={donorName}
-                  isMonthly={isMonthly}
-                />
-              </Elements>
+                             {/* Donate Button */}
+               <Elements stripe={stripePromise}>
+                 <StripeDonationForm 
+                   amount={getAmount()} 
+                   donorEmail={donorEmail}
+                   donorName={donorName}
+                   isMonthly={isMonthly}
+                   logoUrl={logoUrl}
+                 />
+               </Elements>
 
               {/* Security Notice */}
               <div className="mt-4 flex items-center justify-center text-sm text-gray-500">
