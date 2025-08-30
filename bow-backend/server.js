@@ -89,6 +89,11 @@ try {
 // app.set('view engine', 'jade');
 
 app.use(logger('dev'));
+
+// Special handling for Stripe webhooks - must be raw body
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
+
+// Regular JSON parsing for all other routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());

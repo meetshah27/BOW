@@ -129,6 +129,22 @@ class Donation {
     }
   }
 
+  // Delete donation by paymentIntentId
+  static async deleteByPaymentIntentId(paymentIntentId) {
+    const command = new DeleteCommand({
+      TableName: TABLES.DONATIONS,
+      Key: { paymentIntentId }
+    });
+
+    try {
+      await docClient.send(command);
+      return true;
+    } catch (error) {
+      console.error('Error deleting donation by paymentIntentId:', error);
+      throw error;
+    }
+  }
+
   // Delete donation
   async delete() {
     const command = new DeleteCommand({
