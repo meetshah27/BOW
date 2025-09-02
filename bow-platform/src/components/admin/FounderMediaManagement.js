@@ -8,7 +8,10 @@ import {
   Eye,
   FileText,
   User,
-  Star
+  Star,
+  Plus,
+  Trash2,
+  CheckCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../config/api';
@@ -28,6 +31,16 @@ const FounderMediaManagement = () => {
     founderBio: ''
   });
 
+  const [aandSaneContent, setAandSaneContent] = useState({
+    name: 'Aand Sane',
+    role: 'Board Chair & Co-Founder',
+    partnership: 'Partnering with Deepali Sane',
+    description: 'Aand Sane & Deepali Sane are the visionary co-founders of Beats of Washington, whose shared passion for community building through music has inspired thousands across Washington State. As Board Chair, Aand continues to lead our organization with dedication and innovative thinking, working closely with Deepali to guide our mission together.',
+    traits: ['Visionary Leader', 'Community Builder'],
+    avatar: 'A',
+    isActive: true
+  });
+
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,6 +48,7 @@ const FounderMediaManagement = () => {
 
   useEffect(() => {
     fetchFounderMedia();
+    fetchFounderContent();
   }, []);
 
   const fetchFounderMedia = async () => {
@@ -65,6 +79,24 @@ const FounderMediaManagement = () => {
     }
   };
 
+  const fetchFounderContent = async () => {
+    try {
+      const res = await api.get('/founder-content/admin');
+      if (res.ok) {
+        const data = await res.json();
+        // Extract Aand Sane's content
+        if (data.aandSane) {
+          setAandSaneContent(data.aandSane);
+        }
+        console.log('✅ Founder content loaded:', data.aandSane);
+      } else {
+        console.error('Failed to fetch founder content');
+      }
+    } catch (error) {
+      console.error('Error fetching founder content:', error);
+    }
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -77,22 +109,58 @@ const FounderMediaManagement = () => {
       }
       
       console.log('💾 Saving founder media with data:', founderMedia);
+      console.log('💾 Saving founder content with data:', aandSaneContent);
       
-      const response = await api.put('founder-media', founderMedia);
+      // Save founder media
+      const mediaResponse = await api.put('founder-media', founderMedia);
       
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Save response:', result);
-        toast.success('Founder media saved successfully!');
-        await fetchFounderMedia(); // Refresh data
+      // Save founder content - we need to get the full structure first
+      console.log('🔄 Fetching full founder content structure...');
+      const fullContentResponse = await api.get('/founder-content/admin');
+      let fullContent = {};
+      
+      if (fullContentResponse.ok) {
+        fullContent = await fullContentResponse.json();
+        console.log('✅ Full content structure loaded:', fullContent);
       } else {
-        const errorData = await response.json();
-        console.error('❌ Save failed:', errorData);
-        toast.error(errorData.message || 'Failed to save founder media');
+        console.error('❌ Failed to fetch full content structure');
+        const errorText = await fullContentResponse.text();
+        console.error('Error response:', errorText);
+      }
+      
+      // Update only the aandSane part
+      const updatedContent = {
+        ...fullContent,
+        aandSane: aandSaneContent
+      };
+      
+      console.log('📤 Sending updated content to save:', updatedContent);
+      const contentResponse = await api.post('/founder-content', updatedContent);
+      
+      if (mediaResponse.ok && contentResponse.ok) {
+        const mediaResult = await mediaResponse.json();
+        const contentResult = await contentResponse.json();
+        console.log('✅ Save responses:', { mediaResult, contentResult });
+        toast.success('Founder media and content saved successfully!');
+        await fetchFounderMedia(); // Refresh data
+        await fetchFounderContent(); // Refresh content data
+      } else {
+        const mediaError = mediaResponse.ok ? null : await mediaResponse.json();
+        const contentError = contentResponse.ok ? null : await contentResponse.json();
+        console.error('❌ Save failed:', { mediaError, contentError });
+        
+        // Show specific error messages
+        if (!mediaResponse.ok && !contentResponse.ok) {
+          toast.error(`Failed to save both media and content. Media: ${mediaError?.message || 'Unknown error'}, Content: ${contentError?.message || 'Unknown error'}`);
+        } else if (!mediaResponse.ok) {
+          toast.error(`Failed to save media: ${mediaError?.message || 'Unknown error'}`);
+        } else if (!contentResponse.ok) {
+          toast.error(`Failed to save content: ${contentError?.message || 'Unknown error'}`);
+        }
       }
     } catch (error) {
-      console.error('Error saving founder media:', error);
-      toast.error('Error saving founder media');
+      console.error('Error saving founder data:', error);
+      toast.error('Error saving founder data');
     } finally {
       setSaving(false);
     }
@@ -203,6 +271,29 @@ const FounderMediaManagement = () => {
     }));
   };
 
+  const handleAandSaneContentChange = (field, value) => {
+    setAandSaneContent(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleTraitChange = (index, value) => {
+    const newTraits = [...aandSaneContent.traits];
+    newTraits[index] = value;
+    handleAandSaneContentChange('traits', newTraits);
+  };
+
+  const addTrait = () => {
+    const newTraits = [...aandSaneContent.traits, 'New Trait'];
+    handleAandSaneContentChange('traits', newTraits);
+  };
+
+  const removeTrait = (index) => {
+    const newTraits = aandSaneContent.traits.filter((_, i) => i !== index);
+    handleAandSaneContentChange('traits', newTraits);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -222,11 +313,11 @@ const FounderMediaManagement = () => {
             <Star className="w-8 h-8 mr-3 text-primary-600" />
             Founder Media Management
           </h2>
-          <p className="text-gray-600 mt-2">Manage photos and videos for Deepali Sane's founder section</p>
+          <p className="text-gray-600 mt-2">Manage photos and videos for Aand Sane's founder section</p>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-3 gap-8">
         {/* Media Upload Section */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
@@ -385,6 +476,134 @@ const FounderMediaManagement = () => {
           </div>
         </div>
 
+        {/* Aand Sane Content Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <User className="w-6 h-6 mr-2 text-primary-600" />
+            Aand Sane Details
+          </h3>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={aandSaneContent.name}
+                  onChange={(e) => handleAandSaneContentChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Aand Sane"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role
+                </label>
+                <input
+                  type="text"
+                  value={aandSaneContent.role}
+                  onChange={(e) => handleAandSaneContentChange('role', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Board Chair & Co-Founder"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Partnership Text
+              </label>
+              <input
+                type="text"
+                value={aandSaneContent.partnership}
+                onChange={(e) => handleAandSaneContentChange('partnership', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Partnering with Deepali Sane"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                value={aandSaneContent.description}
+                onChange={(e) => handleAandSaneContentChange('description', e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Aand Sane & Deepali Sane are the visionary co-founders..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Avatar Letter
+              </label>
+              <input
+                type="text"
+                value={aandSaneContent.avatar}
+                onChange={(e) => handleAandSaneContentChange('avatar', e.target.value)}
+                className="w-16 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-lg font-bold"
+                placeholder="A"
+                maxLength={1}
+              />
+            </div>
+
+            {/* Traits */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Key Traits
+                </label>
+                <button
+                  onClick={addTrait}
+                  className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {aandSaneContent.traits.map((trait, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={trait}
+                      onChange={(e) => handleTraitChange(index, e.target.value)}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                      placeholder="Trait description"
+                    />
+                    <button
+                      onClick={() => removeTrait(index)}
+                      className="text-red-600 hover:text-red-800 p-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Toggle */}
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-sm text-gray-600">Active Status</span>
+              <button
+                onClick={() => handleAandSaneContentChange('isActive', !aandSaneContent.isActive)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  aandSaneContent.isActive ? 'bg-primary-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    aandSaneContent.isActive ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Preview Section */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
@@ -479,7 +698,7 @@ const FounderMediaManagement = () => {
           className="btn-primary text-lg px-8 py-4 flex items-center"
         >
           <Save className="w-5 h-5 mr-2" />
-          {saving ? 'Saving...' : 'Save Founder Media'}
+          {saving ? 'Saving...' : 'Save Founder Media & Content'}
         </button>
       </div>
 
@@ -490,11 +709,13 @@ const FounderMediaManagement = () => {
           How to Use
         </h4>
         <ul className="text-blue-800 space-y-2 text-sm">
-          <li>• Upload a high-quality photo or video of Deepali Sane</li>
+          <li>• Upload a high-quality photo or video of Aand Sane</li>
+          <li>• Edit founder content including name, role, and description</li>
+          <li>• Add or remove key traits that describe the founder</li>
           <li>• Add a descriptive title and description for better context</li>
           <li>• Adjust overlay opacity to ensure text remains readable</li>
-          <li>• Set the media as active to display it on the About page</li>
-          <li>• The media will appear in Deepali Sane's founder section</li>
+          <li>• Set the media and content as active to display on the About page</li>
+          <li>• The media and content will appear in Aand Sane's founder section</li>
         </ul>
       </div>
     </div>
