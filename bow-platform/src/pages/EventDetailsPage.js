@@ -475,8 +475,18 @@ const EventDetailsPage = () => {
               {/* Registration Section */}
               <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
-                    <Ticket className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+                    {event.image ? (
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                        <Ticket className="w-4 h-4 text-white" />
+                      </div>
+                    )}
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">Registration</h3>
                 </div>
