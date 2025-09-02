@@ -443,11 +443,8 @@ const EventDetailsPage = () => {
                 </div>
 
                 <div className="prose max-w-none">
-                  <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                    {event.description}
-                  </p>
                   <div className="whitespace-pre-line text-gray-700 leading-relaxed bg-gray-50 p-6 rounded-lg border-l-4 border-primary-200">
-                    {event.longDescription}
+                    {event.longDescription || event.description}
                   </div>
                 </div>
               </div>
