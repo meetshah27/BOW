@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Newsletter = require('../models-dynamodb/Newsletter');
+const { EmailService } = require('../config/ses');
 
 // POST - Subscribe to newsletter
 router.post('/subscribe', async (req, res) => {
@@ -43,6 +44,15 @@ router.post('/subscribe', async (req, res) => {
     };
 
     const subscriber = await Newsletter.create(subscriberData);
+    
+    // Send welcome email
+    try {
+      await EmailService.sendWelcomeEmail(subscriber);
+      console.log('✅ Welcome email sent to:', subscriber.email);
+    } catch (emailError) {
+      console.error('❌ Failed to send welcome email:', emailError.message);
+      // Don't fail the subscription if email fails
+    }
     
     res.status(201).json({
       message: 'Successfully subscribed to newsletter',

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../config/api';
+import NewsletterContentEditor from './NewsletterContentEditor';
 
 const NewsletterCampaignManager = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -32,6 +33,8 @@ const NewsletterCampaignManager = () => {
     template: 'default',
     scheduledDate: ''
   });
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
     fetchCampaigns();
@@ -204,7 +207,7 @@ const NewsletterCampaignManager = () => {
   };
 
   const handleSend = async (campaignId) => {
-    if (!window.confirm('Are you sure you want to mark this campaign as sent?')) {
+    if (!window.confirm('Are you sure you want to send this campaign to all subscribers?')) {
       return;
     }
 
@@ -214,14 +217,41 @@ const NewsletterCampaignManager = () => {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Campaign marked as sent successfully');
+        toast.success(data.message || 'Campaign sent successfully to subscribers');
         fetchCampaigns();
       } else {
-        toast.error(data.message || 'Failed to mark campaign as sent');
+        toast.error(data.message || 'Failed to send campaign');
       }
     } catch (error) {
-      console.error('Error marking campaign as sent:', error);
-      toast.error('Failed to mark campaign as sent');
+      console.error('Error sending campaign:', error);
+      toast.error('Failed to send campaign');
+    }
+  };
+
+  const handleSendTestEmail = async (campaignId) => {
+    if (!testEmailAddress) {
+      toast.error('Please enter a test email address');
+      return;
+    }
+
+    setSendingTest(true);
+    try {
+      const response = await api.post(`/newsletter/campaigns/${campaignId}/test`, {
+        testEmail: testEmailAddress
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Test email sent to ${testEmailAddress}`);
+        setTestEmailAddress('');
+      } else {
+        toast.error(data.message || 'Failed to send test email');
+      }
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      toast.error('Failed to send test email');
+    } finally {
+      setSendingTest(false);
     }
   };
 
@@ -387,21 +417,14 @@ const NewsletterCampaignManager = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Newsletter Content *
               </label>
-              <textarea
-                name="content"
+              <NewsletterContentEditor
                 value={formData.content}
                 onChange={handleInputChange}
-                rows={12}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Enter your newsletter content here. You can use HTML formatting."
-                required
+                placeholder="Create your newsletter content using the rich editor above, or choose from pre-built templates."
               />
-              <p className="text-sm text-gray-500 mt-1">
-                You can use HTML tags for formatting (e.g., &lt;h1&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;a&gt;)
-              </p>
             </div>
 
             <div className="flex justify-end space-x-3">
@@ -494,15 +517,30 @@ const NewsletterCampaignManager = () => {
                         </button>
                       )}
                       
-                      {campaign.status === 'scheduled' && (
+                      {(campaign.status === 'draft' || campaign.status === 'scheduled') && (
                         <button
                           onClick={() => handleSend(campaign.campaignId)}
                           className="text-green-600 hover:text-green-900"
-                          title="Mark as Sent"
+                          title="Send to All Subscribers"
                         >
                           <Send className="w-4 h-4" />
                         </button>
                       )}
+                      
+                      <button
+                        onClick={() => {
+                          const email = prompt('Enter test email address:');
+                          if (email) {
+                            setTestEmailAddress(email);
+                            handleSendTestEmail(campaign.campaignId);
+                          }
+                        }}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Send Test Email"
+                        disabled={sendingTest}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       
                       <button
                         onClick={() => handleDelete(campaign.campaignId)}

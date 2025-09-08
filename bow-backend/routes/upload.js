@@ -100,10 +100,50 @@ router.post('/gallery', upload.single('media'), async (req, res) => {
     res.json({
       success: true,
       message: 'Gallery media uploaded successfully',
-      data: result
+      data: result,
+      url: result.url // Add direct url for compatibility
     });
   } catch (error) {
     console.error('Gallery upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Upload failed'
+    });
+  }
+});
+
+// Upload newsletter media (dedicated endpoint)
+router.post('/newsletter', upload.single('media'), async (req, res) => {
+  try {
+    console.log('Newsletter upload request received');
+    console.log('File:', req.file ? req.file.originalname : 'No file');
+    console.log('Body:', req.body);
+
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'No media uploaded' 
+      });
+    }
+
+    // Use newsletter folder from S3_CONFIG
+    const result = await uploadToS3(req.file, S3_CONFIG.FOLDERS.NEWSLETTER);
+
+    console.log('Upload successful:', result);
+
+    res.json({
+      success: true,
+      message: 'Newsletter media uploaded successfully',
+      data: {
+        ...result,
+        url: result.fileUrl // Make sure url is available
+      },
+      url: result.fileUrl, // Direct access
+      mediaUrl: result.fileUrl, // Alternative access
+      fileUrl: result.fileUrl // Keep original
+    });
+  } catch (error) {
+    console.error('Newsletter upload error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Upload failed'
