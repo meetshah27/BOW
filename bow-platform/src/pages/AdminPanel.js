@@ -1008,9 +1008,24 @@ const EventManagement = () => {
 };
 
 function EditEventForm({ event, onSave, onCancel }) {
-  const [form, setForm] = React.useState({ ...event });
+  // Initialize form with proper description field handling
+  const initialForm = {
+    ...event,
+    // Use longDescription if available, otherwise use description
+    description: event.longDescription || event.description || ''
+  };
+  
+  const [form, setForm] = React.useState(initialForm);
   const [saving, setSaving] = React.useState(false);
   const [uploadedImage, setUploadedImage] = React.useState(null);
+  
+  // Debug: Log the event object to see what fields are available
+  React.useEffect(() => {
+    console.log('EditEventForm - event object:', event);
+    console.log('EditEventForm - description field:', event.description);
+    console.log('EditEventForm - longDescription field:', event.longDescription);
+    console.log('EditEventForm - form state:', form);
+  }, [event, form]);
   
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -1028,7 +1043,9 @@ function EditEventForm({ event, onSave, onCancel }) {
     const updatedForm = {
       ...form,
       date: fixedDate,
-      image: uploadedImage ? uploadedImage.fileUrl : form.image
+      image: uploadedImage ? uploadedImage.fileUrl : form.image,
+      // Ensure both description fields are updated
+      longDescription: form.description
     };
     
     // Ensure we have the correct ID field for the update

@@ -44,7 +44,8 @@ const S3_CONFIG = {
     SPONSORS: 'sponsors',
     STORIES: 'stories',
     FOUNDERS: 'founders',
-    ABOUT: 'about'
+    ABOUT: 'about',
+    NEWSLETTER: 'newsletter'
   }
 };
 
