@@ -29,6 +29,7 @@ const Dashboard = () => {
   const { currentUser } = useAuth();
   const [events, setEvents] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [volunteerApplications, setVolunteerApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -50,8 +51,12 @@ const Dashboard = () => {
           let paymentsEmailRes = await api.get(`/payment/donations/user/${userEmail}`);
           paymentsData = paymentsEmailRes.ok ? await paymentsEmailRes.json() : [];
         }
+        // Fetch volunteer applications
+        let volunteerRes = await api.get(`/volunteers/user/${userEmail || userId}/applications`);
+        let volunteerData = volunteerRes.ok ? await volunteerRes.json() : [];
         setEvents(eventsData);
         setPayments(paymentsData);
+        setVolunteerApplications(volunteerData);
       } catch (err) {
         setError('Failed to load your data.');
       } finally {
@@ -71,18 +76,18 @@ const Dashboard = () => {
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100'
     },
     { 
+      label: 'Volunteer Applications', 
+      value: volunteerApplications.length,
+      icon: Users,
+      color: 'bg-indigo-100 text-indigo-600',
+      bgColor: 'bg-gradient-to-br from-indigo-50 to-indigo-100'
+    },
+    { 
       label: 'Total Donations', 
       value: `$${payments.reduce((sum, p) => sum + (p.amount || 0) / 100, 0).toFixed(2)}`,
       icon: Gift,
       color: 'bg-green-100 text-green-600',
       bgColor: 'bg-gradient-to-br from-green-50 to-green-100'
-    },
-    { 
-      label: 'Member Since', 
-      value: currentUser?.createdAt ? new Date(currentUser.createdAt).getFullYear() : '—',
-      icon: Trophy,
-      color: 'bg-purple-100 text-purple-600',
-      bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100'
     },
     { 
       label: 'Community Rank', 
@@ -208,6 +213,67 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Enhanced Volunteer Applications Section */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-6">
+            <h3 className="text-xl font-bold text-white flex items-center">
+              <Users className="w-6 h-6 mr-3" />
+              Volunteer Applications
+            </h3>
+          </div>
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-8">{error}</div>
+            ) : (
+              <div className="space-y-4">
+                {volunteerApplications.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No volunteer applications yet.</p>
+                    <p className="text-sm">Join our volunteer community!</p>
+                  </div>
+                ) : volunteerApplications.slice(0, 3).map((application) => (
+                  <div key={application.opportunityId + application.applicantEmail} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-2">{application.opportunityTitle}</h4>
+                        <div className="flex items-center text-sm text-gray-600 mb-1">
+                          <Clock className="w-4 h-4 mr-2 text-indigo-500" />
+                          {application.timeCommitment || 'Flexible'}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="w-4 h-4 mr-2 text-red-500" />
+                          {application.opportunityCategory || 'General'}
+                        </div>
+                      </div>
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full border ${
+                        application.status === 'active' ? 'bg-green-100 text-green-800 border-green-200' :
+                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                        application.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-200' :
+                        'bg-gray-100 text-gray-800 border-gray-200'
+                      }`}>
+                        {application.status || 'pending'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-6">
+              <Link to="/member/volunteers" className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-6 rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center">
+                <Users className="w-5 h-5 mr-2" />
+                View All Applications
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-1 gap-8">
         {/* Enhanced Payments Section */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-green-600 to-green-700 p-6">
@@ -254,6 +320,136 @@ const Dashboard = () => {
               </Link>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MyVolunteerApplications = () => {
+  const { currentUser } = useAuth();
+  const [volunteerApplications, setVolunteerApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchVolunteerApplications = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        let userId = currentUser?.uid || currentUser?.id || '';
+        let userEmail = currentUser?.email || '';
+        let res = await api.get(`/volunteers/user/${userEmail || userId}/applications`);
+        let data = res.ok ? await res.json() : [];
+        setVolunteerApplications(data);
+      } catch (err) {
+        setError('Failed to load your volunteer applications.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (currentUser) fetchVolunteerApplications();
+  }, [currentUser]);
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold text-gray-900">My Volunteer Applications</h2>
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Application History</h3>
+        </div>
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center py-8">{error}</div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Opportunity</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Commitment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Application Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {volunteerApplications.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                      <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No volunteer applications found.</p>
+                      <p className="text-sm">
+                        <Link to="/get-involved" className="text-indigo-600 hover:text-indigo-800">
+                          Browse volunteer opportunities
+                        </Link>
+                      </p>
+                    </td>
+                  </tr>
+                ) : volunteerApplications.map((application) => (
+                  <tr key={application.opportunityId + application.applicantEmail}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{application.opportunityTitle}</div>
+                        <div className="text-sm text-gray-500">{application.opportunityId}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                        {application.opportunityCategory || 'General'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {application.timeCommitment || 'Flexible'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {application.applicationDate ? new Date(application.applicationDate).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        application.status === 'active' ? 'bg-green-100 text-green-800' :
+                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {application.status || 'pending'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+      
+      {/* Quick Actions */}
+      <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Ready to Get Involved?</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <Link 
+            to="/get-involved" 
+            className="bg-white rounded-lg p-4 shadow hover:shadow-md transition-shadow duration-200 flex items-center"
+          >
+            <Users className="w-8 h-8 text-indigo-600 mr-3" />
+            <div>
+              <div className="font-medium text-gray-900">Browse Opportunities</div>
+              <div className="text-sm text-gray-600">Find new ways to contribute</div>
+            </div>
+          </Link>
+          <Link 
+            to="/get-involved" 
+            className="bg-white rounded-lg p-4 shadow hover:shadow-md transition-shadow duration-200 flex items-center"
+          >
+            <Heart className="w-8 h-8 text-red-600 mr-3" />
+            <div>
+              <div className="font-medium text-gray-900">Get Involved</div>
+              <div className="text-sm text-gray-600">Learn about our mission</div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
@@ -869,7 +1065,7 @@ const SupportHelpCenter = () => {
 const MemberPortal = () => {
   const location = useLocation();
   const { currentUser } = useAuth();
-  const [userStats, setUserStats] = useState({ events: 0, donations: 0, totalAmount: 0 });
+  const [userStats, setUserStats] = useState({ events: 0, volunteers: 0, donations: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(true);
 
   // Fetch user stats for sidebar
@@ -895,10 +1091,15 @@ const MemberPortal = () => {
           paymentsData = paymentsEmailRes.ok ? await paymentsEmailRes.json() : [];
         }
         
+        // Fetch volunteer applications
+        let volunteerRes = await api.get(`/volunteers/user/${userEmail || userId}/applications`);
+        let volunteerData = volunteerRes.ok ? await volunteerRes.json() : [];
+        
         const totalAmount = paymentsData.reduce((sum, p) => sum + (p.amount || 0) / 100, 0);
         
         setUserStats({
           events: eventsData.length,
+          volunteers: volunteerData.length,
           donations: paymentsData.length,
           totalAmount: totalAmount
         });
@@ -915,6 +1116,7 @@ const MemberPortal = () => {
   const memberNavigation = [
     { name: 'Dashboard', href: '/member', icon: User },
     { name: 'My Events', href: '/member/events', icon: Calendar },
+    { name: 'My Volunteers', href: '/member/volunteers', icon: Users },
     { name: 'My Payments', href: '/member/payments', icon: CreditCard },
     { name: 'Support', href: '/member/support', icon: Heart },
     { name: 'Profile', href: '/member/profile', icon: Settings },
@@ -999,12 +1201,12 @@ const MemberPortal = () => {
                         <span className="font-medium text-primary-600">{userStats.events}</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-600">Donations</span>
-                        <span className="font-medium text-green-600">${userStats.totalAmount.toFixed(2)}</span>
+                        <span className="text-gray-600">Volunteers</span>
+                        <span className="font-medium text-indigo-600">{userStats.volunteers || 0}</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-600">Rank</span>
-                        <span className="font-medium text-orange-600">Active</span>
+                        <span className="text-gray-600">Donations</span>
+                        <span className="font-medium text-green-600">${userStats.totalAmount.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
@@ -1018,6 +1220,7 @@ const MemberPortal = () => {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/events" element={<MyEvents />} />
+                  <Route path="/volunteers" element={<MyVolunteerApplications />} />
                   <Route path="/payments" element={<MyPayments />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<SettingsPage />} />

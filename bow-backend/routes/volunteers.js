@@ -526,6 +526,47 @@ router.get('/opportunities/:opportunityId/applications', async (req, res) => {
   }
 });
 
+// Get volunteer applications by user (for member portal)
+router.get('/user/:userId/applications', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('Fetching volunteer applications for user:', userId);
+
+    if (Volunteer) {
+      // First try to find by userId if it matches applicantEmail
+      let applications = await Volunteer.findByApplicantEmail(userId);
+      
+      // If no applications found and userId looks like an email, try it directly
+      if (applications.length === 0 && userId.includes('@')) {
+        applications = await Volunteer.findByApplicantEmail(userId);
+      }
+      
+      // If still no applications and userId doesn't look like email, 
+      // we might need to get user's email from user service
+      if (applications.length === 0 && !userId.includes('@')) {
+        // For now, return empty array - in the future we could look up user's email
+        applications = [];
+      }
+
+      console.log(`Found ${applications.length} volunteer applications for user ${userId}`);
+      res.json(applications);
+    } else {
+      // Fallback to sample data for demo mode
+      // Filter sample applications by a demo user email
+      const demoEmail = userId.includes('@') ? userId : 'john.doe@example.com';
+      const applications = sampleApplications.filter(app => 
+        app.applicantEmail === demoEmail
+      );
+      
+      console.log(`Found ${applications.length} sample volunteer applications for user ${userId}`);
+      res.json(applications);
+    }
+  } catch (error) {
+    console.error('Error fetching user volunteer applications:', error);
+    res.status(500).json({ error: 'Failed to fetch volunteer applications' });
+  }
+});
+
 // Export volunteer applications to CSV
 router.get('/export-csv', async (req, res) => {
   try {
