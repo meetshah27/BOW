@@ -167,22 +167,31 @@ const Navbar = () => {
             {/* If user is logged in, show profile dropdown */}
             {currentUser ? (
               <div className="relative" ref={dropdownRef}>
-                {console.log('Navbar currentUser:', currentUser, 'photoURL:', currentUser.photoURL)}
                 <button
                   onClick={() => setDropdownOpen((open) => !open)}
                   className="flex items-center space-x-2 focus:outline-none group"
                 >
                   {currentUser.photoURL ? (
-                    <img
-                      src={currentUser.photoURL}
-                      alt={currentUser.displayName || currentUser.email}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
-                      onError={(e) => {
-                        console.error('Failed to load image:', currentUser.photoURL);
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
+                    <>
+                      <img
+                        src={currentUser.photoURL}
+                        alt={currentUser.displayName || currentUser.email}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
+                        onError={(e) => {
+                          console.error('Failed to load image:', currentUser.photoURL);
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600" style={{display: 'none'}}>
+                        <span className="text-primary-700 font-bold">
+                          {(currentUser.displayName && currentUser.displayName[0]) ||
+                           (currentUser.firstName && currentUser.firstName[0]) ||
+                           (currentUser.email && currentUser.email[0]) ||
+                           "?"}
+                        </span>
+                      </div>
+                    </>
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
                       <span className="text-primary-700 font-bold">
@@ -321,15 +330,31 @@ const Navbar = () => {
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 px-3 py-2">
                       {currentUser.photoURL ? (
-                        <img
-                          src={currentUser.photoURL}
-                          alt={currentUser.displayName || currentUser.email}
-                          className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
-                        />
+                        <>
+                          <img
+                            src={currentUser.photoURL}
+                            alt={currentUser.displayName || currentUser.email}
+                            className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
+                            onError={(e) => {
+                              console.error('Failed to load mobile image:', currentUser.photoURL);
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600" style={{display: 'none'}}>
+                            <span className="text-primary-700 font-bold">
+                              {(currentUser.displayName && currentUser.displayName[0]) ||
+                               (currentUser.firstName && currentUser.firstName[0]) ||
+                               (currentUser.email && currentUser.email[0]) ||
+                               "?"}
+                            </span>
+                          </div>
+                        </>
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
                           <span className="text-primary-700 font-bold">
                             {(currentUser.displayName && currentUser.displayName[0]) ||
+                             (currentUser.firstName && currentUser.firstName[0]) ||
                              (currentUser.email && currentUser.email[0]) ||
                              "?"}
                           </span>

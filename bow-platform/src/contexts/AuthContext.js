@@ -34,7 +34,12 @@ export const AuthProvider = ({ children }) => {
           const backendUser = await syncUserWithBackend(firebaseUser);
           console.log('Backend user response:', backendUser);
           if (backendUser && backendUser.user) {
-            console.log('Setting user from backend, photoURL:', backendUser.user.photoURL);
+            // If backend doesn't have photoURL but Firebase does, use Firebase photoURL
+            if (!backendUser.user.photoURL && firebaseUser.photoURL) {
+              console.log('Backend missing photoURL, using Firebase photoURL');
+              backendUser.user.photoURL = firebaseUser.photoURL;
+            }
+            
             setCurrentUser(backendUser.user);
             localStorage.setItem('currentUser', JSON.stringify(backendUser.user));
           } else {
