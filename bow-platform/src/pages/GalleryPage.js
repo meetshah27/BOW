@@ -87,7 +87,9 @@ const GalleryPage = () => {
             views: 0
           }));
         
-        setGalleryItems(transformedData);
+        // Sort by creation date (newest first)
+        const sortedData = transformedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setGalleryItems(sortedData);
         
         // Update category counts
         const categoryCounts = {};
