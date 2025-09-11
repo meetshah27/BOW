@@ -842,7 +842,7 @@ const HomePage = () => {
                 <Calendar className="w-12 h-12 text-primary-600 stats-icon" />
               </div>
               <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
-                200+
+                100+
               </div>
               <div className="text-gray-600 font-medium stats-label">
                 Events Annually
