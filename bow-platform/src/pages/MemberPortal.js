@@ -124,13 +124,35 @@ const Dashboard = () => {
           <div className="hidden md:block">
             <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
               {currentUser?.photoURL ? (
-                <img 
-                  src={currentUser.photoURL} 
-                  alt={`${currentUser?.displayName || currentUser?.name || 'Member'} profile`}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  <img 
+                    src={currentUser.photoURL} 
+                    alt={`${currentUser?.displayName || currentUser?.name || 'Member'} profile`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Failed to load dashboard image:', currentUser.photoURL);
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="w-full h-full flex items-center justify-center" style={{display: 'none'}}>
+                    <span className="text-white font-bold text-2xl">
+                      {(currentUser.displayName && currentUser.displayName[0]) ||
+                       (currentUser.firstName && currentUser.firstName[0]) ||
+                       (currentUser.name && currentUser.name[0]) ||
+                       (currentUser.email && currentUser.email[0]) ||
+                       "?"}
+                    </span>
+                  </div>
+                </>
               ) : (
-                <User className="w-12 h-12 text-white" />
+                <span className="text-white font-bold text-2xl">
+                  {(currentUser?.displayName && currentUser.displayName[0]) ||
+                   (currentUser?.firstName && currentUser.firstName[0]) ||
+                   (currentUser?.name && currentUser.name[0]) ||
+                   (currentUser?.email && currentUser.email[0]) ||
+                   "?"}
+                </span>
               )}
             </div>
           </div>
@@ -696,13 +718,35 @@ const Profile = () => {
                 <div className="text-center">
                   <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100 border-4 border-gray-200 flex items-center justify-center">
                     {currentUser?.photoURL ? (
-                      <img
-                        src={currentUser.photoURL}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        <img
+                          src={currentUser.photoURL}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.error('Failed to load profile settings image:', currentUser.photoURL);
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="w-full h-full bg-primary-100 flex items-center justify-center" style={{display: 'none'}}>
+                          <span className="text-primary-700 font-bold text-4xl">
+                            {(currentUser.displayName && currentUser.displayName[0]) ||
+                             (currentUser.firstName && currentUser.firstName[0]) ||
+                             (currentUser.name && currentUser.name[0]) ||
+                             (currentUser.email && currentUser.email[0]) ||
+                             "?"}
+                          </span>
+                        </div>
+                      </>
                     ) : (
-                      <User className="w-16 h-16 text-gray-300" />
+                      <span className="text-primary-700 font-bold text-4xl">
+                        {(currentUser?.displayName && currentUser.displayName[0]) ||
+                         (currentUser?.firstName && currentUser.firstName[0]) ||
+                         (currentUser?.name && currentUser.name[0]) ||
+                         (currentUser?.email && currentUser.email[0]) ||
+                         "?"}
+                      </span>
                     )}
                   </div>
                   <button className="btn-outline mt-4 w-full max-w-xs mx-auto flex items-center justify-center">
@@ -1148,11 +1192,37 @@ const MemberPortal = () => {
                   <Bell className="w-6 h-6" />
                 </button>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
                     {currentUser?.photoURL ? (
-                      <img src={currentUser.photoURL} alt="Profile" className="w-10 h-10 rounded-full" />
+                      <>
+                        <img 
+                          src={currentUser.photoURL} 
+                          alt="Profile" 
+                          className="w-10 h-10 rounded-full object-cover"
+                          onError={(e) => {
+                            console.error('Failed to load mobile header image:', currentUser.photoURL);
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{display: 'none'}}>
+                          <span className="text-white font-bold text-sm">
+                            {(currentUser.displayName && currentUser.displayName[0]) ||
+                             (currentUser.firstName && currentUser.firstName[0]) ||
+                             (currentUser.name && currentUser.name[0]) ||
+                             (currentUser.email && currentUser.email[0]) ||
+                             "?"}
+                          </span>
+                        </div>
+                      </>
                     ) : (
-                      <User className="w-5 h-5 text-white" />
+                      <span className="text-white font-bold text-sm">
+                        {(currentUser?.displayName && currentUser.displayName[0]) ||
+                         (currentUser?.firstName && currentUser.firstName[0]) ||
+                         (currentUser?.name && currentUser.name[0]) ||
+                         (currentUser?.email && currentUser.email[0]) ||
+                         "?"}
+                      </span>
                     )}
                   </div>
                   <div className="text-white">
