@@ -990,8 +990,16 @@ const HomePage = () => {
         
         <div className="container-custom relative z-10">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full mb-8 shadow-lg animate-pulse">
-              <Users className="w-10 h-10 text-white animate-bounce" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full mb-8 shadow-lg animate-pulse overflow-hidden">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover animate-fade-in"
+                />
+              ) : (
+                <Users className="w-10 h-10 text-white animate-bounce" />
+              )}
             </div>
             <h2 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent animate-fade-in">
               What Our Community Says
