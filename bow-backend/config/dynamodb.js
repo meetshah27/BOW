@@ -14,6 +14,7 @@ const TABLES = {
   DONATIONS: 'bow-donations',
   REGISTRATIONS: 'bow-registrations',
   VOLUNTEERS: 'bow-volunteers',
+  MEMBERSHIPS: 'bow-memberships',
   GALLERY: 'bow-gallery',
   HERO: 'bow-hero',
   MISSION_MEDIA: 'bow-mission-media',
@@ -224,6 +225,35 @@ const TABLE_SCHEMAS = {
     ],
     AttributeDefinitions: [
       { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.MEMBERSHIPS]: {
+    TableName: TABLES.MEMBERSHIPS,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'applicantEmail', AttributeType: 'S' }
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'email-index',
+        KeySchema: [
+          { AttributeName: 'applicantEmail', KeyType: 'HASH' }
+        ],
+        Projection: {
+          ProjectionType: 'ALL'
+        },
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5
+        }
+      }
     ],
     ProvisionedThroughput: {
       ReadCapacityUnits: 5,

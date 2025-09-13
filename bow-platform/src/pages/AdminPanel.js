@@ -48,6 +48,7 @@ import FounderMediaManagement from '../components/admin/FounderMediaManagement';
 import LeaderManagement from '../components/admin/LeaderManagement';
 import AboutPageManagement from '../components/admin/AboutPageManagement';
 import FounderContentManagement from '../components/admin/FounderContentManagement';
+import NewMembersManagement from '../components/admin/NewMembersManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // Helper function to fix timezone issues with dates
@@ -153,6 +154,9 @@ const Dashboard = () => {
         // Fetch leaders stats
         const leadersRes = await api.get('/leaders/stats/overview');
         const leadersData = leadersRes.ok ? await leadersRes.json() : {};
+        // Fetch membership application stats
+        const membershipsRes = await api.get('/memberships/stats');
+        const membershipsData = membershipsRes.ok ? await membershipsRes.json() : {};
 
         setStats({
           totalMembers: usersData.totalUsers ?? 0,
@@ -161,6 +165,8 @@ const Dashboard = () => {
           volunteerHours: volunteersData.totalApplications ?? 0,
           totalLeaders: leadersData.totalLeaders ?? 0,
           activeLeaders: leadersData.activeCount ?? 0,
+          pendingMemberships: membershipsData.pending ?? 0,
+          totalMemberships: membershipsData.total ?? 0,
           loading: false,
           error: null
         });
@@ -214,6 +220,13 @@ const Dashboard = () => {
       icon: Users,
       color: 'bg-gradient-to-br from-teal-100 to-teal-200 text-teal-700',
       iconBg: 'bg-teal-200'
+    },
+    {
+      title: 'Pending Memberships',
+      value: stats.loading ? '...' : stats.pendingMemberships,
+      icon: UserPlus,
+      color: 'bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700',
+      iconBg: 'bg-purple-200'
     }
   ];
 
@@ -3084,6 +3097,7 @@ const AdminPanel = () => {
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'New Members', href: '/admin/new-members', icon: UserPlus },
     { name: 'Volunteers', href: '/admin/volunteers', icon: Users },
     { name: 'Volunteer Opportunities', href: '/admin/volunteer-opportunities', icon: Users },
     { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
@@ -3113,6 +3127,8 @@ const AdminPanel = () => {
         return <LeaderManagement />;
       case 'users':
         return <UserManagement />;
+      case 'new members':
+        return <NewMembersManagement />;
       case 'volunteers':
         return <VolunteerManagement />;
       case 'volunteer opportunities':
