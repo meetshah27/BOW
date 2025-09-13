@@ -803,61 +803,159 @@ const HomePage = () => {
       </section>
 
       {/* Our Impact in Numbers Section */}
-      <section className="stats-section bg-white py-20">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Impact in Numbers
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+      <section className="stats-section relative py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Floating particles */}
+          <div className="absolute top-20 left-10 w-4 h-4 bg-primary-400/30 rounded-full animate-float-slow"></div>
+          <div className="absolute top-32 right-20 w-6 h-6 bg-secondary-400/40 rounded-full animate-float-slow-reverse"></div>
+          <div className="absolute bottom-20 left-1/4 w-3 h-3 bg-orange-400/30 rounded-full animate-float-slow" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-32 right-1/3 w-5 h-5 bg-purple-400/30 rounded-full animate-float-slow-reverse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/3 w-2 h-2 bg-pink-400/40 rounded-full animate-float-slow" style={{animationDelay: '3s'}}></div>
+          
+          {/* Large gradient orbs */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-primary-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-orange-200/15 to-yellow-200/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-block">
+              <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 transform hover:scale-105 transition-all duration-500">
+                Our Impact in Numbers
+              </h2>
+              <div className="h-1 w-24 bg-gradient-to-r from-primary-500 to-purple-500 mx-auto rounded-full mb-6"></div>
+            </div>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed transform hover:scale-105 transition-all duration-500">
               See how our community has grown and the impact we've made together
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center stats-card">
-              <div className="flex justify-center mb-4">
-                <Users className="w-12 h-12 text-primary-600 stats-icon" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Community Members */}
+            <div className="group text-center stats-card bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-500 border border-white/20 relative overflow-hidden">
+              {/* Card background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-blue-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              {/* Animated icon */}
+              <div className="relative mb-6">
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <Users className="w-8 h-8 text-white" />
+                    </div>
+                    {/* Pulsing ring */}
+                    <div className="absolute inset-0 rounded-2xl border-2 border-blue-400/30 group-hover:border-blue-400/60 animate-ping"></div>
+                  </div>
+                </div>
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
-                50,000+
-              </div>
-              <div className="text-gray-600 font-medium stats-label">
-                Community Members
-              </div>
-            </div>
-            <div className="text-center stats-card">
-              <div className="flex justify-center mb-4">
-                <Heart className="w-12 h-12 text-primary-600 stats-icon" />
-              </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
-                2,000+
-              </div>
-              <div className="text-gray-600 font-medium stats-label">
-                Volunteers
-              </div>
-            </div>
-            <div className="text-center stats-card">
-              <div className="flex justify-center mb-4">
-                <Calendar className="w-12 h-12 text-primary-600 stats-icon" />
-              </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
-                100+
-              </div>
-              <div className="text-gray-600 font-medium stats-label">
-                Events Annually
+              
+              <div className="relative">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-500">
+                  50,000+
+                </div>
+                <div className="text-gray-700 font-semibold text-lg group-hover:text-blue-700 transition-colors duration-300">
+                  Community Members
+                </div>
+                <div className="text-sm text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  Growing every day
+                </div>
               </div>
             </div>
-            <div className="text-center stats-card">
-              <div className="flex justify-center mb-4">
-                <Star className="w-12 h-12 text-primary-600 stats-icon" />
+
+            {/* Volunteers */}
+            <div className="group text-center stats-card bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-500 border border-white/20 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-pink-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative mb-6">
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <Heart className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl border-2 border-red-400/30 group-hover:border-red-400/60 animate-ping"></div>
+                  </div>
+                </div>
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 stats-number">
-                Since 2019
+              
+              <div className="relative">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-500">
+                  2,000+
+                </div>
+                <div className="text-gray-700 font-semibold text-lg group-hover:text-red-700 transition-colors duration-300">
+                  Volunteers
+                </div>
+                <div className="text-sm text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  Making a difference
+                </div>
               </div>
-              <div className="text-gray-600 font-medium stats-label">
-                Years of Service
+            </div>
+
+            {/* Events Annually */}
+            <div className="group text-center stats-card bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-500 border border-white/20 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative mb-6">
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <Calendar className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl border-2 border-green-400/30 group-hover:border-green-400/60 animate-ping"></div>
+                  </div>
+                </div>
               </div>
+              
+              <div className="relative">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-500">
+                  100+
+                </div>
+                <div className="text-gray-700 font-semibold text-lg group-hover:text-green-700 transition-colors duration-300">
+                  Events Annually
+                </div>
+                <div className="text-sm text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  Community celebrations
+                </div>
+              </div>
+            </div>
+
+            {/* Years of Service */}
+            <div className="group text-center stats-card bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-500 border border-white/20 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-indigo-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative mb-6">
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <Star className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl border-2 border-purple-400/30 group-hover:border-purple-400/60 animate-ping"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-500">
+                  Since 2019
+                </div>
+                <div className="text-gray-700 font-semibold text-lg group-hover:text-purple-700 transition-colors duration-300">
+                  Years of Service
+                </div>
+                <div className="text-sm text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  Building community
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Impact Statement */}
+          <div className="mt-16 text-center">
+            <div className="inline-block bg-gradient-to-r from-primary-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl p-8 border border-primary-200/30 shadow-lg">
+              <p className="text-lg text-gray-700 font-medium">
+                <span className="text-primary-600 font-bold">Every number tells a story</span> of community, 
+                connection, and the power of music to bring people together.
+              </p>
             </div>
           </div>
         </div>
