@@ -34,7 +34,7 @@ const FALLBACK_EVENTS = [
     price: 25,
     organizer: 'Beats of Washington',
     contact: {
-      phone: '(206) 555-0123',
+      phone: '206 369-9576',
       email: 'events@bow.org'
     },
     tags: ['cultural', 'festival', 'music', 'dance'],
