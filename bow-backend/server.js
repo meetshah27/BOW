@@ -23,6 +23,7 @@ const leadersRouter = require('./routes/leaders');
 const aboutPageRouter = require('./routes/about-page');
 const founderContentRouter = require('./routes/founder-content');
 const storiesMediaRouter = require('./routes/stories-media');
+const membershipsRouter = require('./routes/memberships');
 
 const app = express();
 
@@ -129,6 +130,7 @@ app.use('/api/leaders', leadersRouter);
 app.use('/api/about-page', aboutPageRouter);
 app.use('/api/founder-content', founderContentRouter);
 app.use('/api/stories-media', storiesMediaRouter);
+app.use('/api/memberships', membershipsRouter);
 app.use('/api/upload', require('./routes/upload'));
 
 // Handle missing sponsor images gracefully

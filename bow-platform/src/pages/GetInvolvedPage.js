@@ -16,6 +16,7 @@ import {
   Phone
 } from 'lucide-react';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
+import MembershipApplicationForm from '../components/membership/MembershipApplicationForm';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
@@ -450,110 +451,12 @@ const GetInvolvedPage = () => {
         </div>
       </section>
 
-      {/* Community Modal */}
+      {/* Membership Application Form Modal */}
       {showCommunityModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-900">Join Our Community</h3>
-              <p className="text-gray-600 mt-2">Fill out the form below to become a member of BOW</p>
-            </div>
-            
-            <div className="p-6">
-              <form className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-medium mb-1">First Name *</label>
-                  <input 
-                    type="text" 
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
-                    required 
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Last Name *</label>
-                  <input 
-                    type="text" 
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
-                    required 
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Email *</label>
-                  <input 
-                    type="email" 
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
-                    required 
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Phone</label>
-                  <input 
-                    type="tel" 
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Age *</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                    <option value="">Select age range</option>
-                    <option>18-25</option>
-                    <option>26-35</option>
-                    <option>36-45</option>
-                    <option>46-55</option>
-                    <option>56+</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Gender</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="">Select gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Non-binary</option>
-                    <option>Prefer not to say</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Experience *</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                    <option value="">Any Past experience with Dhol Tasha Pathak?</option>
-                    <option>YES</option>
-                    <option>NO</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Your Interest *</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                    <option value="">Select your interest</option>
-                    <option>DHOL</option>
-                    <option>TASHA</option>
-                    <option>ZAANJ</option>
-                    <option>LAZIM</option>
-                    <option>DHWAJ</option>
-                    <option>Shankhnaad (Bring your Own Shankha)</option>
-                    <option>BOW BAND</option>
-                    <option>Dance/Flashmob/Garba/Dandiya/</option>
-                    <option>VOLUNTEER (Decoration, Event management, PR etc.)</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Please Follow us on YouTube / Insta / Facebook *</label>
-                  <p className="text-xs mb-2">𝗡𝗼𝘁𝗲: Before you submit this form you must subscribe to our <a href="https://www.youtube.com/@BeatsOfWashington?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">YouTube Channel</a> and follow us on <a href="https://www.instagram.com/beatsofwa/" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Instagram</a> and <a href="https://www.facebook.com/BORDTP" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Facebook</a>.</p>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                    <option value="">Have you followed us?</option>
-                    <option>YES</option>
-                    <option>NO</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <button type="submit" className="btn-primary w-full mt-4 py-2 text-base">Submit (Placeholder)</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <MembershipApplicationForm
+          logoUrl={logoUrl}
+          onClose={() => setShowCommunityModal(false)}
+        />
       )}
 
       {/* Volunteer Application Form Modal */}
