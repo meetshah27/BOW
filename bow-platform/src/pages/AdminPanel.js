@@ -298,7 +298,10 @@ const EventManagement = () => {
     contactWebsite: '',
     image: '',
     featured: false,
-    tags: []
+    tags: [],
+    extraUrl1: '',
+    extraUrl2: '',
+    extraUrl3: ''
   });
   const [uploadedImage, setUploadedImage] = useState(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
@@ -672,6 +675,43 @@ const EventManagement = () => {
                 <div className="flex items-center">
                   <input type="checkbox" id="isLive" className="mr-2" checked={newEvent.isLive} onChange={e => setNewEvent({ ...newEvent, isLive: e.target.checked })} />
                   <label htmlFor="isLive" className="text-sm font-medium">Event Live (Allow Registration)</label>
+                </div>
+              </div>
+              
+              {/* Extra URLs */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Additional Links (Optional)</label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Extra URL 1</label>
+                    <input 
+                      type="url" 
+                      className="w-full border rounded px-3 py-2" 
+                      placeholder="https://..." 
+                      value={newEvent.extraUrl1 || ''} 
+                      onChange={e => setNewEvent({ ...newEvent, extraUrl1: e.target.value })} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Extra URL 2</label>
+                    <input 
+                      type="url" 
+                      className="w-full border rounded px-3 py-2" 
+                      placeholder="https://..." 
+                      value={newEvent.extraUrl2 || ''} 
+                      onChange={e => setNewEvent({ ...newEvent, extraUrl2: e.target.value })} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Extra URL 3</label>
+                    <input 
+                      type="url" 
+                      className="w-full border rounded px-3 py-2" 
+                      placeholder="https://..." 
+                      value={newEvent.extraUrl3 || ''} 
+                      onChange={e => setNewEvent({ ...newEvent, extraUrl3: e.target.value })} 
+                    />
+                  </div>
                 </div>
               </div>
               
@@ -1112,6 +1152,17 @@ function EditEventForm({ event, onSave, onCancel }) {
       </div>
       <div style={{ marginBottom: 8 }}>
         <label>Live: <input name="isLive" type="checkbox" checked={form.isLive} onChange={handleChange} /> Event Live</label>
+      </div>
+      
+      {/* Extra URLs */}
+      <div style={{ marginBottom: 8 }}>
+        <label>Extra URL 1:<br /><input name="extraUrl1" value={form.extraUrl1 || ''} onChange={handleChange} placeholder="https://..." style={{ width: '100%' }} /></label>
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <label>Extra URL 2:<br /><input name="extraUrl2" value={form.extraUrl2 || ''} onChange={handleChange} placeholder="https://..." style={{ width: '100%' }} /></label>
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <label>Extra URL 3:<br /><input name="extraUrl3" value={form.extraUrl3 || ''} onChange={handleChange} placeholder="https://..." style={{ width: '100%' }} /></label>
       </div>
       
       {/* Event Image Upload */}
