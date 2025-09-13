@@ -384,13 +384,23 @@ const AboutPage = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Values
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-primary-50/30 to-secondary-50/30 relative overflow-hidden">
+        {/* Background Effects - Always Visible */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-primary-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+          <div className="absolute top-40 right-10 w-96 h-96 bg-secondary-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute -bottom-8 left-1/2 w-80 h-80 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-block">
+              <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-600 bg-clip-text text-transparent mb-6 animate-fade-in-up">
+                Our Values
+              </h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 mx-auto rounded-full animate-scale-in"></div>
+            </div>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-8 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
               These core values guide everything we do and shape our approach to community building.
             </p>
           </div>
@@ -399,21 +409,66 @@ const AboutPage = () => {
             {values.map((value, index) => (
               <div
                 key={index}
-                className="group bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl shadow-xl p-8 text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl animate-fade-in"
+                className="group relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center transform transition-all duration-500 hover:-translate-y-4 hover:scale-105 hover:shadow-3xl animate-fade-in-up animate-values-card"
+                style={{
+                  animationDelay: `${index * 0.2}s`,
+                  animationFillMode: 'both'
+                }}
               >
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-white shadow-lg rounded-full flex items-center justify-center border-4 border-primary-100 group-hover:border-secondary-300 transition-all">
-                    <value.icon className="w-8 h-8 text-primary-600 group-hover:text-secondary-600 transition-colors" />
+                {/* Card Background Effects - Always Visible */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 rounded-3xl opacity-60 animate-values-glow"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-secondary-100/20 rounded-3xl opacity-40 animate-values-shimmer"></div>
+                
+                {/* Floating Particles Effect - Always Visible */}
+                <div className="absolute top-4 right-4 w-2 h-2 bg-primary-400 rounded-full opacity-80 animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="absolute top-8 right-8 w-1 h-1 bg-secondary-400 rounded-full opacity-80 animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                <div className="absolute bottom-6 left-6 w-1.5 h-1.5 bg-orange-400 rounded-full opacity-80 animate-bounce" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute bottom-4 right-8 w-1 h-1 bg-green-400 rounded-full opacity-70 animate-bounce" style={{animationDelay: '0.7s'}}></div>
+                <div className="absolute top-12 left-4 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-75 animate-bounce" style={{animationDelay: '0.9s'}}></div>
+
+                <div className="relative z-10">
+                  <div className="flex justify-center mb-6">
+                    <div className="relative">
+                      {/* Icon Container with Multiple Effects - Always Visible */}
+                      <div className="w-20 h-20 bg-gradient-to-br from-white to-primary-50 shadow-2xl rounded-full flex items-center justify-center border-4 border-primary-100 animate-values-icon-container">
+                        <value.icon className="w-10 h-10 text-primary-600 animate-values-icon" />
+                      </div>
+                      
+                      {/* Pulsing Ring Effect - Always Visible */}
+                      <div className="absolute inset-0 w-20 h-20 border-4 border-primary-200 rounded-full opacity-60 animate-ping"></div>
+                      <div className="absolute inset-2 w-16 h-16 border-2 border-secondary-200 rounded-full opacity-50 animate-ping" style={{animationDelay: '0.2s'}}></div>
+                      <div className="absolute inset-4 w-12 h-12 border border-orange-200 rounded-full opacity-40 animate-ping" style={{animationDelay: '0.4s'}}></div>
+                    </div>
                   </div>
+                  
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-secondary-700 bg-clip-text text-transparent mb-4 tracking-tight animate-values-title">
+                    {value.title}
+                  </h3>
+                  
+                  <p className="text-gray-700 leading-relaxed text-lg animate-values-description">
+                    {value.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-primary-700 mb-3 tracking-tight group-hover:text-secondary-700 transition-colors">
-                  {value.title}
-                </h3>
-                <p className="text-gray-700 leading-relaxed group-hover:text-gray-900 transition-colors">
-                  {value.description}
-                </p>
+
+                {/* Always Visible Border Effect */}
+                <div className="absolute inset-0 rounded-3xl border-2 border-gradient-to-r from-primary-400 to-secondary-400 opacity-60 animate-values-border"></div>
               </div>
             ))}
+          </div>
+
+          {/* Bottom Decorative Element - Enhanced */}
+          <div className="text-center mt-16">
+            <div className="inline-flex items-center space-x-2 text-primary-600 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+              <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              <span className="ml-4 text-lg font-medium text-gray-600 animate-values-text">Building Community Through Shared Values</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              <div className="w-2 h-2 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+            </div>
           </div>
         </div>
       </section>
