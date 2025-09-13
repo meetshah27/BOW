@@ -595,6 +595,62 @@ const EventDetailsPage = () => {
                 </div>
               </div>
 
+              {/* Additional Links Section */}
+              {(event.extraUrl1 || event.extraUrl2 || event.extraUrl3) && (
+                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
+                      <Globe className="w-4 h-4 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900">Additional Links</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {event.extraUrl1 && (
+                      <div className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                        <Globe className="w-4 h-4 mr-3 text-green-500" />
+                        <a 
+                          href={event.extraUrl1} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
+                        >
+                          {event.extraUrl1}
+                        </a>
+                      </div>
+                    )}
+                    
+                    {event.extraUrl2 && (
+                      <div className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                        <Globe className="w-4 h-4 mr-3 text-green-500" />
+                        <a 
+                          href={event.extraUrl2} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
+                        >
+                          {event.extraUrl2}
+                        </a>
+                      </div>
+                    )}
+                    
+                    {event.extraUrl3 && (
+                      <div className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                        <Globe className="w-4 h-4 mr-3 text-green-500" />
+                        <a 
+                          href={event.extraUrl3} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
+                        >
+                          {event.extraUrl3}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Contact Information Section */}
               <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all duration-300">
                 <div className="flex items-center mb-4">

@@ -20,6 +20,9 @@ class Event {
     this.price = data.price || 0;
     this.organizer = data.organizer;
     this.contact = data.contact || {};
+    this.extraUrl1 = data.extraUrl1 || '';
+    this.extraUrl2 = data.extraUrl2 || '';
+    this.extraUrl3 = data.extraUrl3 || '';
     this.tags = data.tags || [];
     this.featured = data.featured || false;
     this.isActive = data.isActive !== undefined ? data.isActive : true;
