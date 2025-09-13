@@ -662,23 +662,23 @@ const EventDetailsPage = () => {
                 
                 <div className="space-y-3">
                   <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
-                    <Phone className="w-4 h-4 mr-3 text-purple-500" />
-                    <a href={`tel:${event.contact.phone}`} className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
-                      {event.contact.phone}
-                    </a>
-                  </div>
-                  
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
                     <Mail className="w-4 h-4 mr-3 text-purple-500" />
-                    <a href={`mailto:${event.contact.email}`} className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
-                      {event.contact.email}
+                    <a href="mailto:beatsofredmond@gmail.com" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
+                      beatsofredmond@gmail.com
                     </a>
                   </div>
                   
                   <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
                     <Globe className="w-4 h-4 mr-3 text-purple-500" />
-                    <a href={event.contact.website} target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
-                      Visit Website
+                    <a href="https://beatsofwashington.com" target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
+                      beatsofwashington.com
+                    </a>
+                  </div>
+                  
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <Phone className="w-4 h-4 mr-3 text-purple-500" />
+                    <a href="tel:+12063699576" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
+                      (206) 369-9576
                     </a>
                   </div>
                 </div>
