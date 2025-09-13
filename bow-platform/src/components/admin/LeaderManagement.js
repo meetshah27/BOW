@@ -37,8 +37,9 @@ const LeaderManagement = () => {
     position: '',
     roles: '',
     bio: '',
-            isActive: 'true',
-    order: 0
+    isActive: 'true',
+    order: 0,
+    imageUrl: ''
   });
 
   // Available positions for dropdown
@@ -104,6 +105,19 @@ const LeaderManagement = () => {
       const response = await api.post('leaders', leaderData);
       if (response.ok) {
         const newLeader = await response.json();
+        
+        // If there's an image to upload, upload it after creating the leader
+        if (formData.imageUrl && formData.imageUrl instanceof File) {
+          const formDataForUpload = new FormData();
+          formDataForUpload.append('image', formData.imageUrl);
+          
+          const uploadResponse = await api.upload(`leaders/${newLeader.id}/upload`, formDataForUpload);
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            newLeader.imageUrl = uploadResult.leader.imageUrl;
+          }
+        }
+        
         setLeaders([...leaders, newLeader]);
         setShowCreateModal(false);
         resetForm();
@@ -233,7 +247,8 @@ const LeaderManagement = () => {
       roles: leader.roles.join(', '),
       bio: leader.bio,
       isActive: leader.isActive,
-      order: leader.order
+      order: leader.order,
+      imageUrl: leader.imageUrl || ''
     });
     setShowEditModal(true);
   };
@@ -250,7 +265,8 @@ const LeaderManagement = () => {
       roles: '',
       bio: '',
       isActive: 'true',
-      order: 0
+      order: 0,
+      imageUrl: ''
     });
   };
 
@@ -527,6 +543,42 @@ const LeaderManagement = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Brief description of the leader's role and contributions..."
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            setFormData({...formData, imageUrl: e.target.files[0]});
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    {formData.imageUrl && (
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
+                        {formData.imageUrl instanceof File ? (
+                          <img
+                            src={URL.createObjectURL(formData.imageUrl)}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={formData.imageUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Upload a profile image for this leader</p>
                 </div>
 
                 <div>

@@ -137,21 +137,6 @@ const LeadershipPage = () => {
                 </p>
               </div>
             </div>
-
-                                      {/* Logo Display */}
-             <div className="flex justify-center mb-0">
-               <div className="w-64 h-64 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center overflow-hidden shadow-2xl transform hover:scale-110 transition-all duration-500">
-                 {logoUrl ? (
-                   <img 
-                     src={logoUrl} 
-                     alt="BOW Logo" 
-                     className="w-full h-full object-cover"
-                   />
-                 ) : (
-                   <span className="text-white font-bold text-7xl">B</span>
-                 )}
-               </div>
-             </div>
            </div>
          </div>
        </section>
