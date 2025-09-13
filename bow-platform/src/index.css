@@ -216,6 +216,129 @@
     }
   }
 
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Values section keyframe animations */
+  @keyframes values-card-float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-8px) rotate(0.5deg);
+    }
+    50% {
+      transform: translateY(-4px) rotate(0deg);
+    }
+    75% {
+      transform: translateY(-12px) rotate(-0.5deg);
+    }
+  }
+
+  @keyframes values-glow {
+    0%, 100% {
+      opacity: 0.6;
+      filter: brightness(1);
+    }
+    50% {
+      opacity: 0.8;
+      filter: brightness(1.2);
+    }
+  }
+
+  @keyframes values-shimmer {
+    0% {
+      background-position: -200% center;
+      opacity: 0.4;
+    }
+    50% {
+      background-position: 200% center;
+      opacity: 0.6;
+    }
+    100% {
+      background-position: -200% center;
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes values-icon-float {
+    0%, 100% {
+      transform: translateY(0px) scale(1);
+    }
+    50% {
+      transform: translateY(-6px) scale(1.05);
+    }
+  }
+
+  @keyframes values-icon-pulse {
+    0%, 100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.3));
+    }
+    50% {
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6));
+    }
+  }
+
+  @keyframes values-title-glow {
+    0%, 100% {
+      background-position: 0% 50%;
+      filter: brightness(1);
+    }
+    50% {
+      background-position: 100% 50%;
+      filter: brightness(1.2);
+    }
+  }
+
+  @keyframes values-text-shift {
+    0%, 100% {
+      transform: translateX(0px);
+      opacity: 1;
+    }
+    25% {
+      transform: translateX(2px);
+      opacity: 0.9;
+    }
+    50% {
+      transform: translateX(0px);
+      opacity: 1;
+    }
+    75% {
+      transform: translateX(-2px);
+      opacity: 0.9;
+    }
+  }
+
+  @keyframes values-border-pulse {
+    0%, 100% {
+      opacity: 0.6;
+      border-color: rgb(59, 130, 246);
+    }
+    50% {
+      opacity: 0.9;
+      border-color: rgb(147, 51, 234);
+    }
+  }
+
+  @keyframes values-text-bounce {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+
   /* Leadership page hero animations */
   @keyframes slide-in-left {
     from {
@@ -299,6 +422,47 @@
 
   .animate-fade-in-up {
     animation: fade-in-up 1s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.8s ease-out forwards;
+  }
+
+  /* Values section always-visible animations */
+  .animate-values-card {
+    animation: values-card-float 4s ease-in-out infinite;
+  }
+
+  .animate-values-glow {
+    animation: values-glow 3s ease-in-out infinite;
+  }
+
+  .animate-values-shimmer {
+    animation: values-shimmer 4s ease-in-out infinite;
+  }
+
+  .animate-values-icon-container {
+    animation: values-icon-float 3s ease-in-out infinite;
+  }
+
+  .animate-values-icon {
+    animation: values-icon-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-values-title {
+    animation: values-title-glow 3s ease-in-out infinite;
+  }
+
+  .animate-values-description {
+    animation: values-text-shift 5s ease-in-out infinite;
+  }
+
+  .animate-values-border {
+    animation: values-border-pulse 2.5s ease-in-out infinite;
+  }
+
+  .animate-values-text {
+    animation: values-text-bounce 2s ease-in-out infinite;
   }
 
   /* Leadership page animation classes */
