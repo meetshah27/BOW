@@ -244,7 +244,7 @@ export const AuthProvider = ({ children }) => {
           // Show notification for role change
           if (data.user.role === 'admin') {
             console.log('🎉 User now has admin access!');
-            // Force a re-render to show admin dashboard button
+            // Force a re-render to show Beats of Washington button
             window.location.reload();
           }
           return data.user;

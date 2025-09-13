@@ -237,7 +237,7 @@ const Dashboard = () => {
         <div>
           <h2 className="text-3xl font-bold mb-2 flex items-center">
             <Settings className="w-8 h-8 mr-3 text-white/80" />
-            Admin Dashboard
+            Beats of Washington
           </h2>
           <p className="text-primary-100 text-lg">Welcome, Admin! Manage your platform with ease.</p>
         </div>

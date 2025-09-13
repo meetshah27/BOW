@@ -239,7 +239,7 @@ const Navbar = () => {
                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
                         onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
                       >
-                        <Shield className="w-4 h-4 mr-2" /> Admin Dashboard
+                        <Shield className="w-4 h-4 mr-2" /> Beats of Washington
                       </button>
                     )}
                     <button
@@ -374,7 +374,7 @@ const Navbar = () => {
                         onClick={() => { navigate('/admin'); setIsOpen(false); }}
                       >
                         <Shield className="w-4 h-4 inline mr-2" />
-                        Admin Dashboard
+                        Beats of Washington
                       </button>
                     )}
                     <button
