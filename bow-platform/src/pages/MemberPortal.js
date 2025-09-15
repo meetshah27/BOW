@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import api from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
+import Avatar from '../components/common/Avatar';
 
 // Member Portal Sub-components
 const Dashboard = () => {
@@ -122,39 +123,12 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="hidden md:block">
-            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-              {currentUser?.photoURL ? (
-                <>
-                  <img 
-                    src={currentUser.photoURL} 
-                    alt={`${currentUser?.displayName || currentUser?.name || 'Member'} profile`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      console.error('Failed to load dashboard image:', currentUser.photoURL);
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                  <div className="w-full h-full flex items-center justify-center" style={{display: 'none'}}>
-                    <span className="text-white font-bold text-2xl">
-                      {(currentUser.displayName && currentUser.displayName[0]) ||
-                       (currentUser.firstName && currentUser.firstName[0]) ||
-                       (currentUser.name && currentUser.name[0]) ||
-                       (currentUser.email && currentUser.email[0]) ||
-                       "?"}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <span className="text-white font-bold text-2xl">
-                  {(currentUser?.displayName && currentUser.displayName[0]) ||
-                   (currentUser?.firstName && currentUser.firstName[0]) ||
-                   (currentUser?.name && currentUser.name[0]) ||
-                   (currentUser?.email && currentUser.email[0]) ||
-                   "?"}
-                </span>
-              )}
-            </div>
+            <Avatar 
+              user={currentUser} 
+              size="2xl" 
+              className="bg-white/20 text-white"
+              showBorder={false}
+            />
           </div>
         </div>
       </div>
@@ -716,39 +690,12 @@ const Profile = () => {
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Photo</h3>
                 <div className="text-center">
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100 border-4 border-gray-200 flex items-center justify-center">
-                    {currentUser?.photoURL ? (
-                      <>
-                        <img
-                          src={currentUser.photoURL}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            console.error('Failed to load profile settings image:', currentUser.photoURL);
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                        <div className="w-full h-full bg-primary-100 flex items-center justify-center" style={{display: 'none'}}>
-                          <span className="text-primary-700 font-bold text-4xl">
-                            {(currentUser.displayName && currentUser.displayName[0]) ||
-                             (currentUser.firstName && currentUser.firstName[0]) ||
-                             (currentUser.name && currentUser.name[0]) ||
-                             (currentUser.email && currentUser.email[0]) ||
-                             "?"}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-primary-700 font-bold text-4xl">
-                        {(currentUser?.displayName && currentUser.displayName[0]) ||
-                         (currentUser?.firstName && currentUser.firstName[0]) ||
-                         (currentUser?.name && currentUser.name[0]) ||
-                         (currentUser?.email && currentUser.email[0]) ||
-                         "?"}
-                      </span>
-                    )}
-                  </div>
+                  <Avatar 
+                    user={currentUser} 
+                    size="3xl" 
+                    className="bg-gray-100 border-4 border-gray-200 text-primary-700"
+                    showBorder={false}
+                  />
                   <button className="btn-outline mt-4 w-full max-w-xs mx-auto flex items-center justify-center">
                     <Camera className="w-4 h-4 mr-2" />
                     Change Photo
@@ -1192,39 +1139,12 @@ const MemberPortal = () => {
                   <Bell className="w-6 h-6" />
                 </button>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-                    {currentUser?.photoURL ? (
-                      <>
-                        <img 
-                          src={currentUser.photoURL} 
-                          alt="Profile" 
-                          className="w-10 h-10 rounded-full object-cover"
-                          onError={(e) => {
-                            console.error('Failed to load mobile header image:', currentUser.photoURL);
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{display: 'none'}}>
-                          <span className="text-white font-bold text-sm">
-                            {(currentUser.displayName && currentUser.displayName[0]) ||
-                             (currentUser.firstName && currentUser.firstName[0]) ||
-                             (currentUser.name && currentUser.name[0]) ||
-                             (currentUser.email && currentUser.email[0]) ||
-                             "?"}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-white font-bold text-sm">
-                        {(currentUser?.displayName && currentUser.displayName[0]) ||
-                         (currentUser?.firstName && currentUser.firstName[0]) ||
-                         (currentUser?.name && currentUser.name[0]) ||
-                         (currentUser?.email && currentUser.email[0]) ||
-                         "?"}
-                      </span>
-                    )}
-                  </div>
+                  <Avatar 
+                    user={currentUser} 
+                    size="sm" 
+                    className="bg-white/20 text-white"
+                    showBorder={false}
+                  />
                   <div className="text-white">
                     <div className="font-medium">{currentUser?.displayName || currentUser?.name || 'Member'}</div>
                     <div className="text-xs text-primary-100">Premium Member</div>

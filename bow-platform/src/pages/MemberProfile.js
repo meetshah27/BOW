@@ -5,6 +5,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import api from '../config/api';
+import Avatar from '../components/common/Avatar';
 
 const MemberProfile = () => {
   const { userData, loading } = useAuth();
@@ -80,37 +81,12 @@ const MemberProfile = () => {
         
         {/* Profile Avatar */}
         <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto rounded-full overflow-hidden bg-primary-100 border-4 border-primary-200 flex items-center justify-center">
-            {userData?.photoURL ? (
-              <>
-                <img
-                  src={userData.photoURL}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.error('Failed to load profile page image:', userData.photoURL);
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-                <div className="w-full h-full bg-primary-100 flex items-center justify-center" style={{display: 'none'}}>
-                  <span className="text-primary-700 font-bold text-2xl">
-                    {(userData.displayName && userData.displayName[0]) ||
-                     (userData.firstName && userData.firstName[0]) ||
-                     (userData.email && userData.email[0]) ||
-                     "?"}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <span className="text-primary-700 font-bold text-2xl">
-                {(userData?.displayName && userData.displayName[0]) ||
-                 (userData?.firstName && userData.firstName[0]) ||
-                 (userData?.email && userData.email[0]) ||
-                 "?"}
-              </span>
-            )}
-          </div>
+          <Avatar 
+            user={userData} 
+            size="2xl" 
+            className="bg-primary-100 border-4 border-primary-200 text-primary-700"
+            showBorder={false}
+          />
           <p className="text-gray-600 mt-2 text-sm">
             {userData?.displayName || `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || userData?.email}
           </p>

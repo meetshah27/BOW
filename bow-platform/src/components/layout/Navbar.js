@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Menu, X, LogOut, UserCircle, Calendar, Shield } from 'lucide-react';
 import api from '../../config/api';
+import Avatar from '../common/Avatar';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -171,37 +172,11 @@ const Navbar = () => {
                   onClick={() => setDropdownOpen((open) => !open)}
                   className="flex items-center space-x-2 focus:outline-none group"
                 >
-                  {currentUser.photoURL ? (
-                    <>
-                      <img
-                        src={currentUser.photoURL}
-                        alt={currentUser.displayName || currentUser.email}
-                        className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
-                        onError={(e) => {
-                          console.error('Failed to load image:', currentUser.photoURL);
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600" style={{display: 'none'}}>
-                        <span className="text-primary-700 font-bold">
-                          {(currentUser.displayName && currentUser.displayName[0]) ||
-                           (currentUser.firstName && currentUser.firstName[0]) ||
-                           (currentUser.email && currentUser.email[0]) ||
-                           "?"}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
-                      <span className="text-primary-700 font-bold">
-                        {(currentUser.displayName && currentUser.displayName[0]) ||
-                         (currentUser.firstName && currentUser.firstName[0]) ||
-                         (currentUser.email && currentUser.email[0]) ||
-                         "?"}
-                      </span>
-                    </div>
-                  )}
+                  <Avatar 
+                    user={currentUser} 
+                    size="sm" 
+                    className="bg-primary-100"
+                  />
                   <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600">
                     {currentUser.displayName || 
                      (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
@@ -329,37 +304,11 @@ const Navbar = () => {
                 {currentUser ? (
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 px-3 py-2">
-                      {currentUser.photoURL ? (
-                        <>
-                          <img
-                            src={currentUser.photoURL}
-                            alt={currentUser.displayName || currentUser.email}
-                            className="w-8 h-8 rounded-full object-cover border-2 border-primary-600"
-                            onError={(e) => {
-                              console.error('Failed to load mobile image:', currentUser.photoURL);
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600" style={{display: 'none'}}>
-                            <span className="text-primary-700 font-bold">
-                              {(currentUser.displayName && currentUser.displayName[0]) ||
-                               (currentUser.firstName && currentUser.firstName[0]) ||
-                               (currentUser.email && currentUser.email[0]) ||
-                               "?"}
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-600">
-                          <span className="text-primary-700 font-bold">
-                            {(currentUser.displayName && currentUser.displayName[0]) ||
-                             (currentUser.firstName && currentUser.firstName[0]) ||
-                             (currentUser.email && currentUser.email[0]) ||
-                             "?"}
-                          </span>
-                        </div>
-                      )}
+                      <Avatar 
+                        user={currentUser} 
+                        size="sm" 
+                        className="bg-primary-100"
+                      />
                       <span className="text-sm text-gray-700">
                         {currentUser.displayName || 
                          (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
