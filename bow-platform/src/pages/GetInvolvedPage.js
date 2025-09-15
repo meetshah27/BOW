@@ -24,12 +24,36 @@ const GetInvolvedPage = () => {
   const [activeTab, setActiveTab] = useState('volunteer');
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [membershipApplicationEnabled, setMembershipApplicationEnabled] = useState(true);
+  const [settingsLoading, setSettingsLoading] = useState(true);
   
   // Debug logging for modal state
   useEffect(() => {
     console.log('Modal state changed - showApplicationForm:', showApplicationForm);
     console.log('Modal state changed - selectedOpportunity:', selectedOpportunity);
   }, [showApplicationForm, selectedOpportunity]);
+
+  // Fetch membership application setting
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setSettingsLoading(true);
+        const response = await api.get('/settings/membershipApplicationEnabled');
+        if (response.ok) {
+          const data = await response.json();
+          setMembershipApplicationEnabled(data.value);
+        }
+      } catch (error) {
+        console.error('Error fetching membership application setting:', error);
+        // Default to enabled if there's an error
+        setMembershipApplicationEnabled(true);
+      } finally {
+        setSettingsLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
   
   // Debug logging for component re-renders
   useEffect(() => {
@@ -435,13 +459,24 @@ const GetInvolvedPage = () => {
                     </div>
                     
                     <div className="mt-8">
-                      <button
-                        onClick={() => setShowCommunityModal(true)}
-                        className="btn-secondary w-full justify-center"
-                      >
-                        <Heart className="w-5 h-5 mr-2" />
-                        Apply for Membership
-                      </button>
+                      {membershipApplicationEnabled ? (
+                        <button
+                          onClick={() => setShowCommunityModal(true)}
+                          className="btn-secondary w-full justify-center"
+                        >
+                          <Heart className="w-5 h-5 mr-2" />
+                          Apply for Membership
+                        </button>
+                      ) : (
+                        <div className="text-center p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                          <Heart className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                          <h4 className="text-lg font-semibold text-gray-600 mb-2">Membership Applications Temporarily Closed</h4>
+                          <p className="text-gray-500 text-sm">
+                            We're currently not accepting new membership applications. 
+                            Please check back later or contact us for more information.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
