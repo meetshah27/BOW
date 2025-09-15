@@ -49,6 +49,7 @@ import LeaderManagement from '../components/admin/LeaderManagement';
 import AboutPageManagement from '../components/admin/AboutPageManagement';
 import FounderContentManagement from '../components/admin/FounderContentManagement';
 import NewMembersManagement from '../components/admin/NewMembersManagement';
+import SettingsManagement from '../components/admin/SettingsManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // Helper function to fix timezone issues with dates
@@ -3149,6 +3150,8 @@ const AdminPanel = () => {
         return <ContentManagement />;
       case 'analytics':
         return <Analytics />;
+      case 'settings':
+        return <SettingsManagement />;
       default:
         return <Dashboard />;
     }
