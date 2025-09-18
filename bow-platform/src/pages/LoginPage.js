@@ -24,6 +24,8 @@ const LoginPage = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
+  const search = location.state?.from?.search || '';
+  const redirectPath = from + search;
 
   const handleGoogleSignIn = async () => {
     try {
@@ -34,7 +36,7 @@ const LoginPage = () => {
       if (userData.role === 'admin') {
         navigate('/admin', { replace: true });
       } else {
-        navigate(from, { replace: true });
+        navigate(redirectPath, { replace: true });
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);
@@ -72,7 +74,7 @@ const LoginPage = () => {
       if (userData.role === 'admin') {
         navigate('/admin', { replace: true });
       } else {
-        navigate(from, { replace: true });
+        navigate(redirectPath, { replace: true });
       }
     } catch (error) {
       // error handling is in context
@@ -104,7 +106,7 @@ const LoginPage = () => {
       if (userData.role === 'admin') {
         navigate('/admin', { replace: true });
       } else {
-        navigate(from, { replace: true });
+        navigate(redirectPath, { replace: true });
       }
     } catch (error) {
       // error handling is in context
