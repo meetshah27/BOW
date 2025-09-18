@@ -50,6 +50,7 @@ import AboutPageManagement from '../components/admin/AboutPageManagement';
 import FounderContentManagement from '../components/admin/FounderContentManagement';
 import NewMembersManagement from '../components/admin/NewMembersManagement';
 import SettingsManagement from '../components/admin/SettingsManagement';
+import SponsorManagementFixed from '../components/admin/SponsorManagementFixed';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // Helper function to fix timezone issues with dates
@@ -3103,6 +3104,7 @@ const AdminPanel = () => {
     { name: 'Volunteer Opportunities', href: '/admin/volunteer-opportunities', icon: Users },
     { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
     { name: 'Gallery', href: '/admin/gallery', icon: Image },
+    { name: 'Sponsors', href: '/admin/sponsors', icon: Star },
     { name: 'Stories', href: '/admin/stories', icon: MessageSquare },
     { name: 'Donations', href: '/admin/donations', icon: CreditCard },
     { name: 'Content', href: '/admin/content', icon: FileText },
@@ -3142,6 +3144,8 @@ const AdminPanel = () => {
         return <RegistrationManagement />;
       case 'gallery':
         return <GalleryManager />;
+      case 'sponsors':
+        return <SponsorManagementFixed />;
       case 'stories':
         return <StoriesManagement />;
       case 'donations':
