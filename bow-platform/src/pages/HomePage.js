@@ -273,6 +273,11 @@ const HomePage = () => {
   const [missionMediaFetched, setMissionMediaFetched] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
 
+  // Sponsors state
+  const [sponsors, setSponsors] = useState([]);
+  const [loadingSponsors, setLoadingSponsors] = useState(true);
+  const [sponsorsFetched, setSponsorsFetched] = useState(false);
+
   // Fetch functions defined outside useEffect to prevent recreation
   const fetchEvents = useCallback(async () => {
     if (eventsFetched) {
@@ -380,11 +385,47 @@ const HomePage = () => {
     }
   }, [missionMediaFetched]);
 
+  const fetchSponsors = useCallback(async () => {
+    if (sponsorsFetched) {
+      console.log('⚠️ Sponsors already fetched, skipping duplicate request');
+      return;
+    }
+    
+    setLoadingSponsors(true);
+    try {
+      console.log('🔄 Fetching sponsors from backend...');
+      const res = await api.get('/sponsors');
+      console.log('📡 Sponsors response status:', res.status);
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('✅ Sponsors fetched from backend:', data);
+        
+        if (Array.isArray(data)) {
+          setSponsors(data);
+          setSponsorsFetched(true);
+          console.log('✅ Sponsors updated successfully');
+        } else {
+          console.log('⚠️ Backend returned invalid data format, keeping empty array');
+        }
+      } else {
+        console.error('❌ Failed to fetch sponsors, status:', res.status);
+        console.log('⚠️ Keeping empty sponsors array');
+      }
+    } catch (err) {
+      console.error('💥 Error fetching sponsors:', err);
+      console.log('⚠️ Keeping empty sponsors array due to error');
+    } finally {
+      setLoadingSponsors(false);
+    }
+  }, [sponsorsFetched]);
+
   // Initial data fetch - only run once
   useEffect(() => {
     fetchEvents();
     fetchHeroSettings();
     fetchMissionMedia();
+    fetchSponsors();
     fetchLogo();
   }, []); // Empty dependency array - only run on mount
 
@@ -470,79 +511,7 @@ const HomePage = () => {
     }
   ];
 
-  // Add this after testimonials section, before CTA section
-  const sponsors = [
-    {
-      name: 'Apna Bazar',
-      logo: '/sponsors/apana-bazar.png',
-      website: '#'
-    },
-    {
-      name: 'Bel Red Best Smiles',
-      logo: '/sponsors/bel-red-best-smiles.png',
-      website: '#'
-    },
-    {
-      name: 'Chutneys',
-      logo: '/sponsors/chutneys.jpg',
-      website: '#'
-    },
-    {
-      name: 'Dulay Homes',
-      logo: '/sponsors/dulay-homes.png',
-      website: '#'
-    },
-    {
-      name: 'Emerald Pacific Capital',
-      logo: '/sponsors/emerald-pacific-capital.png',
-      website: '#'
-    },
-    {
-      name: 'Fusion India',
-      logo: '/sponsors/fusion-india.avif',
-      website: '#'
-    },
-    {
-      name: 'goEzz',
-      logo: '/sponsors/goezz.png',
-      website: '#'
-    },
-    {
-      name: 'Mayuri',
-      logo: '/sponsors/mayuri-foods.png',
-      website: '#'
-    },
-    {
-      name: 'Soul Kitchen',
-      logo: '/sponsors/soul-kitchen.png',
-      website: '#'
-    },
-    {
-      name: 'Sukarya USA',
-      logo: '/sponsors/sukarya-usa.jpg',
-      website: '#'
-    },
-    {
-      name: 'Swapna Kadam',
-      logo: '/sponsors/swapna-kadam.webp',
-      website: '#'
-    },
-    {
-      name: 'The Shade Home',
-      logo: '/sponsors/the-shade-home.jpg',
-      website: '#'
-    },
-    {
-      name: 'VG Force',
-      logo: '/sponsors/vg-force.png',
-      website: '#'
-    },
-    {
-      name: 'Washington State India Trade Relations Action Committee',
-      logo: '/sponsors/washington-state-india-trade-relations-action-committee.jpg',
-      website: '#'
-    }
-  ];
+  // Sponsors are now fetched dynamically from the API
 
   // Style for event badge (match event section)
   const eventBadgeClass = "inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200";
@@ -1167,20 +1136,40 @@ const HomePage = () => {
         <div className="container-custom">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-8 relative z-10">Our Sponsors</h2>
           <div className="overflow-hidden relative">
-            <div className="flex gap-8 animate-sponsor-scroll whitespace-nowrap">
-              {sponsors.concat(sponsors).map((sponsor, idx) => (
-                <div key={idx} className="sponsor-card">
-                  <div className="block w-32 h-20 flex items-center justify-center">
-                    <img
-                      src={sponsor.logo}
-                      alt={`${sponsor.name} logo`}
-                      className="sponsor-logo"
-                      title={sponsor.name}
-                    />
-                  </div>
+            {loadingSponsors ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading sponsors...</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : sponsors.length > 0 ? (
+              <div className="flex gap-8 animate-sponsor-scroll whitespace-nowrap">
+                {sponsors.concat(sponsors).map((sponsor, idx) => (
+                  <div key={idx} className="sponsor-card">
+                    <div className="block w-32 h-20 flex items-center justify-center">
+                      <img
+                        src={sponsor.logoUrl}
+                        alt={`${sponsor.name} logo`}
+                        className="sponsor-logo"
+                        title={sponsor.name}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="hidden w-full h-full items-center justify-center text-gray-400 text-sm">
+                        {sponsor.name}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No sponsors available at the moment.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

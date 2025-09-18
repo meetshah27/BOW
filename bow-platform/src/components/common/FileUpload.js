@@ -29,13 +29,23 @@ const FileUpload = ({
     try {
       for (const file of acceptedFiles) {
         const formData = new FormData();
-        // Use 'logo' field for logo uploads, 'file' for others
-        const fieldName = isLogo ? 'logo' : 'file';
+        // Use appropriate field name based on upload type
+        let fieldName = 'file';
+        if (isLogo) {
+          fieldName = 'logo';
+        } else if (folder === 'sponsors') {
+          fieldName = 'image';
+        }
         formData.append(fieldName, file);
         formData.append('folder', folder);
 
-        // Use specific endpoint for logos
-        const endpoint = isLogo ? '/upload/about-logo' : '/upload/single';
+        // Use specific endpoint based on folder type
+        let endpoint = '/upload/single';
+        if (isLogo) {
+          endpoint = '/upload/about-logo';
+        } else if (folder === 'sponsors') {
+          endpoint = '/upload/sponsor';
+        }
         console.log('🔄 Uploading file:', file.name, 'to endpoint:', endpoint, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
         
         const response = await api.upload(endpoint, formData);

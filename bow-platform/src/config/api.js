@@ -145,6 +145,26 @@ const api = {
     return response;
   },
 
+  // PATCH request
+  patch: async (endpoint, data = {}, options = {}) => {
+    const url = buildApiUrl(endpoint);
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: buildHeaders(options.headers),
+      body: JSON.stringify(data),
+      ...options
+    });
+    
+    // Handle 401 responses by clearing invalid tokens
+    if (response.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('cognitoToken');
+      localStorage.removeItem('currentUser');
+    }
+    
+    return response;
+  },
+
   // Upload request (for file uploads)
   upload: async (endpoint, formData, options = {}) => {
     const url = buildApiUrl(endpoint);

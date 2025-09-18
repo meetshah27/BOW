@@ -19,7 +19,8 @@ const TABLES = {
   HERO: 'bow-hero',
   MISSION_MEDIA: 'bow-mission-media',
   ABOUT_PAGE: 'bow-about-page',
-  FOUNDER_CONTENT: 'bow-founder-content'
+  FOUNDER_CONTENT: 'bow-founder-content',
+  SPONSORS: 'bow-sponsors'
 };
 
 // Table schemas for creation
@@ -245,6 +246,35 @@ const TABLE_SCHEMAS = {
         IndexName: 'email-index',
         KeySchema: [
           { AttributeName: 'applicantEmail', KeyType: 'HASH' }
+        ],
+        Projection: {
+          ProjectionType: 'ALL'
+        },
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5
+        }
+      }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.SPONSORS]: {
+    TableName: TABLES.SPONSORS,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'isActive', AttributeType: 'S' }
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'active-index',
+        KeySchema: [
+          { AttributeName: 'isActive', KeyType: 'HASH' }
         ],
         Projection: {
           ProjectionType: 'ALL'
