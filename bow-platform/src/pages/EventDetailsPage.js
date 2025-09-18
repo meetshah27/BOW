@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { 
   Calendar, 
@@ -28,6 +28,7 @@ const EventDetailsPage = () => {
   const { id } = useParams();
   const { currentUser } = useAuth();
   const { triggerConfetti } = useCelebration();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -217,6 +218,21 @@ const EventDetailsPage = () => {
     
     checkExistingRegistration();
   }, [currentUser, event]);
+
+  // Add function to handle registration button click with auth check
+  const handleRegistrationClick = () => {
+    if (!currentUser) {
+      // Store the current page location to redirect back after login
+      const currentPath = window.location.pathname;
+      navigate('/login', { 
+        state: { from: { pathname: currentPath } },
+        replace: false 
+      });
+      toast.error('Please log in to register for events');
+      return;
+    }
+    setShowRegistrationModal(true);
+  };
 
   const handleRegistration = async (e) => {
     e.preventDefault();
@@ -538,7 +554,7 @@ const EventDetailsPage = () => {
                     </div>
                   ) : event.isLive ? (
                     <button 
-                      onClick={() => setShowRegistrationModal(true)}
+                      onClick={handleRegistrationClick}
                       className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 ${
                         isRegistrationOpen 
                           ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg' 
