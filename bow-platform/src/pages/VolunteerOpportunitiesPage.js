@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   MapPin, 
@@ -14,11 +15,15 @@ import {
   Music,
   Calendar
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
 const VolunteerOpportunitiesPage = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
@@ -76,6 +81,22 @@ const VolunteerOpportunitiesPage = () => {
                          opportunity.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  // Add function to handle application button click with auth check
+  const handleApplicationClick = (opportunity) => {
+    if (!currentUser) {
+      // Store the current page location to redirect back after login
+      const currentPath = window.location.pathname;
+      navigate('/login', { 
+        state: { from: { pathname: currentPath } },
+        replace: false 
+      });
+      toast.error('Please log in to apply for volunteer opportunities');
+      return;
+    }
+    setSelectedOpportunity(opportunity);
+    setShowApplicationForm(true);
+  };
 
   const stats = [
     { number: "500+", label: "Active Volunteers", icon: Users },
@@ -237,10 +258,7 @@ const VolunteerOpportunitiesPage = () => {
                 </div>
                 
                 <button
-                  onClick={() => {
-                    setSelectedOpportunity(opportunity);
-                    setShowApplicationForm(true);
-                  }}
+                  onClick={() => handleApplicationClick(opportunity)}
                   className="btn-primary w-full justify-center"
                 >
                   Apply Now
