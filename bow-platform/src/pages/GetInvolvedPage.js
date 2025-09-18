@@ -37,6 +37,15 @@ const GetInvolvedPage = () => {
     console.log('Modal state changed - selectedOpportunity:', selectedOpportunity);
   }, [showApplicationForm, selectedOpportunity]);
 
+  // Handle tab parameter from URL when returning from login
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam === 'member') {
+      setActiveTab('member');
+    }
+  }, []);
+
   // Add function to handle volunteer application button click with auth check
   const handleVolunteerApplicationClick = (opportunity) => {
     if (!currentUser) {
@@ -51,6 +60,26 @@ const GetInvolvedPage = () => {
     }
     setSelectedOpportunity(opportunity);
     setShowApplicationForm(true);
+  };
+
+  // Add function to handle membership application button click with auth check
+  const handleMembershipApplicationClick = () => {
+    if (!currentUser) {
+      // Store the current page location and tab to redirect back after login
+      const currentPath = window.location.pathname;
+      navigate('/login', { 
+        state: { 
+          from: { 
+            pathname: currentPath,
+            search: '?tab=member' // Add tab parameter to redirect to member tab
+          } 
+        },
+        replace: false 
+      });
+      toast.error('Please log in to apply for membership');
+      return;
+    }
+    setShowCommunityModal(true);
   };
 
   // Fetch membership application setting
@@ -466,7 +495,7 @@ const GetInvolvedPage = () => {
                     <div className="mt-8">
                       {membershipApplicationEnabled ? (
                         <button
-                          onClick={() => setShowCommunityModal(true)}
+                          onClick={handleMembershipApplicationClick}
                           className="btn-secondary w-full justify-center"
                         >
                           <Heart className="w-5 h-5 mr-2" />
