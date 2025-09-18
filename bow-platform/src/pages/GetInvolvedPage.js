@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Heart, 
@@ -15,12 +15,16 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
 import MembershipApplicationForm from '../components/membership/MembershipApplicationForm';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
 const GetInvolvedPage = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('volunteer');
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
@@ -32,6 +36,22 @@ const GetInvolvedPage = () => {
     console.log('Modal state changed - showApplicationForm:', showApplicationForm);
     console.log('Modal state changed - selectedOpportunity:', selectedOpportunity);
   }, [showApplicationForm, selectedOpportunity]);
+
+  // Add function to handle volunteer application button click with auth check
+  const handleVolunteerApplicationClick = (opportunity) => {
+    if (!currentUser) {
+      // Store the current page location to redirect back after login
+      const currentPath = window.location.pathname;
+      navigate('/login', { 
+        state: { from: { pathname: currentPath } },
+        replace: false 
+      });
+      toast.error('Please log in to apply for volunteer opportunities');
+      return;
+    }
+    setSelectedOpportunity(opportunity);
+    setShowApplicationForm(true);
+  };
 
   // Fetch membership application setting
   useEffect(() => {
@@ -346,22 +366,7 @@ const GetInvolvedPage = () => {
                         
                         <div className="mt-6">
                           <button
-                            onClick={() => {
-                              console.log('Apply Now clicked for opportunity:', opportunity);
-                              console.log('Setting selectedOpportunity to:', opportunity);
-                              console.log('Setting showApplicationForm to true');
-                              
-                              // Test if the state setters are working
-                              try {
-                                setSelectedOpportunity(opportunity);
-                                setShowApplicationForm(true);
-                                console.log('State setters called successfully');
-                              } catch (error) {
-                                console.error('Error setting state:', error);
-                              }
-                              
-                              console.log('State should now be updated');
-                            }}
+                            onClick={() => handleVolunteerApplicationClick(opportunity)}
                             className="btn-primary w-full justify-center"
                             type="button"
                           >
