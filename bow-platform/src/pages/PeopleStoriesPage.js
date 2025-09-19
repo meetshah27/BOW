@@ -211,7 +211,27 @@ const StoriesPage = () => {
              </div>
            </div>
          )}
+
+         {/* Stories Description Section */}
+         {storiesMedia?.storiesDescription && (
+           <div className="max-w-4xl mx-auto text-center py-8">
+             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+               <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                 {storiesMedia.storiesTitle || 'Our Stories'}
+               </h2>
+               <p className="text-lg text-gray-700 leading-relaxed">
+                 {storiesMedia.storiesDescription}
+               </p>
+               {storiesMedia.storiesSubtitle && (
+                 <p className="text-base text-gray-600 mt-4 italic">
+                   {storiesMedia.storiesSubtitle}
+                 </p>
+               )}
+             </div>
+           </div>
+         )}
        </section>
+
 
       {/* Bottom Spacing */}
       <div className="h-16"></div>
