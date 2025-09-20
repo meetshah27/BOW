@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, X, LogOut, UserCircle, Calendar, Shield } from 'lucide-react';
+import { Menu, X, LogOut, UserCircle, Calendar, Shield, User } from 'lucide-react';
 import api from '../../config/api';
 import Avatar from '../common/Avatar';
 
@@ -323,7 +323,17 @@ const Navbar = () => {
                         onClick={() => { navigate('/admin'); setIsOpen(false); }}
                       >
                         <Shield className="w-4 h-4 inline mr-2" />
-                        Beats of Washington
+                        Admin Portal
+                      </button>
+                    )}
+                    
+                    {currentUser && currentUser.role === 'member' && (
+                      <button
+                        className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+                        onClick={() => { navigate('/member'); setIsOpen(false); }}
+                      >
+                        <User className="w-4 h-4 inline mr-2" />
+                        Member Portal
                       </button>
                     )}
                     <button
