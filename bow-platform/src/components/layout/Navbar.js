@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLogo } from '../../contexts/LogoContext';
 import { Menu, X, LogOut, UserCircle, Calendar, Shield, User } from 'lucide-react';
 import api from '../../config/api';
 import Avatar from '../common/Avatar';
@@ -12,7 +13,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [logoUrl, setLogoUrl] = useState('');
+  const { logoUrl } = useLogo();
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -68,29 +69,7 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // Fetch logo from about page content
-  useEffect(() => {
-    const fetchLogo = async () => {
-      try {
-        const response = await api.get('/about-page');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.logo) {
-            setLogoUrl(data.logo);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching logo:', error);
-      }
-    };
-    
-    fetchLogo();
-    
-    // Refresh logo every 30 seconds to catch updates
-    const logoRefreshInterval = setInterval(fetchLogo, 30000);
-    
-    return () => clearInterval(logoRefreshInterval);
-  }, []);
+  // Logo is now handled by LogoContext
 
   // Close dropdown on outside click
   useEffect(() => {
