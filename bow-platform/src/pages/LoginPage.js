@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../contexts/AuthContext';
+import { useLogo } from '../contexts/LogoContext';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, User, Phone } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -20,6 +21,7 @@ const LoginPage = () => {
     phone: ''
   });
   const { signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
+  const { logoUrl } = useLogo();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -125,8 +127,16 @@ const LoginPage = () => {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-xl">B</span>
+            <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-bold text-xl">B</span>
+              )}
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
