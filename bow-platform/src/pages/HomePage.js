@@ -9,7 +9,10 @@ import {
   ArrowRight, 
   Star,
   MapPin,
-  Clock
+  Clock,
+  Building2,
+  Award,
+  Sparkles
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -405,6 +408,18 @@ const HomePage = () => {
           setSponsors(data);
           setSponsorsFetched(true);
           console.log('✅ Sponsors updated successfully');
+          console.log('📊 Total sponsors received:', data.length);
+          
+          // Debug each sponsor's details
+          data.forEach((sponsor, index) => {
+            console.log(`Sponsor ${index + 1}:`, {
+              name: sponsor.name,
+              id: sponsor.id,
+              logoUrl: sponsor.logoUrl,
+              isActive: sponsor.isActive,
+              website: sponsor.website
+            });
+          });
         } else {
           console.log('⚠️ Backend returned invalid data format, keeping empty array');
         }
@@ -428,6 +443,21 @@ const HomePage = () => {
     fetchSponsors();
     fetchLogo();
   }, []); // Empty dependency array - only run on mount
+
+  // Add refresh capability for sponsors when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Refresh sponsors when page becomes visible (user switches back to tab)
+        console.log('🔄 Page became visible, refreshing sponsors...');
+        setSponsorsFetched(false);
+        fetchSponsors();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchSponsors]);
 
   // Debug: Log whenever heroSettings changes
   useEffect(() => {
@@ -1131,43 +1161,128 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Sponsors Slider Section */}
-      <section className="sponsor-section py-12">
-        <div className="container-custom">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8 relative z-10">Our Sponsors</h2>
+      {/* Enhanced Sponsors Slider Section */}
+      <section className="sponsor-section py-20 bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-10 left-10 w-48 h-48 bg-gradient-to-br from-orange-300/10 to-amber-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-64 h-64 bg-gradient-to-br from-amber-300/10 to-yellow-400/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-orange-400/5 to-amber-500/5 rounded-full blur-2xl animate-bounce" style={{animationDuration: '6s'}}></div>
+        </div>
+        
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f97316' fill-opacity='0.2'%3E%3Ccircle cx='20' cy='20' r='2'/%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
+        
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full mb-6 shadow-lg overflow-hidden group hover:scale-110 transition-transform duration-300 cursor-pointer">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover group-hover:rotate-12 transition-transform duration-500"
+                />
+              ) : (
+                <Building2 className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
+              )}
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent animate-fade-in hover:from-orange-500 hover:via-amber-500 hover:to-yellow-500 transition-all duration-500">
+              Our Valued Sponsors
+            </h2>
+            <div className="relative">
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed animate-fade-in-up hover:text-gray-800 transition-colors duration-300">
+                Thank you to our amazing sponsors who make our community events possible
+              </p>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 rounded-full animate-pulse hover:w-36 transition-all duration-500"></div>
+            </div>
+          </div>
+          
           <div className="overflow-hidden relative">
             {loadingSponsors ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center py-16">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading sponsors...</p>
+                  <div className="relative">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <Sparkles className="absolute top-0 left-1/2 transform -translate-x-1/2 w-6 h-6 text-amber-500 animate-pulse" />
+                  </div>
+                  <p className="text-gray-600 text-lg font-medium">Loading our amazing sponsors...</p>
                 </div>
               </div>
             ) : sponsors.length > 0 ? (
-              <div className="flex gap-8 animate-sponsor-scroll whitespace-nowrap">
-                {sponsors.concat(sponsors).map((sponsor, idx) => (
-                  <div key={idx} className="sponsor-card">
-                    <div className="block w-32 h-20 flex items-center justify-center">
-                      <img
-                        src={sponsor.logoUrl}
-                        alt={`${sponsor.name} logo`}
-                        className="sponsor-logo"
-                        title={sponsor.name}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="hidden w-full h-full items-center justify-center text-gray-400 text-sm">
-                        {sponsor.name}
+              <div className="relative">
+                {/* Gradient fade effects on sides */}
+                <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 via-orange-50 to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 via-amber-50 to-transparent z-10 pointer-events-none"></div>
+                
+                <div className="flex gap-8 animate-sponsor-scroll whitespace-nowrap py-4">
+                  {sponsors.concat(sponsors).map((sponsor, idx) => (
+                    <div key={idx} className="sponsor-card relative group" style={{
+                      outline: 'none', 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                      WebkitTouchCallout: 'none'
+                    }}>
+                      {/* Award badge for first sponsor */}
+                      {idx === 0 && (
+                        <div className="absolute -top-2 -right-2 z-20">
+                          <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                            <Award className="w-3 h-3 text-white" />
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="block w-32 h-20 flex items-center justify-center relative z-10 bg-white/80 backdrop-blur-sm rounded-xl shadow-md group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 border border-gray-100 group-hover:border-orange-200" style={{
+                        outline: 'none',
+                        border: 'none',
+                        WebkitTapHighlightColor: 'transparent'
+                      }}>
+                        <img
+                          src={sponsor.logoUrl}
+                          alt={`${sponsor.name} logo`}
+                          className="sponsor-logo group-hover:scale-110 transition-transform duration-300"
+                          draggable="false"
+                          style={{
+                            outline: 'none', 
+                            userSelect: 'none',
+                            WebkitUserSelect: 'none',
+                            MozUserSelect: 'none',
+                            msUserSelect: 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                            WebkitTouchCallout: 'none',
+                            border: 'none',
+                            boxShadow: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
+                            appearance: 'none',
+                            pointerEvents: 'none'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="hidden w-full h-full items-center justify-center text-gray-400 text-sm font-medium">
+                          {sponsor.name}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No sponsors available at the moment.</p>
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                  <Building2 className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-600 text-lg">No sponsors available at the moment.</p>
+                <p className="text-gray-500 text-sm mt-2">Check back soon for updates!</p>
               </div>
             )}
           </div>
