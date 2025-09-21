@@ -717,7 +717,7 @@
 }
 
 .animate-sponsor-scroll {
-  animation: sponsor-scroll 30s linear infinite;
+  animation: sponsor-scroll 13s linear infinite;
 }
 
 @keyframes scroll {
