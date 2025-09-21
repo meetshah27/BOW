@@ -17,7 +17,8 @@ import {
   CheckCircle,
   Ticket,
   Copy,
-  Check
+  Check,
+  ShoppingCart
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
@@ -611,14 +612,14 @@ const EventDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Additional Links Section */}
+              {/* Shop Section */}
               {(event.extraUrl1 || event.extraUrl2 || event.extraUrl3) && (
                 <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
                   <div className="flex items-center mb-4">
                     <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
-                      <Globe className="w-4 h-4 text-white" />
+                      <ShoppingCart className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Additional Links</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Shop</h3>
                   </div>
                   
                   <div className="space-y-3">
