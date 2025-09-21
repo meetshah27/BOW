@@ -6,12 +6,14 @@ import { Toaster } from 'react-hot-toast';
 // Context
 import { AuthProvider } from './contexts/AuthContext';
 import { CelebrationProvider, useCelebration } from './contexts/CelebrationContext';
+import { LogoProvider, useLogo } from './contexts/LogoContext';
 
 // Components
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ConfettiAnimation from './components/common/ConfettiAnimation';
 import ScrollToTop from './components/common/ScrollToTop';
+import DynamicFavicon from './components/common/DynamicFavicon';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -39,10 +41,12 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function AppContent() {
   const { confettiTrigger } = useCelebration();
+  const { logoUrl } = useLogo();
 
   return (
     <Router>
       <ScrollToTop />
+      <DynamicFavicon logoUrl={logoUrl} />
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
         <main className="flex-grow">
@@ -124,7 +128,9 @@ function App() {
     <HelmetProvider>
       <AuthProvider>
         <CelebrationProvider>
-          <AppContent />
+          <LogoProvider>
+            <AppContent />
+          </LogoProvider>
         </CelebrationProvider>
       </AuthProvider>
     </HelmetProvider>
