@@ -448,6 +448,17 @@ const LoginPage = () => {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to home
           </Link>
+          <p className="mt-2 text-xs text-white/60 drop-shadow-sm">
+            Created by{' '}
+            <a 
+              href="https://www.instagram.com/gauravkhandekar_/?igsh=bm1zNjVpYThvOW5h&utm_source=qr#" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white/80 hover:text-white transition-colors duration-200 underline decoration-white/40 hover:decoration-white/60"
+            >
+              Gaurav Khandekar
+            </a>
+          </p>
         </div>
       </div>
     </>
