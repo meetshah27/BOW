@@ -124,37 +124,61 @@ const LoginPage = () => {
         <meta name="description" content={isRegistering ? 'Create your Beats of Washington account to join our community.' : 'Sign in to your Beats of Washington account to access member features and manage your profile.'} />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Mountain Background Image */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")`
+            }}
+          ></div>
+        </div>
+        
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-br from-orange-300/20 to-amber-400/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-amber-300/20 to-yellow-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-orange-400/10 to-amber-500/10 rounded-full blur-3xl animate-bounce" style={{animationDuration: '8s'}}></div>
+        </div>
+        
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
+
+        <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full flex items-center justify-center overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt="BOW Logo" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:rotate-12 transition-transform duration-500"
                 />
               ) : (
-                <span className="text-white font-bold text-xl">B</span>
+                <span className="text-white font-bold text-2xl">B</span>
               )}
             </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          <h2 className="mt-8 text-center text-4xl font-bold bg-gradient-to-r from-white via-orange-100 to-amber-100 bg-clip-text text-transparent animate-fade-in drop-shadow-lg">
             {isRegistering ? 'Join BOW Community' : 'Welcome back to BOW'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-3 text-center text-base text-white/90 animate-fade-in-up drop-shadow-md">
             {isRegistering ? 'Create your account to get started' : 'Sign in to your account to continue'}
           </p>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+          <div className="bg-white/95 backdrop-blur-md py-8 px-4 shadow-2xl rounded-2xl sm:px-10 border border-white/30 hover:bg-white transition-all duration-300">
             {/* Google Sign-In Button */}
             <div className="mb-6">
               <button
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="btn-google"
+                className="w-full flex justify-center items-center px-4 py-4 border border-gray-200 rounded-xl shadow-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] group"
               >
                 {loading ? (
                   <LoadingSpinner size="sm" />
@@ -278,7 +302,7 @@ const LoginPage = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="input-field pl-10"
+                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white/80"
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleInputChange}
@@ -300,7 +324,7 @@ const LoginPage = () => {
                     type={showPassword ? 'text' : 'password'}
                     autoComplete={isRegistering ? 'new-password' : 'current-password'}
                     required
-                    className="input-field pl-10 pr-10"
+                    className="w-full px-4 py-3 pl-10 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white/80"
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleInputChange}
@@ -380,7 +404,7 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white py-3 px-4 rounded-xl font-medium hover:from-orange-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-lg hover:scale-[1.02] transform"
                 >
                   {loading ? (
                     <LoadingSpinner size="sm" />
@@ -406,7 +430,7 @@ const LoginPage = () => {
               <div className="mt-6 text-center">
                 <button
                   onClick={() => setIsRegistering(!isRegistering)}
-                  className="btn-outline w-full"
+                  className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-300 hover:shadow-md"
                 >
                   {isRegistering ? 'Sign in instead' : 'Create an account'}
                 </button>
@@ -416,10 +440,10 @@ const LoginPage = () => {
         </div>
 
         {/* Back to Home */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center relative z-10">
           <Link
             to="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200"
+            className="inline-flex items-center text-sm text-white/80 hover:text-white transition-all duration-200 hover:scale-105 drop-shadow-md"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to home
