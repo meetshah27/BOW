@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { 
@@ -107,6 +107,12 @@ const AboutPage = () => {
   });
   const [loadingAboutContent, setLoadingAboutContent] = useState(true);
   const [loadingFounderContent, setLoadingFounderContent] = useState(true);
+  
+  // Scroll animation states
+  const [isStoryVisible, setIsStoryVisible] = useState(false);
+  const [isTimelineVisible, setIsTimelineVisible] = useState(false);
+  const storyRef = useRef(null);
+  const timelineRef = useRef(null);
 
   useEffect(() => {
     fetchMissionMedia();
@@ -120,6 +126,46 @@ const AboutPage = () => {
     }, 30000);
     
     return () => clearInterval(interval);
+  }, []);
+
+  // Scroll-triggered animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const storyObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsStoryVisible(true);
+        }
+      });
+    }, observerOptions);
+
+    const timelineObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsTimelineVisible(true);
+        }
+      });
+    }, observerOptions);
+
+    if (storyRef.current) {
+      storyObserver.observe(storyRef.current);
+    }
+    if (timelineRef.current) {
+      timelineObserver.observe(timelineRef.current);
+    }
+
+    return () => {
+      if (storyRef.current) {
+        storyObserver.unobserve(storyRef.current);
+      }
+      if (timelineRef.current) {
+        timelineObserver.unobserve(timelineRef.current);
+      }
+    };
   }, []);
 
   const fetchMissionMedia = async () => {
@@ -473,41 +519,169 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* History Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              {aboutPageContent.storyTitle}
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+      {/* Enhanced History Section - Our Story */}
+      <section ref={storyRef} className={`py-20 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 relative overflow-hidden transition-all duration-1000 ${isStoryVisible ? 'animate-story-entrance' : 'opacity-0'}`}>
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-full blur-3xl animate-float-slow"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-secondary-200 to-primary-200 rounded-full blur-3xl animate-float-slow-reverse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-200 to-yellow-200 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        </div>
+
+        {/* Enhanced Floating Particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-2 h-2 bg-primary-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute top-32 right-20 w-1.5 h-1.5 bg-secondary-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute bottom-40 left-32 w-2 h-2 bg-orange-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '2.5s'}}></div>
+          <div className="absolute bottom-20 right-40 w-1 h-1 bg-green-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '3.5s'}}></div>
+          <div className="absolute top-1/2 right-10 w-1.5 h-1.5 bg-purple-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '4.5s'}}></div>
+          <div className="absolute top-20 left-1/2 w-1 h-1 bg-pink-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '5.5s'}}></div>
+          <div className="absolute bottom-32 left-10 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '6.5s'}}></div>
+          <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-yellow-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '7.5s'}}></div>
+        </div>
+
+        <div className="container-custom relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-8">
+              <div className="relative">
+                <h2 className="text-6xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-600 bg-clip-text text-transparent mb-6 animate-fade-in-up">
+                  {aboutPageContent.storyTitle}
+                </h2>
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full animate-scale-in"></div>
+              </div>
+            </div>
+            <p className="text-xl text-gray-700 max-w-4xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
               {aboutPageContent.storySubtitle}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl p-8 shadow-xl animate-fade-in">
-            <div className="border-l-4 border-primary-400 pl-8 bg-white/80 rounded-2xl shadow p-6">
-              <h3 className="text-2xl font-bold text-primary-700 mb-6">{aboutPageContent.foundingTitle}</h3>
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                {aboutPageContent.foundingDescription}
-              </p>
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">{aboutPageContent.founderBelief}</p>
-              <p className="text-lg text-gray-700 leading-relaxed">{aboutPageContent.todayVision}</p>
-            </div>
-            <div className="space-y-6">
-              {aboutPageContent.achievements.map((achievement, index) => (
-                <div key={index} className="flex items-start gap-4 bg-white rounded-xl shadow-lg p-5 border-l-4 border-primary-200 hover:border-secondary-400 transition-all animate-fade-in">
-                  <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-full flex items-center justify-center">
-                    <span className="text-primary-600 font-bold text-lg">{achievement.year}</span>
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            {/* Enhanced Founding Story */}
+            <div className="relative group">
+              {/* Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-3xl blur-2xl opacity-0 group-hover:opacity-30 transition-all duration-700 transform group-hover:scale-105"></div>
+              
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-10 shadow-2xl border border-white/20 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl">
+                {/* Decorative Border */}
+                <div className="absolute inset-0 rounded-3xl border-2 border-gradient-to-r from-primary-400 to-secondary-400 opacity-20"></div>
+                
+                {/* Floating Elements */}
+                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                  <Star className="w-4 h-4 text-white" />
+                </div>
+                <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-lg animate-pulse" style={{animationDelay: '1s'}}>
+                  <Heart className="w-3 h-3 text-white" />
+                </div>
+
+                <div className="relative z-10">
+                  <div className="flex items-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mr-6 shadow-xl overflow-hidden">
+                      {aboutPageContent.logo ? (
+                        <img 
+                          src={aboutPageContent.logo} 
+                          alt="BOW Logo" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Music className="w-8 h-8 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-3xl font-bold bg-gradient-to-r from-primary-700 to-secondary-700 bg-clip-text text-transparent mb-2">
+                        {aboutPageContent.foundingTitle}
+                      </h3>
+                      <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"></div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-primary-700 mb-2 flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" /> {achievement.title}
-                    </h4>
-                    <p className="text-gray-600">{achievement.description}</p>
+                  
+                  <div className="space-y-6">
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+                      {aboutPageContent.foundingDescription}
+                    </p>
+                    <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-6 border-l-4 border-primary-400 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                      <p className="text-lg text-gray-700 leading-relaxed italic">
+                        {aboutPageContent.founderBelief}
+                      </p>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.5s'}}>
+                      {aboutPageContent.todayVision}
+                    </p>
                   </div>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Enhanced Timeline with Scroll Animations */}
+            <div ref={timelineRef} className={`relative transition-all duration-1000 ${isTimelineVisible ? 'animate-story-entrance' : 'opacity-0'}`}>
+              {/* Animated Timeline Line */}
+              <div className="absolute left-8 top-0 w-1 bg-gradient-to-b from-primary-400 via-secondary-400 to-primary-400 rounded-full animate-draw-line"></div>
+              
+              <div className="space-y-8">
+                {aboutPageContent.achievements.map((achievement, index) => (
+                  <div 
+                    key={index} 
+                    className="relative group animate-stagger-fade-in"
+                    style={{animationDelay: `${0.6 + index * 0.15}s`}}
+                  >
+                    {/* Enhanced Timeline Dot */}
+                    <div className="absolute left-6 w-4 h-4 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full shadow-lg z-10 group-hover:scale-125 transition-transform duration-300 animate-timeline-pulse">
+                      <div className="absolute inset-0 bg-white rounded-full scale-50"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full scale-75 opacity-60 animate-ping"></div>
+                    </div>
+                    
+                    {/* Achievement Card with Enhanced Effects */}
+                    <div className="ml-16 relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-all duration-500 transform group-hover:scale-105"></div>
+                      
+                      <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl group-hover:border-primary-200 animate-card-glow">
+                        {/* Year Badge with Enhanced Animation */}
+                        <div className="absolute -top-3 -right-3 w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-white font-bold text-sm">{achievement.year}</span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full scale-75 opacity-60 animate-ping"></div>
+                        </div>
+                        
+                        {/* Content with Shimmer Effect */}
+                        <div className="pr-8 relative overflow-hidden">
+                          <h4 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-3 group-hover:text-primary-700 transition-colors duration-300">
+                            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                              <CheckCircle className="w-5 h-5 text-white" />
+                            </div>
+                            {achievement.title}
+                          </h4>
+                          <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                            {achievement.description}
+                          </p>
+                          
+                          {/* Shimmer Effect on Hover */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 animate-shimmer"></div>
+                        </div>
+                        
+                        {/* Enhanced Hover Effect Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary-50/50 to-secondary-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        {/* Corner Accent */}
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute bottom-2 left-2 w-1 h-1 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Decorative Element */}
+          <div className="text-center mt-20">
+            <div className="inline-flex items-center space-x-3 text-primary-600 animate-fade-in-up" style={{animationDelay: '1s'}}>
+              <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse"></div>
+              <div className="w-3 h-3 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              <span className="ml-6 text-xl font-semibold text-gray-700">Our Journey Continues</span>
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              <div className="w-3 h-3 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
             </div>
           </div>
         </div>
