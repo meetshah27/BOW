@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
+import { useCelebration } from '../contexts/CelebrationContext';
 
 const AboutPage = () => {
   const [missionMedia, setMissionMedia] = useState({
@@ -107,6 +108,8 @@ const AboutPage = () => {
   });
   const [loadingAboutContent, setLoadingAboutContent] = useState(true);
   const [loadingFounderContent, setLoadingFounderContent] = useState(true);
+  const { triggerConfetti } = useCelebration();
+  const [isLogoSpinning, setIsLogoSpinning] = useState(false);
   
   // Scroll animation states
   const [isStoryVisible, setIsStoryVisible] = useState(false);
@@ -899,7 +902,16 @@ const AboutPage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogoSpinning(true);
+                  try { triggerConfetti(); } catch (e) {}
+                  setTimeout(() => setIsLogoSpinning(false), 1200);
+                }}
+                aria-label="Celebrate BOW 501(c)(3)"
+                className={`w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden cursor-pointer transition-transform duration-300 ${isLogoSpinning ? 'animate-spin' : ''}`}
+              >
                 {aboutPageContent.logo ? (
                   <img 
                     src={aboutPageContent.logo} 
@@ -911,7 +923,7 @@ const AboutPage = () => {
                     <span className="text-white font-bold text-4xl">B</span>
                   </div>
                 )}
-              </div>
+              </button>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
