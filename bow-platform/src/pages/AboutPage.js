@@ -940,8 +940,8 @@ const AboutPage = () => {
             <p className="text-lg mb-6">
               <strong>EIN:</strong> 84-4396168 | <strong>Founded:</strong> 2019
             </p>
-            <Link to="/contact" className="btn-secondary">
-              Request Financial Information
+            <Link to="/donate" className="btn-secondary">
+              Make a Donation
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
           </div>
@@ -962,10 +962,6 @@ const AboutPage = () => {
             <Link to="/get-involved" className="btn-primary text-lg px-8 py-4">
               <Users className="w-5 h-5 mr-2" />
               Get Involved
-            </Link>
-            <Link to="/donate" className="btn-outline text-lg px-8 py-4">
-              <Heart className="w-5 h-5 mr-2" />
-              Make a Donation
             </Link>
           </div>
         </div>
