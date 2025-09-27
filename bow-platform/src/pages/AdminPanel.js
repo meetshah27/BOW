@@ -277,9 +277,10 @@ const Dashboard = () => {
         <div className="space-y-4">
           {/* You can update this section to show real activity if desired */}
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-900">founders</p>
-              <p className="text-sm text-gray-600">Anand Sane and Deepali sane</p>
+            <div className="w-full">
+              <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-1 active:scale-95 active:rotate-0 focus:outline-none focus:ring-4 focus:ring-orange-300 focus:ring-opacity-50 cursor-pointer select-none animate-pulse hover:animate-none">
+                <span className="text-sm font-medium">Anand Sane and Deepali Sane</span>
+              </div>
             </div>
           </div>
         </div>
