@@ -18,17 +18,60 @@ import { useCelebration } from '../contexts/CelebrationContext';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
-// Live Stripe publishable key
-const stripePromise = loadStripe('pk_live_YOUR_ACTUAL_LIVE_PUBLISHABLE_KEY');
+// Stripe will be initialized dynamically with secure key
+let stripePromise = null;
 
-function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl}) {
+function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
   const { triggerConfetti } = useCelebration();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Clear previous validation errors
+    setValidationErrors({});
+    
+    // Validate form fields before proceeding
+    const errors = {};
+    
+    if (!donorName || donorName.trim() === '') {
+      errors.donorName = 'Please enter your full name';
+    }
+    
+    if (!donorEmail || donorEmail.trim() === '') {
+      errors.donorEmail = 'Please enter your email address';
+    } else {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(donorEmail)) {
+        errors.donorEmail = 'Please enter a valid email address';
+      }
+    }
+    
+    if (!amount || amount <= 0) {
+      errors.amount = 'Please select a donation amount';
+    }
+    
+    // Check if Stripe is loaded
+    if (!stripe || !elements) {
+      toast.error('Payment system is loading. Please wait a moment and try again.');
+      return;
+    }
+    
+    // If there are validation errors, show them and return
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      
+      // Show the first error as a toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+      
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -38,8 +81,8 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl})
         currency: 'usd',
         donorEmail: donorEmail,
         donorName: donorName,
-        isRecurring: isMonthly,
-        frequency: isMonthly ? 'monthly' : 'one-time'
+        isRecurring: false,
+        frequency: 'one-time'
       });
       
       if (!res.ok) {
@@ -48,7 +91,7 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl})
       
       const {clientSecret, error} = await res.json();
       if (error) throw new Error(error);
-      
+           
       // Create payment method first
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
@@ -104,7 +147,23 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl})
       }
     } catch (err) {
       console.error('Payment error:', err);
-      toast.error('Payment failed. Please try again.');
+      
+      // Provide more specific error messages
+      if (err.message.includes('email')) {
+        toast.error('Please enter a valid email address');
+      } else if (err.message.includes('name')) {
+        toast.error('Please enter your full name');
+      } else if (err.message.includes('amount')) {
+        toast.error('Please select a donation amount');
+      } else if (err.message.includes('card')) {
+        toast.error('Please check your card details and try again');
+      } else if (err.message.includes('network') || err.message.includes('fetch')) {
+        toast.error('Connection error. Please check your internet and try again');
+      } else if (err.message.includes('intent')) {
+        toast.error('Payment system error. Please try again in a moment');
+      } else {
+        toast.error(err.message || 'Payment failed. Please check your details and try again');
+      }
     } finally {
       setLoading(false);
     }
@@ -121,6 +180,7 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl})
           <CardNumberElement 
             options={{
               showIcon: true,
+              disableLink: true, // Disabled autofill link
               style: {
                 base: {
                   fontSize: '16px',
@@ -205,12 +265,13 @@ function StripeDonationForm({amount, donorEmail, donorName, isMonthly, logoUrl})
 const DonationPage = () => {
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState('');
-  const [isMonthly, setIsMonthly] = useState(false);
   const [donorEmail, setDonorEmail] = useState('');
   const [donorName, setDonorName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [stripeError, setStripeError] = useState(null);
 
-  // Fetch logo from about page content
+  // Fetch logo and Stripe configuration
   useEffect(() => {
     const fetchLogo = async () => {
       try {
@@ -225,8 +286,35 @@ const DonationPage = () => {
         console.error('Error fetching logo:', error);
       }
     };
+
+    const fetchStripeConfig = async () => {
+      try {
+        console.log('🔐 Fetching Stripe configuration...');
+        const response = await api.get('/stripe-config');
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.publishableKey) {
+            // Initialize Stripe with the secure publishable key
+            stripePromise = loadStripe(data.publishableKey);
+            setStripeLoaded(true);
+            console.log('✅ Stripe loaded successfully');
+          } else {
+            throw new Error('No publishable key received');
+          }
+        } else {
+          throw new Error('Failed to fetch Stripe configuration');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching Stripe configuration:', error);
+        setStripeError('Payment processing is currently unavailable. Please try again later.');
+        toast.error('Payment system is temporarily unavailable');
+      }
+    };
     
     fetchLogo();
+    fetchStripeConfig();
   }, []);
 
   const presetAmounts = [25, 50, 100, 250, 500];
@@ -236,8 +324,9 @@ const DonationPage = () => {
       name: "Community Supporter",
       amount: 25,
       benefits: [
-        "Event updates",
-        "Recognition on our website"
+        "Event updates and notifications",
+        "Recognition on our website",
+        "Thank you message from our team"
       ]
     },
     {
@@ -246,7 +335,8 @@ const DonationPage = () => {
       benefits: [
         "All Community Supporter benefits",
         "Early access to event tickets",
-        "Exclusive behind-the-scenes content"
+        "Exclusive behind-the-scenes content",
+        "Invitation to special events"
       ]
     },
     {
@@ -255,7 +345,8 @@ const DonationPage = () => {
       benefits: [
         "All Music Advocate benefits",
         "Invitation to donor appreciation events",
-        "Personal thank you from our team"
+        "Personal thank you from our founders",
+        "Behind-the-scenes event access"
       ]
     },
     {
@@ -264,7 +355,8 @@ const DonationPage = () => {
       benefits: [
         "All Cultural Champion benefits",
         "Naming opportunity at events",
-        "Annual impact report"
+        "Annual impact report",
+        "VIP access to all events"
       ]
     }
   ];
@@ -370,34 +462,6 @@ const DonationPage = () => {
                 </div>
               </div>
 
-              {/* Monthly/One-time Toggle */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Donation Type
-                </label>
-                <div className="flex bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setIsMonthly(false)}
-                    className={`btn-toggle ${
-                      !isMonthly
-                        ? 'btn-toggle-active'
-                        : 'btn-toggle-inactive'
-                    }`}
-                  >
-                    One-time
-                  </button>
-                  <button
-                    onClick={() => setIsMonthly(true)}
-                    className={`btn-toggle ${
-                      isMonthly
-                        ? 'btn-toggle-active'
-                        : 'btn-toggle-inactive'
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                </div>
-              </div>
 
               {/* Donation Summary */}
               <div className="bg-gray-50 rounded-lg p-6 mb-8">
@@ -406,12 +470,12 @@ const DonationPage = () => {
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Amount:</span>
+                    <span className="text-gray-600">Donation Amount:</span>
                     <span className="font-medium">${getAmount()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Frequency:</span>
-                    <span className="font-medium">{isMonthly ? 'Monthly' : 'One-time'}</span>
+                    <span className="text-gray-600">Type:</span>
+                    <span className="font-medium">One-time Donation</span>
                   </div>
                   <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between">
@@ -458,15 +522,36 @@ const DonationPage = () => {
               </div>
 
                              {/* Donate Button */}
-               <Elements stripe={stripePromise}>
-                 <StripeDonationForm 
-                   amount={getAmount()} 
-                   donorEmail={donorEmail}
-                   donorName={donorName}
-                   isMonthly={isMonthly}
-                   logoUrl={logoUrl}
-                 />
-               </Elements>
+               {stripeLoaded && stripePromise ? (
+                 <Elements stripe={stripePromise}>
+                   <StripeDonationForm 
+                     amount={getAmount()} 
+                     donorEmail={donorEmail}
+                     donorName={donorName}
+                     logoUrl={logoUrl}
+                   />
+                 </Elements>
+               ) : stripeError ? (
+                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                   <div className="flex items-center">
+                     <div className="flex-shrink-0">
+                       <div className="w-5 h-5 bg-red-400 rounded-full flex items-center justify-center">
+                         <span className="text-white text-xs font-bold">!</span>
+                       </div>
+                     </div>
+                     <div className="ml-3">
+                       <p className="text-sm text-red-800">{stripeError}</p>
+                     </div>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="flex items-center justify-center py-8">
+                   <div className="text-center">
+                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                     <p className="text-gray-600">Loading payment system...</p>
+                   </div>
+                 </div>
+               )}
 
               {/* Security Notice */}
               <div className="mt-4 flex items-center justify-center text-sm text-gray-500">
@@ -478,10 +563,10 @@ const DonationPage = () => {
             {/* Donation Tiers */}
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Donation Tiers
+                Donation Impact
               </h2>
               <p className="text-lg text-gray-600 mb-8">
-                Choose a donation tier and unlock exclusive benefits while supporting our mission.
+                See how your donation helps our community and unlocks exclusive benefits.
               </p>
 
               <div className="space-y-6">

@@ -12,6 +12,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const paymentRouter = require('./routes/payment');
+const stripeConfigRouter = require('./routes/stripe-config');
 const eventsRouter = require('./routes/events');
 const volunteersRouter = require('./routes/volunteers');
 const storiesRouter = require('./routes/stories');
@@ -111,6 +112,7 @@ app.use(healthCheckMiddleware);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api', stripeConfigRouter);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
