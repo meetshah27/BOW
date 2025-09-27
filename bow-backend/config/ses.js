@@ -239,6 +239,214 @@ class EmailService {
 </html>`;
   }
 
+  // Send donation receipt email
+  static async sendDonationReceipt(donationData) {
+    const subject = `Thank you for your donation to Beats of Washington!`;
+    const htmlContent = this.getDonationReceiptTemplate(donationData);
+    const textContent = this.getDonationReceiptTextTemplate(donationData);
+    
+    return await this.sendEmail({
+      to: donationData.donorEmail,
+      subject,
+      htmlContent,
+      textContent
+    });
+  }
+
+  // Get donation receipt email template
+  static getDonationReceiptTemplate(donationData) {
+    const { donorName, amount, paymentIntentId, donationDate } = donationData;
+    const formattedAmount = `$${(amount / 100).toFixed(2)}`;
+    const receiptNumber = paymentIntentId ? paymentIntentId.slice(-8).toUpperCase() : 'N/A';
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Receipt - Beats of Washington</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa; }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .receipt-details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .receipt-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; border-bottom: 1px solid #e9ecef; }
+        .receipt-row:last-child { border-bottom: none; font-weight: bold; font-size: 18px; color: #ff6b35; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px; }
+        .button { display: inline-block; background: #ff6b35; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .tax-info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #2196f3; }
+        .thank-you { text-align: center; margin: 30px 0; }
+        .impact-stats { display: flex; justify-content: space-around; margin: 30px 0; text-align: center; }
+        .impact-stat { flex: 1; padding: 15px; }
+        .impact-number { font-size: 24px; font-weight: bold; color: #ff6b35; }
+        .impact-label { font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Thank You for Your Support! 🎵</h1>
+            <p>Your donation helps us create amazing community experiences through music</p>
+        </div>
+        
+        <div class="content">
+            <div class="thank-you">
+                <h2>Dear ${donorName},</h2>
+                <p>Thank you so much for your generous donation to Beats of Washington! Your support makes a real difference in our community.</p>
+            </div>
+
+            <div class="receipt-details">
+                <h3 style="color: #ff6b35; margin-top: 0;">📄 Donation Receipt</h3>
+                <div class="receipt-row">
+                    <span>Donation Amount:</span>
+                    <span><strong>${formattedAmount}</strong></span>
+                </div>
+                <div class="receipt-row">
+                    <span>Type:</span>
+                    <span>One-time Donation</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Donation Date:</span>
+                    <span>${new Date(donationDate).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    })}</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Receipt Number:</span>
+                    <span>BOW-${receiptNumber}</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Total Amount:</span>
+                    <span>${formattedAmount}</span>
+                </div>
+            </div>
+
+            <div class="impact-stats">
+                <div class="impact-stat">
+                    <div class="impact-number">500+</div>
+                    <div class="impact-label">Community Members</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-number">50+</div>
+                    <div class="impact-label">Events Annually</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-number">10+</div>
+                    <div class="impact-label">Years of Service</div>
+                </div>
+            </div>
+
+            <div class="tax-info">
+                <h4 style="margin-top: 0; color: #1976d2;">📋 Tax Deductible Information</h4>
+                <p><strong>Beats of Washington</strong> is a 501(c)(3) nonprofit organization. Your donation is tax-deductible to the full extent allowed by law.</p>
+                <p><strong>Tax ID (EIN):</strong> 85-3674038</p>
+                <p><strong>Organization:</strong> Beats of Washington<br>
+                <strong>Address:</strong> 9256 225th Way NE, Redmond, WA 98053</p>
+                <p><em>Please save this receipt for your tax records. No goods or services were provided in exchange for this donation.</em></p>
+            </div>
+
+            <div style="text-align: center;">
+                <h3>How Your Donation Helps</h3>
+                <p>Your generous support enables us to:</p>
+                <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                    <li>🎵 Provide free music education programs</li>
+                    <li>🎪 Host inclusive community events</li>
+                    <li>🤝 Support cultural exchange and diversity</li>
+                    <li>🌟 Create meaningful connections through music</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://beatsofredmond.org" class="button">Visit Our Website</a>
+                <a href="https://beatsofredmond.org/events" class="button" style="background: #667eea; margin-left: 10px;">View Upcoming Events</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Beats of Washington</strong><br>
+            9256 225th Way NE, Redmond, WA 98053<br>
+            Phone: 206 369-9576<br>
+            Email: <a href="mailto:beatsofredmond@gmail.com">beatsofredmond@gmail.com</a></p>
+            
+            <p>Follow us on: 
+            <a href="https://www.facebook.com/BeatsOfRedmond/">Facebook</a> | 
+            <a href="https://www.instagram.com/beatsofwa/">Instagram</a> | 
+            <a href="https://www.youtube.com/c/BeatsOfRedmond">YouTube</a></p>
+            
+            <p><small>This is an automated receipt. Please keep this email for your tax records.<br>
+            If you have any questions about your donation, please contact us at beatsofredmond@gmail.com</small></p>
+        </div>
+    </div>
+</body>
+</html>`;
+  }
+
+  // Get donation receipt text template (for email clients that don't support HTML)
+  static getDonationReceiptTextTemplate(donationData) {
+    const { donorName, amount, paymentIntentId, donationDate } = donationData;
+    const formattedAmount = `$${(amount / 100).toFixed(2)}`;
+    const receiptNumber = paymentIntentId ? paymentIntentId.slice(-8).toUpperCase() : 'N/A';
+    
+    return `
+Thank You for Your Donation to Beats of Washington!
+
+Dear ${donorName},
+
+Thank you so much for your generous donation to Beats of Washington! Your support makes a real difference in our community.
+
+DONATION RECEIPT:
+================
+Donation Amount: ${formattedAmount}
+Type: One-time Donation
+Donation Date: ${new Date(donationDate).toLocaleDateString('en-US', { 
+  year: 'numeric', 
+  month: 'long', 
+  day: 'numeric' 
+})}
+Receipt Number: BOW-${receiptNumber}
+
+TAX DEDUCTIBLE INFORMATION:
+==========================
+Beats of Washington is a 501(c)(3) nonprofit organization. Your donation is tax-deductible to the full extent allowed by law.
+
+Tax ID (EIN): 85-3674038
+Organization: Beats of Washington
+Address: 9256 225th Way NE, Redmond, WA 98053
+
+Please save this receipt for your tax records. No goods or services were provided in exchange for this donation.
+
+HOW YOUR DONATION HELPS:
+=======================
+Your generous support enables us to:
+- Provide free music education programs
+- Host inclusive community events  
+- Support cultural exchange and diversity
+- Create meaningful connections through music
+
+CONTACT INFORMATION:
+===================
+Beats of Washington
+9256 225th Way NE, Redmond, WA 98053
+Phone: 206 369-9576
+Email: beatsofredmond@gmail.com
+
+Website: https://beatsofredmond.org
+Facebook: https://www.facebook.com/BeatsOfRedmond/
+Instagram: https://www.instagram.com/beatsofwa/
+YouTube: https://www.youtube.com/c/BeatsOfRedmond
+
+This is an automated receipt. Please keep this email for your tax records.
+If you have any questions about your donation, please contact us at beatsofredmond@gmail.com
+
+Thank you again for supporting our mission!
+The Beats of Washington Team
+`;
+  }
+
   // Get default newsletter template
   static getNewsletterTemplate(content, title = 'Newsletter') {
     return `

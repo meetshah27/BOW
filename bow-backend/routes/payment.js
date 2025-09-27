@@ -2,18 +2,71 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const Donation = require('../models-dynamodb/Donation');
+const { EmailService } = require('../config/ses');
 
-// Initialize Stripe with error handling
-let stripe;
+// Try to import key manager, fallback to env vars if not available
+let keyManager;
 try {
-  stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+  keyManager = require('../config/key-management-simple').keyManager;
 } catch (error) {
-  console.error('Stripe initialization error:', error);
+  console.log('⚠️ Key management not available, using environment variables');
+  keyManager = null;
 }
+
+// Initialize Stripe with secure key management
+let stripe;
+let stripeInitialized = false;
+
+// Initialize Stripe with secure key retrieval or environment variables
+async function initializeStripe() {
+  if (stripeInitialized) return stripe;
+  
+  try {
+    let stripeSecretKey;
+    
+    // Try key manager first, with proper fallback to environment variables
+    if (keyManager) {
+      try {
+        console.log('🔐 Initializing Stripe with secure key management...');
+        stripeSecretKey = await keyManager.getStripeSecretKey();
+        console.log('✅ Retrieved secret key from secure key manager');
+      } catch (keyError) {
+        console.log('⚠️ Key manager failed, falling back to environment variables:', keyError.message);
+        stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        console.log('✅ Retrieved secret key from environment variables');
+      }
+    } else {
+      console.log('🔐 Initializing Stripe with environment variables...');
+      stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      console.log('✅ Retrieved secret key from environment variables');
+    }
+    
+    if (!stripeSecretKey) {
+      throw new Error('Stripe secret key not found. Please check your .env file or configure keys in KMS.');
+    }
+    
+    // Initialize Stripe with the key
+    stripe = Stripe(stripeSecretKey);
+    stripeInitialized = true;
+    
+    console.log('✅ Stripe initialized successfully');
+    return stripe;
+    
+  } catch (error) {
+    console.error('❌ Stripe initialization error:', error.message);
+    stripeInitialized = false;
+    throw error;
+  }
+}
+
+// Initialize on module load
+initializeStripe().catch(error => {
+  console.error('❌ Failed to initialize Stripe on startup:', error.message);
+});
 
 // POST /api/payment/create-payment-intent
 router.post('/create-payment-intent', async (req, res) => {
-  const { amount, currency = 'usd', metadata = {}, donorEmail, donorName, donorId, isRecurring = false, frequency = 'one-time' } = req.body;
+  const { amount, currency = 'usd', metadata = {}, donorEmail, donorName, donorId } = req.body;
   
   try {
     // Validate amount
@@ -26,14 +79,15 @@ router.post('/create-payment-intent', async (req, res) => {
       return res.status(400).json({ error: 'Donor email and name are required.' });
     }
 
-    // Check if Stripe is configured
-    if (!stripe) {
+    // Ensure Stripe is initialized with secure keys
+    const stripeClient = await initializeStripe();
+    if (!stripeClient) {
       return res.status(500).json({ error: 'Payment processing is not configured.' });
     }
 
     console.log('[Payment] Creating payment intent for amount:', amount, 'currency:', currency);
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await stripeClient.paymentIntents.create({
       amount, // in cents
       currency,
       metadata: {
@@ -42,8 +96,8 @@ router.post('/create-payment-intent', async (req, res) => {
         donorEmail,
         donorName,
         donorId: donorId || '',
-        isRecurring: isRecurring.toString(),
-        frequency,
+        isRecurring: 'false',
+        frequency: 'one-time',
         timestamp: new Date().toISOString()
       },
       automatic_payment_methods: {
@@ -90,12 +144,34 @@ router.post('/confirm-payment', async (req, res) => {
           donorName: paymentIntent.metadata.donorName,
           donorId: paymentIntent.metadata.donorId || null,
           status: 'succeeded',
-          isRecurring: paymentIntent.metadata.isRecurring === 'true',
-          frequency: paymentIntent.metadata.frequency,
+          isRecurring: false,
+          frequency: 'one-time',
           metadata: paymentIntent.metadata,
           receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
         });
         console.log('[Payment] Donation record created (webhook fallback):', paymentIntentId);
+        
+        // Send email receipt for fallback case (webhook might not have sent it yet)
+        try {
+          console.log('[Payment] Sending donation receipt email (fallback):', paymentIntent.metadata.donorEmail);
+          
+          const receiptData = {
+            donorName: paymentIntent.metadata.donorName,
+            donorEmail: paymentIntent.metadata.donorEmail,
+            amount: paymentIntent.amount,
+            frequency: paymentIntent.metadata.frequency,
+            paymentIntentId: paymentIntent.id,
+            donationDate: new Date().toISOString()
+          };
+          
+          const emailResult = await EmailService.sendDonationReceipt(receiptData);
+          console.log('[Payment] Donation receipt email sent successfully (fallback):', emailResult.messageId);
+          
+        } catch (emailError) {
+          console.error('[Payment] Failed to send donation receipt email (fallback):', emailError.message);
+          // Don't fail the payment confirmation if email fails
+        }
+        
       } else {
         // Update existing donation record
         donation = await Donation.updateByPaymentIntentId(
@@ -161,13 +237,35 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           donorName: paymentIntent.metadata.donorName,
           donorId: paymentIntent.metadata.donorId || null,
           status: 'succeeded',
-          isRecurring: paymentIntent.metadata.isRecurring === 'true',
-          frequency: paymentIntent.metadata.frequency,
+          isRecurring: false,
+          frequency: 'one-time',
           metadata: paymentIntent.metadata,
           receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
         });
         
         console.log('[Webhook] Donation record created:', donation.paymentIntentId);
+        
+        // Send email receipt to donor
+        try {
+          console.log('[Webhook] Sending donation receipt email to:', paymentIntent.metadata.donorEmail);
+          
+          const receiptData = {
+            donorName: paymentIntent.metadata.donorName,
+            donorEmail: paymentIntent.metadata.donorEmail,
+            amount: paymentIntent.amount,
+            frequency: paymentIntent.metadata.frequency,
+            paymentIntentId: paymentIntent.id,
+            donationDate: new Date().toISOString()
+          };
+          
+          const emailResult = await EmailService.sendDonationReceipt(receiptData);
+          console.log('[Webhook] Donation receipt email sent successfully:', emailResult.messageId);
+          
+        } catch (emailError) {
+          console.error('[Webhook] Failed to send donation receipt email:', emailError.message);
+          // Don't fail the webhook if email fails - payment was successful
+        }
+        
         break;
 
       case 'payment_intent.payment_failed':
