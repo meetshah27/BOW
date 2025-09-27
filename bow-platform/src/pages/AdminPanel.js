@@ -6,6 +6,7 @@ import FileUpload from '../components/common/FileUpload';
 import ImagePlaceholder from '../components/common/ImagePlaceholder';
 import api from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
+import { useCelebration } from '../contexts/CelebrationContext';
 
 import { 
   Users, 
@@ -107,6 +108,8 @@ function SimpleModal({ open, onClose, children }) {
 
 // Admin Sub-components
 const Dashboard = () => {
+  const { triggerConfetti } = useCelebration();
+  const [isFoundersCelebrating, setIsFoundersCelebrating] = useState(false);
   const [stats, setStats] = useState({
     totalMembers: null,
     activeEvents: null,
@@ -118,6 +121,25 @@ const Dashboard = () => {
     error: null
   });
   const [logoUrl, setLogoUrl] = useState('');
+
+  // Handle founders button click with celebration
+  const handleFoundersClick = () => {
+    setIsFoundersCelebrating(true);
+    try { 
+      triggerConfetti(); 
+      toast.success('🎉 Celebrating our amazing founders! 🎉', {
+        duration: 3000,
+        style: {
+          background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
+          color: 'white',
+          fontWeight: 'bold'
+        }
+      });
+    } catch (e) {
+      console.log('Confetti error:', e);
+    }
+    setTimeout(() => setIsFoundersCelebrating(false), 1500);
+  };
 
   // Fetch logo from about page content
   useEffect(() => {
@@ -278,8 +300,20 @@ const Dashboard = () => {
           {/* You can update this section to show real activity if desired */}
           <div className="flex items-center justify-between">
             <div className="w-full">
-              <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-1 active:scale-95 active:rotate-0 focus:outline-none focus:ring-4 focus:ring-orange-300 focus:ring-opacity-50 cursor-pointer select-none animate-pulse hover:animate-none">
-                <span className="text-sm font-medium">Anand Sane and Deepali Sane</span>
+              <div 
+                onClick={handleFoundersClick}
+                className={`inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-1 active:scale-95 active:rotate-0 focus:outline-none focus:ring-4 focus:ring-orange-300 focus:ring-opacity-50 cursor-pointer select-none animate-pulse hover:animate-none relative overflow-hidden ${isFoundersCelebrating ? 'animate-spin' : ''}`}
+              >
+                {/* Sparkle effects */}
+                {isFoundersCelebrating && (
+                  <>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
+                    <div className="absolute top-0 left-1/2 w-1 h-1 bg-white rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
+                    <div className="absolute bottom-0 right-1/3 w-2 h-2 bg-yellow-200 rounded-full animate-ping" style={{animationDelay: '0.9s'}}></div>
+                  </>
+                )}
+                <span className="text-sm font-medium relative z-10">Anand Sane and Deepali Sane</span>
               </div>
             </div>
           </div>
