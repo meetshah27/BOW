@@ -449,7 +449,7 @@ const LoginPage = () => {
             Back to home
           </Link>
           <p className="mt-2 text-xs text-white/60 drop-shadow-sm">
-            Created by{' '}
+            Website developed by{' '}
             <a 
               href="https://www.instagram.com/gauravkhandekar_/?igsh=bm1zNjVpYThvOW5h&utm_source=qr#" 
               target="_blank" 
