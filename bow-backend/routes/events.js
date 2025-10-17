@@ -340,7 +340,7 @@ router.post('/:id/register', async (req, res) => {
     }
     
     console.log('[Backend] Final parsed body data:', bodyData);
-    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, paymentAmount, paymentIntentId, isPaidEvent } = bodyData;
+    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, quantity, paymentAmount, paymentIntentId, isPaidEvent } = bodyData;
     
     // Validate required fields
     if (!userId) {
@@ -424,6 +424,7 @@ router.post('/:id/register', async (req, res) => {
         phone: phone || '', // Ensure phone is always a string
         dietaryRestrictions: dietaryRestrictions || '',
         specialRequests: specialRequests || '',
+        quantity: quantity || 1, // Default to 1 if not provided
         ticketNumber: ticketNumber,
         registrationDate: new Date().toISOString(),
         status: isPaidEvent ? 'pending_payment' : 'confirmed', // Pending for paid events until webhook confirms

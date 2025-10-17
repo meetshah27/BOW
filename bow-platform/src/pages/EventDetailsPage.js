@@ -48,9 +48,11 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
 
   const createPaymentIntent = async () => {
     try {
-      const amount = parseFloat(event.price.replace('$', '')) * 100; // Convert to cents
+      const unitPrice = parseFloat(event.price.replace('$', '')) * 100; // Convert to cents
+      const totalAmount = unitPrice * registrationData.quantity; // Multiply by quantity
       const response = await api.post(`/events/${event.id}/create-payment-intent`, {
-        amount: amount,
+        amount: totalAmount,
+        quantity: registrationData.quantity,
         userEmail: currentUser?.email || registrationData.email,
         userName: currentUser?.displayName || registrationData.name,
         userId: currentUser?.uid || currentUser?.id || `anon_${Date.now()}`
@@ -159,17 +161,57 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
             </button>
           </div>
 
-          {isPaidEvent && (
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center mb-2">
-                <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
-                <span className="font-semibold text-blue-900">Payment Required</span>
-              </div>
-              <p className="text-blue-700 text-sm">
-                This event requires a payment of <span className="font-semibold">{event.price}</span>
-              </p>
-            </div>
-          )}
+           {isPaidEvent && (
+             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+               <div className="flex items-center mb-2">
+                 <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
+                 <span className="font-semibold text-blue-900">Payment Required</span>
+               </div>
+               <p className="text-blue-700 text-sm">
+                 This event requires a payment of <span className="font-semibold">${event.price}</span> per person
+               </p>
+             </div>
+           )}
+
+           {/* Quantity Selector for Paid Events */}
+           {isPaidEvent && (
+             <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+               <div className="flex items-center mb-3">
+                 <Users className="w-5 h-5 text-green-600 mr-2" />
+                 <span className="font-semibold text-green-900">Number of Attendees</span>
+               </div>
+               <div className="flex items-center space-x-4">
+                 <label className="text-sm text-gray-700">Quantity:</label>
+                 <select
+                   value={registrationData.quantity}
+                   onChange={(e) => setRegistrationData({...registrationData, quantity: parseInt(e.target.value)})}
+                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                 >
+                   <option value={1}>1 person</option>
+                   <option value={2}>2 people</option>
+                   <option value={3}>3 people</option>
+                   <option value={4}>4 people</option>
+                   <option value={5}>5 people</option>
+                   <option value={6}>6 people</option>
+                   <option value={7}>7 people</option>
+                   <option value={8}>8 people</option>
+                   <option value={9}>9 people</option>
+                   <option value={10}>10 people</option>
+                 </select>
+               </div>
+               <div className="mt-3 p-3 bg-white rounded border">
+                 <div className="flex justify-between items-center">
+                   <span className="text-sm text-gray-600">Total Amount:</span>
+                   <span className="font-semibold text-green-700">
+                     ${(parseFloat(event.price.replace('$', '')) * registrationData.quantity).toFixed(2)}
+                   </span>
+                 </div>
+                 <div className="text-xs text-gray-500 mt-1">
+                   ${event.price} × {registrationData.quantity} {registrationData.quantity === 1 ? 'person' : 'people'}
+                 </div>
+               </div>
+             </div>
+           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {currentUser ? (
@@ -362,13 +404,13 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={isRegistering || paymentLoading || (isPaidEvent && !clientSecret)}
-                className="flex-1 py-2 px-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-              >
-                {paymentLoading ? 'Processing Payment...' : isRegistering ? 'Registering...' : isPaidEvent ? `Pay ${event.price} & Register` : 'Register'}
-              </button>
+               <button
+                 type="submit"
+                 disabled={isRegistering || paymentLoading || (isPaidEvent && !clientSecret)}
+                 className="flex-1 py-2 px-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+               >
+                 {paymentLoading ? 'Processing Payment...' : isRegistering ? 'Registering...' : isPaidEvent ? `Pay $${(parseFloat(event.price.replace('$', '')) * registrationData.quantity).toFixed(2)} & Register ${registrationData.quantity} ${registrationData.quantity === 1 ? 'Person' : 'People'}` : 'Register'}
+               </button>
             </div>
           </form>
         </div>
@@ -392,7 +434,8 @@ const EventDetailsPage = () => {
     phone: currentUser ? (currentUser.phone || '') : '',
     dietaryRestrictions: '',
     specialRequests: '',
-    cardNumber: ''
+    cardNumber: '',
+    quantity: 1
   });
   const [isRegistering, setIsRegistering] = useState(false);
   const [ticketInfo, setTicketInfo] = useState(null);
@@ -632,11 +675,11 @@ const EventDetailsPage = () => {
       let requestBody;
       let headers = { 'Content-Type': 'application/json' };
       
-      // Calculate payment amount if it's a paid event
-      let paymentAmount = 0;
-      if (event.price && event.price !== 'Free' && event.price !== 0) {
-        paymentAmount = parseFloat(event.price.replace('$', '')) * 100; // Convert to cents
-      }
+       // Calculate payment amount if it's a paid event
+       let paymentAmount = 0;
+       if (event.price && event.price !== 'Free' && event.price !== 0) {
+         paymentAmount = parseFloat(event.price.replace('$', '')) * 100 * registrationData.quantity; // Convert to cents and multiply by quantity
+       }
       
       if (currentUser) {
         requestBody = {
@@ -649,6 +692,7 @@ const EventDetailsPage = () => {
           phone: currentUser.phone || registrationData.phone || '',
           dietaryRestrictions: registrationData.dietaryRestrictions,
           specialRequests: registrationData.specialRequests,
+          quantity: registrationData.quantity,
           paymentAmount: paymentAmount,
           paymentIntentId: paymentIntentId,
           isPaidEvent: paymentAmount > 0
@@ -668,6 +712,7 @@ const EventDetailsPage = () => {
           phone: registrationData.phone || '',
           dietaryRestrictions: registrationData.dietaryRestrictions,
           specialRequests: registrationData.specialRequests,
+          quantity: registrationData.quantity,
           paymentAmount: paymentAmount,
           paymentIntentId: paymentIntentId,
           isPaidEvent: paymentAmount > 0
@@ -1259,8 +1304,8 @@ const EventDetailsPage = () => {
                </h3>
                <p className="text-gray-600 mb-6">
                  {ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'pending'
-                   ? 'Your registration is being processed. You will receive a confirmation email once payment is confirmed.'
-                   : 'Your ticket has been generated and sent to your email.'
+                   ? `Your registration for ${ticketInfo.registration?.quantity || 1} ${(ticketInfo.registration?.quantity || 1) === 1 ? 'person' : 'people'} is being processed. You will receive a confirmation email once payment is confirmed.`
+                   : `Your ticket for ${ticketInfo.registration?.quantity || 1} ${(ticketInfo.registration?.quantity || 1) === 1 ? 'person' : 'people'} has been generated and sent to your email.`
                  }
                </p>
               
@@ -1285,6 +1330,11 @@ const EventDetailsPage = () => {
                      ticketInfo.registration.paymentStatus === 'pending' ? 'text-yellow-700' : 'text-blue-700'
                    }`}>
                      Amount: <span className="font-semibold">${(ticketInfo.registration.paymentAmount / 100).toFixed(2)}</span>
+                     {ticketInfo.registration.quantity > 1 && (
+                       <span className="text-xs ml-2">
+                         ({ticketInfo.registration.quantity} people)
+                       </span>
+                     )}
                    </p>
                    {ticketInfo.registration.paymentIntentId && (
                      <p className={`text-xs mt-1 ${
@@ -1324,12 +1374,12 @@ const EventDetailsPage = () => {
                      Download Receipt
                    </button>
                  )}
-                 <button
-                   onClick={() => setTicketInfo(null)}
+              <button
+                onClick={() => setTicketInfo(null)}
                    className={`py-3 px-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 ${ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'completed' ? 'flex-1' : 'w-full'}`}
-                 >
-                   Close
-                 </button>
+              >
+                Close
+              </button>
                </div>
             </div>
           </div>
