@@ -447,6 +447,35 @@ router.post('/:id/register', async (req, res) => {
       await event.update({ registeredCount: actualCount });
       console.log('[Backend] Updated event registeredCount to:', actualCount);
 
+      // Send confirmation email for free events
+      if (!isPaidEvent) {
+        try {
+          const { EmailService } = require('../config/ses');
+          const event = await Event.findById(req.params.id);
+          
+          if (event) {
+            const emailData = {
+              userName: savedRegistration.userName,
+              userEmail: savedRegistration.userEmail,
+              ticketNumber: savedRegistration.ticketNumber,
+              eventTitle: event.title,
+              eventDate: event.date,
+              eventTime: event.time,
+              eventLocation: event.location,
+              quantity: savedRegistration.quantity || 1,
+              paymentAmount: 0,
+              paymentIntentId: null
+            };
+            
+            await EmailService.sendEventRegistrationConfirmation(emailData);
+            console.log('[Backend] Free event registration confirmation email sent to:', savedRegistration.userEmail);
+          }
+        } catch (emailError) {
+          console.error('[Backend] Failed to send free event registration email:', emailError.message);
+          // Don't fail registration if email fails
+        }
+      }
+
       const result = {
         message: 'Registration successful!',
         ticketNumber: ticketNumber,
@@ -568,7 +597,7 @@ router.post('/:id/create-payment-intent', async (req, res) => {
       let keyManager;
       try {
         keyManager = require('../config/key-management-simple').keyManager;
-      } catch (error) {
+    } catch (error) {
         console.log('⚠️ Key management not available for events, using environment variables');
         keyManager = null;
       }

@@ -253,6 +253,20 @@ class EmailService {
     });
   }
 
+  // Send event registration confirmation email
+  static async sendEventRegistrationConfirmation(registrationData) {
+    const subject = `Event Registration Confirmed - Beats of Washington`;
+    const htmlContent = this.getEventRegistrationTemplate(registrationData);
+    const textContent = this.getEventRegistrationTextTemplate(registrationData);
+    
+    return await this.sendEmail({
+      to: registrationData.userEmail,
+      subject,
+      htmlContent,
+      textContent
+    });
+  }
+
   // Get donation receipt email template
   static getDonationReceiptTemplate(donationData) {
     const { donorName, amount, paymentIntentId, donationDate } = donationData;
@@ -493,6 +507,177 @@ The Beats of Washington Team
     </div>
 </body>
 </html>`;
+  }
+
+  // Get event registration confirmation email template
+  static getEventRegistrationTemplate(registrationData) {
+    const { userName, userEmail, ticketNumber, eventTitle, eventDate, eventTime, eventLocation, quantity, paymentAmount, paymentIntentId } = registrationData;
+    const isPaidEvent = paymentAmount > 0;
+    const formattedAmount = isPaidEvent ? `$${(paymentAmount / 100).toFixed(2)}` : 'Free';
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration Confirmed - Beats of Washington</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa; }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .ticket-details { background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+        .ticket-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; }
+        .ticket-number { background: #dcfce7; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #166534; }
+        .payment-info { background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px; }
+        .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .thank-you { text-align: center; margin: 30px 0; }
+        .event-details { background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://bow-platform.s3.amazonaws.com/bow-logo.png" alt="Beats of Washington Logo" style="max-width: 200px; height: auto; background: white; padding: 10px; border-radius: 8px;">
+            </div>
+            <h1>🎉 Registration Confirmed!</h1>
+            <p>You're all set for ${eventTitle}</p>
+        </div>
+        <div class="content">
+            <div class="thank-you">
+                <h2>Thank you, ${userName}!</h2>
+                <p>Your registration has been confirmed. We're excited to see you at the event!</p>
+            </div>
+
+            <div class="ticket-details">
+                <h3>🎫 Your Ticket Information</h3>
+                <div class="ticket-number">${ticketNumber}</div>
+                <div class="ticket-row">
+                    <span><strong>Event:</strong></span>
+                    <span>${eventTitle}</span>
+                </div>
+                <div class="ticket-row">
+                    <span><strong>Date:</strong></span>
+                    <span>${eventDate}</span>
+                </div>
+                <div class="ticket-row">
+                    <span><strong>Time:</strong></span>
+                    <span>${eventTime}</span>
+                </div>
+                <div class="ticket-row">
+                    <span><strong>Location:</strong></span>
+                    <span>${eventLocation}</span>
+                </div>
+                <div class="ticket-row">
+                    <span><strong>Number of Attendees:</strong></span>
+                    <span>${quantity} ${quantity === 1 ? 'person' : 'people'}</span>
+                </div>
+            </div>
+
+            ${isPaidEvent ? `
+            <div class="payment-info">
+                <h3>💳 Payment Information</h3>
+                <div class="ticket-row">
+                    <span><strong>Amount Paid:</strong></span>
+                    <span>${formattedAmount}</span>
+                </div>
+                ${paymentIntentId ? `
+                <div class="ticket-row">
+                    <span><strong>Transaction ID:</strong></span>
+                    <span>${paymentIntentId}</span>
+                </div>
+                ` : ''}
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    Payment has been processed successfully. Keep this email as your receipt.
+                </p>
+            </div>
+            ` : ''}
+
+            <div class="event-details">
+                <h3>📋 Important Information</h3>
+                <ul>
+                    <li>Please arrive 15 minutes before the event starts</li>
+                    <li>Bring a valid ID for check-in</li>
+                    <li>Save this email or take a screenshot of your ticket number</li>
+                    <li>Contact us if you have any questions or need to make changes</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <p><strong>Need help or have questions?</strong></p>
+                <p>Email: <a href="mailto:beatsofredmond@gmail.com">beatsofredmond@gmail.com</a><br>
+                Phone: <a href="tel:+12063699576">(206) 369-9576</a></p>
+            </div>
+        </div>
+        <div class="footer">
+            <p><strong>Beats of Washington</strong><br>
+            9256 225th Way NE, WA 98053<br>
+            Phone: (206) 369-9576<br>
+            <a href="mailto:beatsofredmond@gmail.com">beatsofredmond@gmail.com</a></p>
+            
+            <p>Follow us on:
+            <a href="https://www.facebook.com/BeatsOfRedmond/">Facebook</a> | 
+            <a href="https://www.instagram.com/beatsofwa/">Instagram</a> | 
+            <a href="https://www.youtube.com/c/BeatsOfRedmond">YouTube</a></p>
+        </div>
+    </div>
+</body>
+</html>`;
+  }
+
+  // Get event registration confirmation text template
+  static getEventRegistrationTextTemplate(registrationData) {
+    const { userName, userEmail, ticketNumber, eventTitle, eventDate, eventTime, eventLocation, quantity, paymentAmount, paymentIntentId } = registrationData;
+    const isPaidEvent = paymentAmount > 0;
+    const formattedAmount = isPaidEvent ? `$${(paymentAmount / 100).toFixed(2)}` : 'Free';
+    
+    return `
+EVENT REGISTRATION CONFIRMED - BEATS OF WASHINGTON
+[LOGO: Beats of Washington Logo]
+
+Thank you, ${userName}!
+
+Your registration has been confirmed. We're excited to see you at the event!
+
+TICKET INFORMATION:
+Ticket Number: ${ticketNumber}
+Event: ${eventTitle}
+Date: ${eventDate}
+Time: ${eventTime}
+Location: ${eventLocation}
+Number of Attendees: ${quantity} ${quantity === 1 ? 'person' : 'people'}
+
+${isPaidEvent ? `
+PAYMENT INFORMATION:
+Amount Paid: ${formattedAmount}
+${paymentIntentId ? `Transaction ID: ${paymentIntentId}` : ''}
+
+Payment has been processed successfully. Keep this email as your receipt.
+` : ''}
+
+IMPORTANT INFORMATION:
+- Please arrive 15 minutes before the event starts
+- Bring a valid ID for check-in
+- Save this email or take a screenshot of your ticket number
+- Contact us if you have any questions or need to make changes
+
+CONTACT INFORMATION:
+Email: beatsofredmond@gmail.com
+Phone: (206) 369-9576
+
+Beats of Washington
+9256 225th Way NE, WA 98053
+Phone: (206) 369-9576
+Email: beatsofredmond@gmail.com
+
+Follow us on:
+Facebook: https://www.facebook.com/BeatsOfRedmond/
+Instagram: https://www.instagram.com/beatsofwa/
+YouTube: https://www.youtube.com/c/BeatsOfRedmond
+`;
   }
 }
 

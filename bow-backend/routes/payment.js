@@ -282,9 +282,29 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             try {
               console.log('[Webhook] Sending event registration email to:', paymentIntent.metadata.userEmail);
               
-              // TODO: Implement EmailService.sendEventRegistrationConfirmation
-              // For now, just log that email should be sent
-              console.log('[Webhook] Event registration confirmation email should be sent to:', paymentIntent.metadata.userEmail);
+              // Get event details for email
+              const Event = require('../models-dynamodb/Event');
+              const event = await Event.findById(paymentIntent.metadata.eventId);
+              
+              if (event) {
+                const emailData = {
+                  userName: registration.userName,
+                  userEmail: registration.userEmail,
+                  ticketNumber: registration.ticketNumber,
+                  eventTitle: event.title,
+                  eventDate: event.date,
+                  eventTime: event.time,
+                  eventLocation: event.location,
+                  quantity: registration.quantity || 1,
+                  paymentAmount: registration.paymentAmount,
+                  paymentIntentId: registration.paymentIntentId
+                };
+                
+                const emailResult = await EmailService.sendEventRegistrationConfirmation(emailData);
+                console.log('[Webhook] Event registration confirmation email sent successfully:', emailResult.messageId);
+              } else {
+                console.log('[Webhook] Event not found for email, skipping email send');
+              }
               
             } catch (emailError) {
               console.error('[Webhook] Failed to send event registration email:', emailError.message);
@@ -298,41 +318,41 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           
         } else {
           // Handle donation (existing logic)
-          const donation = await Donation.create({
-            paymentIntentId: paymentIntent.id,
-            amount: paymentIntent.amount,
-            currency: paymentIntent.currency,
-            donorEmail: paymentIntent.metadata.donorEmail,
+        const donation = await Donation.create({
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          donorEmail: paymentIntent.metadata.donorEmail,
+          donorName: paymentIntent.metadata.donorName,
+          donorId: paymentIntent.metadata.donorId || null,
+          status: 'succeeded',
+          isRecurring: false,
+          frequency: 'one-time',
+          metadata: paymentIntent.metadata,
+          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
+        });
+        
+        console.log('[Webhook] Donation record created:', donation.paymentIntentId);
+        
+        // Send email receipt to donor
+        try {
+          console.log('[Webhook] Sending donation receipt email to:', paymentIntent.metadata.donorEmail);
+          
+          const receiptData = {
             donorName: paymentIntent.metadata.donorName,
-            donorId: paymentIntent.metadata.donorId || null,
-            status: 'succeeded',
-            isRecurring: false,
-            frequency: 'one-time',
-            metadata: paymentIntent.metadata,
-            receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
-          });
+            donorEmail: paymentIntent.metadata.donorEmail,
+            amount: paymentIntent.amount,
+            frequency: paymentIntent.metadata.frequency,
+            paymentIntentId: paymentIntent.id,
+            donationDate: new Date().toISOString()
+          };
           
-          console.log('[Webhook] Donation record created:', donation.paymentIntentId);
+          const emailResult = await EmailService.sendDonationReceipt(receiptData);
+          console.log('[Webhook] Donation receipt email sent successfully:', emailResult.messageId);
           
-          // Send email receipt to donor
-          try {
-            console.log('[Webhook] Sending donation receipt email to:', paymentIntent.metadata.donorEmail);
-            
-            const receiptData = {
-              donorName: paymentIntent.metadata.donorName,
-              donorEmail: paymentIntent.metadata.donorEmail,
-              amount: paymentIntent.amount,
-              frequency: paymentIntent.metadata.frequency,
-              paymentIntentId: paymentIntent.id,
-              donationDate: new Date().toISOString()
-            };
-            
-            const emailResult = await EmailService.sendDonationReceipt(receiptData);
-            console.log('[Webhook] Donation receipt email sent successfully:', emailResult.messageId);
-            
-          } catch (emailError) {
-            console.error('[Webhook] Failed to send donation receipt email:', emailError.message);
-            // Don't fail the webhook if email fails - payment was successful
+        } catch (emailError) {
+          console.error('[Webhook] Failed to send donation receipt email:', emailError.message);
+          // Don't fail the webhook if email fails - payment was successful
           }
         }
         
