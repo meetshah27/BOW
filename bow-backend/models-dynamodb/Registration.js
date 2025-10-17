@@ -301,6 +301,28 @@ class Registration {
       throw error;
     }
   }
+
+  // Find registration by payment intent ID
+  static async findByPaymentIntentId(paymentIntentId) {
+    const command = new ScanCommand({
+      TableName: TABLES.REGISTRATIONS,
+      FilterExpression: '#paymentIntentId = :paymentIntentId',
+      ExpressionAttributeNames: {
+        '#paymentIntentId': 'paymentIntentId'
+      },
+      ExpressionAttributeValues: {
+        ':paymentIntentId': paymentIntentId
+      }
+    });
+
+    try {
+      const result = await docClient.send(command);
+      return result.Items.length > 0 ? new Registration(result.Items[0]) : null;
+    } catch (error) {
+      console.error('Error finding registration by payment intent ID:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Registration; 

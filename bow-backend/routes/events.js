@@ -340,7 +340,7 @@ router.post('/:id/register', async (req, res) => {
     }
     
     console.log('[Backend] Final parsed body data:', bodyData);
-    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, cardNumber } = bodyData;
+    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, paymentAmount, paymentIntentId, isPaidEvent } = bodyData;
     
     // Validate required fields
     if (!userId) {
@@ -367,11 +367,15 @@ router.post('/:id/register', async (req, res) => {
       
       // Validate payment requirements based on event price
       if (event.price > 0) {
-        if (!cardNumber) {
-          console.error('[Backend] Card number required for paid event');
-          return res.status(400).json({ message: 'Card number is required for paid events' });
+        if (!paymentIntentId) {
+          console.error('[Backend] Payment intent ID required for paid event');
+          return res.status(400).json({ message: 'Payment is required for paid events' });
         }
-        console.log('[Backend] Paid event registration - payment details provided');
+        if (!paymentAmount || paymentAmount !== (event.price * 100)) {
+          console.error('[Backend] Payment amount mismatch');
+          return res.status(400).json({ message: 'Payment amount does not match event price' });
+        }
+        console.log('[Backend] Paid event registration - payment verified');
       } else {
         console.log('[Backend] Free event registration - no payment required');
       }
@@ -422,13 +426,14 @@ router.post('/:id/register', async (req, res) => {
         specialRequests: specialRequests || '',
         ticketNumber: ticketNumber,
         registrationDate: new Date().toISOString(),
-        status: 'confirmed',
+        status: isPaidEvent ? 'pending_payment' : 'confirmed', // Pending for paid events until webhook confirms
         
         // Payment information
-        paymentAmount: event.price || 0,
-        isPaidEvent: event.price > 0,
-        paymentStatus: event.price > 0 ? 'pending' : 'none',
-        paymentDate: event.price > 0 ? new Date().toISOString() : null
+        paymentAmount: paymentAmount || 0,
+        isPaidEvent: isPaidEvent || false,
+        paymentIntentId: paymentIntentId || null,
+        paymentStatus: isPaidEvent ? 'pending' : 'none', // Pending for paid events
+        paymentDate: null // Will be set by webhook when payment succeeds
       };
 
       const savedRegistration = await Registration.create(registrationData);
@@ -548,27 +553,55 @@ router.post('/:id/create-payment-intent', async (req, res) => {
         return res.status(404).json({ error: 'Event not found' });
       }
       
-      // Verify the amount matches the event price
-      if (event.price !== amount) {
+      // Verify the amount matches the event price (amount is in cents, event.price is in dollars)
+      if (event.price * 100 !== amount) {
         return res.status(400).json({ error: 'Payment amount does not match event price' });
       }
     }
     
-    // Initialize Stripe
+    // Initialize Stripe with secure key management
     const Stripe = require('stripe');
     let stripe;
     try {
-      stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+      // Try to import key manager, fallback to env vars if not available
+      let keyManager;
+      try {
+        keyManager = require('../config/key-management-simple').keyManager;
+      } catch (error) {
+        console.log('⚠️ Key management not available for events, using environment variables');
+        keyManager = null;
+      }
+
+      let stripeSecretKey;
+      
+      // Try key manager first, with proper fallback to environment variables
+      if (keyManager) {
+        try {
+          console.log('🔐 Initializing Stripe with secure key management for event registration...');
+          stripeSecretKey = await keyManager.getStripeSecretKey();
+          console.log('✅ Retrieved secret key from secure key manager for event registration');
+        } catch (keyError) {
+          console.log('⚠️ Key manager failed for event registration, falling back to environment variables:', keyError.message);
+          stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+          console.log('✅ Retrieved secret key from environment variables for event registration');
+        }
+      } else {
+        stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        console.log('✅ Retrieved secret key from environment variables for event registration');
+      }
+
+      stripe = Stripe(stripeSecretKey);
     } catch (error) {
-      console.error('Stripe initialization error:', error);
+      console.error('Stripe initialization error for event registration:', error);
       return res.status(500).json({ error: 'Payment processing is not configured.' });
     }
     
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: amount, // Amount is already in cents from frontend
       currency: 'usd',
       metadata: {
+        type: 'event_registration',
         source: 'bow_event_registration',
         eventId: req.params.id,
         userEmail,

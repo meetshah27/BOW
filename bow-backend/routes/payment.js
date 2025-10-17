@@ -209,7 +209,20 @@ router.post('/confirm-payment', async (req, res) => {
 // POST /api/payment/webhook - Stripe webhook handler
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  
+  // Get webhook secret from KMS or environment variables
+  let endpointSecret;
+  if (keyManager) {
+    try {
+      endpointSecret = await keyManager.getStripeWebhookSecret();
+      console.log('✅ Retrieved webhook secret from secure key manager');
+    } catch (keyError) {
+      console.log('⚠️ Key manager failed for webhook secret, falling back to environment variables:', keyError.message);
+      endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    }
+  } else {
+    endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  }
 
   let event;
 
@@ -228,42 +241,99 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         const paymentIntent = event.data.object;
         console.log('[Webhook] Payment succeeded:', paymentIntent.id);
         
-        // Create donation record only after successful payment
-        const donation = await Donation.create({
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          donorEmail: paymentIntent.metadata.donorEmail,
-          donorName: paymentIntent.metadata.donorName,
-          donorId: paymentIntent.metadata.donorId || null,
-          status: 'succeeded',
-          isRecurring: false,
-          frequency: 'one-time',
-          metadata: paymentIntent.metadata,
-          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
-        });
-        
-        console.log('[Webhook] Donation record created:', donation.paymentIntentId);
-        
-        // Send email receipt to donor
-        try {
-          console.log('[Webhook] Sending donation receipt email to:', paymentIntent.metadata.donorEmail);
+        // Check if this is an event registration or donation based on metadata
+        if (paymentIntent.metadata.type === 'event_registration') {
+          // Handle event registration
+          const Registration = require('../models-dynamodb/Registration');
           
-          const receiptData = {
-            donorName: paymentIntent.metadata.donorName,
-            donorEmail: paymentIntent.metadata.donorEmail,
-            amount: paymentIntent.amount,
-            frequency: paymentIntent.metadata.frequency,
+          try {
+            // Find the existing registration with pending payment
+            let registration = await Registration.findByPaymentIntentId(paymentIntent.id);
+            
+            if (registration) {
+              // Update existing registration with payment confirmation
+              await registration.update({
+                paymentStatus: 'completed',
+                paymentDate: new Date().toISOString(),
+                status: 'confirmed'
+              });
+              console.log('[Webhook] Event registration updated with payment confirmation:', registration.ticketNumber);
+            } else {
+              // Create new registration if not found (fallback)
+              registration = await Registration.create({
+                eventId: paymentIntent.metadata.eventId,
+                userId: paymentIntent.metadata.userId,
+                userEmail: paymentIntent.metadata.userEmail,
+                userName: paymentIntent.metadata.userName,
+                phone: paymentIntent.metadata.phone || '',
+                dietaryRestrictions: paymentIntent.metadata.dietaryRestrictions || '',
+                specialRequests: paymentIntent.metadata.specialRequests || '',
+                paymentAmount: paymentIntent.amount,
+                paymentIntentId: paymentIntent.id,
+                paymentDate: new Date().toISOString(),
+                paymentStatus: 'completed',
+                isPaidEvent: true,
+                status: 'confirmed'
+              });
+              console.log('[Webhook] Event registration created (fallback):', registration.ticketNumber);
+            }
+            
+            // Send event registration confirmation email
+            try {
+              console.log('[Webhook] Sending event registration email to:', paymentIntent.metadata.userEmail);
+              
+              // TODO: Implement EmailService.sendEventRegistrationConfirmation
+              // For now, just log that email should be sent
+              console.log('[Webhook] Event registration confirmation email should be sent to:', paymentIntent.metadata.userEmail);
+              
+            } catch (emailError) {
+              console.error('[Webhook] Failed to send event registration email:', emailError.message);
+              // Don't fail the webhook if email fails - payment was successful
+            }
+            
+          } catch (registrationError) {
+            console.error('[Webhook] Error processing event registration:', registrationError.message);
+            // Don't fail the webhook - payment was successful
+          }
+          
+        } else {
+          // Handle donation (existing logic)
+          const donation = await Donation.create({
             paymentIntentId: paymentIntent.id,
-            donationDate: new Date().toISOString()
-          };
+            amount: paymentIntent.amount,
+            currency: paymentIntent.currency,
+            donorEmail: paymentIntent.metadata.donorEmail,
+            donorName: paymentIntent.metadata.donorName,
+            donorId: paymentIntent.metadata.donorId || null,
+            status: 'succeeded',
+            isRecurring: false,
+            frequency: 'one-time',
+            metadata: paymentIntent.metadata,
+            receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
+          });
           
-          const emailResult = await EmailService.sendDonationReceipt(receiptData);
-          console.log('[Webhook] Donation receipt email sent successfully:', emailResult.messageId);
+          console.log('[Webhook] Donation record created:', donation.paymentIntentId);
           
-        } catch (emailError) {
-          console.error('[Webhook] Failed to send donation receipt email:', emailError.message);
-          // Don't fail the webhook if email fails - payment was successful
+          // Send email receipt to donor
+          try {
+            console.log('[Webhook] Sending donation receipt email to:', paymentIntent.metadata.donorEmail);
+            
+            const receiptData = {
+              donorName: paymentIntent.metadata.donorName,
+              donorEmail: paymentIntent.metadata.donorEmail,
+              amount: paymentIntent.amount,
+              frequency: paymentIntent.metadata.frequency,
+              paymentIntentId: paymentIntent.id,
+              donationDate: new Date().toISOString()
+            };
+            
+            const emailResult = await EmailService.sendDonationReceipt(receiptData);
+            console.log('[Webhook] Donation receipt email sent successfully:', emailResult.messageId);
+            
+          } catch (emailError) {
+            console.error('[Webhook] Failed to send donation receipt email:', emailError.message);
+            // Don't fail the webhook if email fails - payment was successful
+          }
         }
         
         break;
