@@ -2697,7 +2697,7 @@ This receipt serves as proof of payment for the above event registration.
             <div>
               <p className="text-sm font-medium text-gray-600">Paid Events</p>
               <p className="text-2xl font-bold text-green-600">
-                ${registrations.filter(r => r.paymentAmount > 0).reduce((sum, r) => sum + (r.paymentAmount || 0), 0).toFixed(2)}
+                ${(Number(registrations.filter(r => r.paymentAmount > 0).reduce((sum, r) => sum + Number(r.paymentAmount || 0), 0)) || 0).toFixed(2)}
               </p>
               <p className="text-xs text-gray-500">
                 {registrations.filter(r => r.paymentAmount > 0).length} paid • {registrations.filter(r => !r.paymentAmount || r.paymentAmount === 0).length} free
@@ -2793,7 +2793,7 @@ This receipt serves as proof of payment for the above event registration.
               <p className="text-sm text-gray-600 mt-1">
                 {filteredRegistrations.filter(r => r.paymentAmount > 0).length} paid events • 
                 {filteredRegistrations.filter(r => !r.paymentAmount || r.paymentAmount === 0).length} free events • 
-                Total Revenue: ${filteredRegistrations.filter(r => r.paymentAmount > 0).reduce((sum, r) => sum + (r.paymentAmount || 0), 0).toFixed(2)}
+                Total Revenue: ${(Number(filteredRegistrations.filter(r => r.paymentAmount > 0).reduce((sum, r) => sum + Number(r.paymentAmount || 0), 0)) || 0).toFixed(2)}
               </p>
             </div>
           </div>
