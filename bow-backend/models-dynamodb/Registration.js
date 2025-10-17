@@ -11,6 +11,7 @@ class Registration {
     this.phone = data.phone;
     this.dietaryRestrictions = data.dietaryRestrictions || '';
     this.specialRequests = data.specialRequests || '';
+    this.quantity = data.quantity || 1; // Number of people being registered
     this.ticketNumber = data.ticketNumber || uuidv4();
     this.registrationDate = data.registrationDate || new Date().toISOString();
     this.status = data.status || 'confirmed';
