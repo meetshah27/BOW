@@ -14,9 +14,9 @@ const Footer = () => {
   const footerLinks = {
     organization: [
       { name: 'About Us', href: '/about' },
-      { name: 'Our Mission', href: '/about#mission' },
-      { name: 'Our Founders', href: '/about#founders' },
-      { name: 'Leadership', href: '/about#leadership' },
+      { name: 'Our Mission', href: '/about' },
+      { name: 'Our Founders', href: '/about' },
+      { name: 'Leadership', href: '/leadership' },
       { name: 'Contact', href: '/contact' },
     ],
     programs: [
@@ -302,7 +302,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="mt-4 text-center">
-            <span>Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Gaurav Khandekar</a> and <a href="https://www.linkedin.com/in/meet-deepak-shah-06164437a/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Meet Shah</a></span>
+            <span className="text-gray-500 text-sm">Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-300 hover:underline transition-colors">Gaurav Khandekar</a> and <a href="https://www.linkedin.com/in/meet-deepak-shah-06164437a/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-300 hover:underline transition-colors">Meet Shah</a></span>
           </div>
         </div>
       </div>
