@@ -5,8 +5,6 @@ import {
   Video, 
   Filter, 
   Search, 
-  Calendar,
-  MapPin,
   Users,
   Heart,
   Share2,
@@ -79,16 +77,13 @@ const GalleryPage = () => {
             category: item.album || 'general',
             url: item.imageUrl,
             thumbnail: item.imageUrl, // Use the same URL for thumbnail
-            date: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            location: 'BOW Community',
-            description: item.description || 'No description available',
-            tags: item.album ? [item.album] : ['general'],
+            createdAt: item.createdAt,
             likes: 0,
             views: 0
           }));
         
         // Sort by creation date (newest first)
-        const sortedData = transformedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const sortedData = transformedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setGalleryItems(sortedData);
         
         // Update category counts
@@ -125,13 +120,6 @@ const GalleryPage = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
 
   const openModal = (item) => {
     setSelectedMedia(item);
@@ -388,10 +376,6 @@ const GalleryPage = () => {
                     {item.type === 'video' ? 'Video' : 'Photo'}
                   </div>
                   
-                  {/* Category Badge */}
-                  <div className="absolute top-4 right-4 bg-white text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                    {item.category}
-                  </div>
 
                   {/* Action Buttons */}
                   <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -424,63 +408,6 @@ const GalleryPage = () => {
                   <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-200">
                     {item.title}
                   </h3>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-600">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      {formatDate(item.date)}
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {item.location}
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-600 mb-4 leading-relaxed">
-                    {item.description}
-                  </p>
-                  
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {item.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-4">
-                      <span className={`flex items-center cursor-pointer ${
-                        isLiked(item.id) ? 'text-red-500' : 'hover:text-red-500'
-                      }`} onClick={(e) => handleLike(item.id, e)}>
-                        <Heart className={`w-4 h-4 mr-1 ${isLiked(item.id) ? 'fill-current' : ''}`} />
-                        {item.likes}
-                      </span>
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {item.views}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={(e) => handleShare(item, e)}
-                        className="text-primary-600 hover:text-primary-700 transition-colors duration-200"
-                      >
-                        <Share2 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={(e) => handleDownload(item, e)}
-                        className="text-green-600 hover:text-green-700 transition-colors duration-200"
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
             ))}
@@ -526,60 +453,32 @@ const GalleryPage = () => {
                   {selectedMedia.title}
                 </h2>
                 
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center text-gray-600">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      {formatDate(selectedMedia.date)}
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {selectedMedia.location}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <button 
-                      onClick={(e) => handleLike(selectedMedia.id, e)}
-                      className={`flex items-center transition-colors duration-200 ${
-                        isLiked(selectedMedia.id) 
-                          ? 'text-red-600' 
-                          : 'text-gray-600 hover:text-red-600'
-                      }`}
-                    >
-                      <Heart className={`w-5 h-5 mr-1 ${isLiked(selectedMedia.id) ? 'fill-current' : ''}`} />
-                      {selectedMedia.likes}
-                    </button>
-                    <button 
-                      onClick={(e) => handleShare(selectedMedia, e)}
-                      className="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200"
-                    >
-                      <Share2 className="w-5 h-5 mr-1" />
-                      Share
-                    </button>
-                    <button 
-                      onClick={(e) => handleDownload(selectedMedia, e)}
-                      className="flex items-center text-gray-600 hover:text-green-600 transition-colors duration-200"
-                    >
-                      <Download className="w-5 h-5 mr-1" />
-                      Download
-                    </button>
-                  </div>
-                </div>
-                
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  {selectedMedia.description}
-                </p>
-                
-                <div className="flex flex-wrap gap-2">
-                  {selectedMedia.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="inline-block px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                <div className="flex items-center justify-center space-x-4 mb-6">
+                  <button 
+                    onClick={(e) => handleLike(selectedMedia.id, e)}
+                    className={`flex items-center transition-colors duration-200 ${
+                      isLiked(selectedMedia.id) 
+                        ? 'text-red-600' 
+                        : 'text-gray-600 hover:text-red-600'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 mr-1 ${isLiked(selectedMedia.id) ? 'fill-current' : ''}`} />
+                    {selectedMedia.likes}
+                  </button>
+                  <button 
+                    onClick={(e) => handleShare(selectedMedia, e)}
+                    className="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                  >
+                    <Share2 className="w-5 h-5 mr-1" />
+                    Share
+                  </button>
+                  <button 
+                    onClick={(e) => handleDownload(selectedMedia, e)}
+                    className="flex items-center text-gray-600 hover:text-green-600 transition-colors duration-200"
+                  >
+                    <Download className="w-5 h-5 mr-1" />
+                    Download
+                  </button>
                 </div>
               </div>
             </div>
@@ -663,7 +562,7 @@ const GalleryPage = () => {
               Share Your Media
             </a>
             <a href="/events" className="btn-outline text-lg px-8 py-4">
-              <Calendar className="w-5 h-5 mr-2" />
+              <Video className="w-5 h-5 mr-2" />
               Attend Events
             </a>
           </div>
