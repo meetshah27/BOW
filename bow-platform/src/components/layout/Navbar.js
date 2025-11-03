@@ -165,43 +165,64 @@ const Navbar = () => {
                   <svg className="w-4 h-4 ml-1 text-gray-400 group-hover:text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-2 animate-fade-in">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <div className="font-semibold text-gray-900">
-                        {currentUser.displayName || 
-                         (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
-                         currentUser.firstName ||
-                         currentUser.email}
+                  <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden animate-slide-up backdrop-blur-sm">
+                    {/* User Info Header */}
+                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 px-5 py-4">
+                      <div className="flex items-center space-x-3">
+                        <Avatar 
+                          user={currentUser} 
+                          size="lg" 
+                          className="bg-white/20 border-2 border-white/30 ring-2 ring-white/20"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-white text-base truncate">
+                            {currentUser.displayName || 
+                             (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                             currentUser.firstName ||
+                             currentUser.email?.split('@')[0]}
+                          </div>
+                          <div className="text-sm text-primary-100 truncate">{currentUser.email}</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">{currentUser.email}</div>
                     </div>
-                    <button
-                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
-                      onClick={() => { navigate('/member/profile'); setDropdownOpen(false); }}
-                    >
-                      <UserCircle className="w-4 h-4 mr-2" /> Profile
-                    </button>
-                    <button
-                      className="w-full flex items-center px-4 py-4 text-sm text-gray-700 hover:bg-primary-50"
-                      onClick={() => { navigate('/member/events'); setDropdownOpen(false); }}
-                    >
-                      <Calendar className="w-4 h-4 mr-2" /> Events Registered
-                    </button>
                     
-                    {currentUser && currentUser.role === 'admin' && (
+                    {/* Menu Items */}
+                    <div className="py-2">
                       <button
-                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-50"
-                        onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
+                        className="w-full flex items-center px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 transition-all duration-150 group"
+                        onClick={() => { navigate('/member/profile'); setDropdownOpen(false); }}
                       >
-                        <Shield className="w-4 h-4 mr-2" /> Beats of Washington
+                        <UserCircle className="w-5 h-5 mr-3 text-primary-600 group-hover:text-primary-700" /> 
+                        <span>Profile Settings</span>
                       </button>
-                    )}
-                    <button
-                      className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2"
-                      onClick={() => { signOut(); setDropdownOpen(false); }}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" /> Logout
-                    </button>
+                      <button
+                        className="w-full flex items-center px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 transition-all duration-150 group"
+                        onClick={() => { navigate('/member/events'); setDropdownOpen(false); }}
+                      >
+                        <Calendar className="w-5 h-5 mr-3 text-primary-600 group-hover:text-primary-700" /> 
+                        <span>Events Registered</span>
+                      </button>
+                      
+                      {currentUser && currentUser.role === 'admin' && (
+                        <button
+                          className="w-full flex items-center px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 transition-all duration-150 group border-t border-gray-100 mt-1"
+                          onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
+                        >
+                          <Shield className="w-5 h-5 mr-3 text-primary-600 group-hover:text-primary-700" /> 
+                          <span>Admin Portal</span>
+                        </button>
+                      )}
+                      
+                      <div className="border-t border-gray-100 my-1"></div>
+                      
+                      <button
+                        className="w-full flex items-center px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-all duration-150 group"
+                        onClick={() => { signOut(); setDropdownOpen(false); }}
+                      >
+                        <LogOut className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" /> 
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -282,51 +303,66 @@ const Navbar = () => {
               <div className="border-t pt-4 mt-4">
                 {currentUser ? (
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2 px-3 py-2">
-                      <Avatar 
-                        user={currentUser} 
-                        size="sm" 
-                        className="bg-primary-100"
-                      />
-                      <span className="text-sm text-gray-700">
-                        {currentUser.displayName || 
-                         (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
-                         currentUser.firstName ||
-                         currentUser.email}
-                      </span>
+                    {/* Mobile User Info Card */}
+                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg px-4 py-3 mx-3 mb-3">
+                      <div className="flex items-center space-x-3">
+                        <Avatar 
+                          user={currentUser} 
+                          size="md" 
+                          className="bg-white/20 border-2 border-white/30 ring-2 ring-white/20"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-white text-base truncate">
+                            {currentUser.displayName || 
+                             (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
+                             currentUser.firstName ||
+                             currentUser.email?.split('@')[0]}
+                          </div>
+                          <div className="text-sm text-primary-100 truncate">{currentUser.email}</div>
+                        </div>
+                      </div>
                     </div>
+                    
+                    <button
+                      className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
+                      onClick={() => { navigate('/member/profile'); setIsOpen(false); }}
+                    >
+                      <UserCircle className="w-5 h-5 mr-3 text-primary-600" />
+                      Profile Settings
+                    </button>
                     
                     {currentUser && currentUser.role === 'admin' && (
                       <button
-                        className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+                        className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
                         onClick={() => { navigate('/admin'); setIsOpen(false); }}
                       >
-                        <Shield className="w-4 h-4 inline mr-2" />
+                        <Shield className="w-5 h-5 mr-3 text-primary-600" />
                         Admin Portal
                       </button>
                     )}
                     
                     {currentUser && currentUser.role === 'member' && (
                       <button
-                        className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+                        className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
                         onClick={() => { navigate('/member'); setIsOpen(false); }}
                       >
-                        <User className="w-4 h-4 inline mr-2" />
+                        <User className="w-5 h-5 mr-3 text-primary-600" />
                         Member Portal
                       </button>
                     )}
                     <button
-                      className="w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50"
+                      className="w-full flex items-center px-4 py-3 mx-3 text-base font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150 mt-2"
                       onClick={() => { signOut(); setIsOpen(false); }}
                     >
-                      Logout
+                      <LogOut className="w-5 h-5 mr-3" />
+                      Sign Out
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Link
                       to="/login"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
+                      className="block px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150 text-center"
                       onClick={() => setIsOpen(false)}
                     >
                       Sign In

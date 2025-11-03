@@ -43,13 +43,28 @@ const Avatar = ({
     justify-center 
     relative 
     overflow-hidden
-    ${showBorder ? 'border-2 border-primary-600' : ''}
+    font-bold
+    ${showBorder && !className.includes('border-') ? 'border-2 border-primary-600' : ''}
     ${className}
   `.trim();
 
+  // Determine text color based on background
+  const getTextColor = () => {
+    // Check for dark backgrounds (gradients with dark colors, white backgrounds with specific classes)
+    if (className.includes('bg-white/20') || 
+        className.includes('bg-white/30') ||
+        className.includes('from-primary-500') ||
+        className.includes('from-primary-600') ||
+        className.includes('text-white')) {
+      return 'text-white';
+    }
+    // Default to primary color for light backgrounds
+    return 'text-primary-700';
+  };
+
   return (
     <div className={baseClasses}>
-      <span className="font-bold text-primary-700">
+      <span className={`font-bold ${getTextColor()}`}>
         {getUserInitial()}
       </span>
       {user?.photoURL ? (
