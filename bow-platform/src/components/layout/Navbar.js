@@ -190,10 +190,10 @@ const Navbar = () => {
                     <div className="py-2">
                       <button
                         className="w-full flex items-center px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 transition-all duration-150 group"
-                        onClick={() => { navigate('/member/profile'); setDropdownOpen(false); }}
+                        onClick={() => { navigate('/member'); setDropdownOpen(false); }}
                       >
-                        <UserCircle className="w-5 h-5 mr-3 text-primary-600 group-hover:text-primary-700" /> 
-                        <span>Profile Settings</span>
+                        <User className="w-5 h-5 mr-3 text-primary-600 group-hover:text-primary-700" /> 
+                        <span>Member Portal</span>
                       </button>
                       <button
                         className="w-full flex items-center px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 transition-all duration-150 group"
@@ -325,10 +325,10 @@ const Navbar = () => {
                     
                     <button
                       className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
-                      onClick={() => { navigate('/member/profile'); setIsOpen(false); }}
+                      onClick={() => { navigate('/member'); setIsOpen(false); }}
                     >
-                      <UserCircle className="w-5 h-5 mr-3 text-primary-600" />
-                      Profile Settings
+                      <User className="w-5 h-5 mr-3 text-primary-600" />
+                      Member Portal
                     </button>
                     
                     {currentUser && currentUser.role === 'admin' && (
@@ -338,16 +338,6 @@ const Navbar = () => {
                       >
                         <Shield className="w-5 h-5 mr-3 text-primary-600" />
                         Admin Portal
-                      </button>
-                    )}
-                    
-                    {currentUser && currentUser.role === 'member' && (
-                      <button
-                        className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
-                        onClick={() => { navigate('/member'); setIsOpen(false); }}
-                      >
-                        <User className="w-5 h-5 mr-3 text-primary-600" />
-                        Member Portal
                       </button>
                     )}
                     <button
