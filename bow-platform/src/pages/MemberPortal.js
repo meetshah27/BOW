@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLogo } from '../contexts/LogoContext';
 import { 
   User, 
   Calendar, 
@@ -1056,6 +1057,7 @@ const SupportHelpCenter = () => {
 const MemberPortal = () => {
   const location = useLocation();
   const { currentUser } = useAuth();
+  const { logoUrl } = useLogo();
   const [userStats, setUserStats] = useState({ events: 0, volunteers: 0, donations: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -1126,8 +1128,16 @@ const MemberPortal = () => {
           <div className="container-custom py-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <User className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center overflow-hidden">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="BOW Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-6 h-6 text-white" />
+                  )}
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-white">Member Portal</h1>
