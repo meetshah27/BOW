@@ -37,7 +37,8 @@ import {
   Clock,
   X,
   Mail,
-  Star
+  Star,
+  Quote
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
 import VolunteerOpportunityManager from '../components/admin/VolunteerOpportunityManager';
@@ -49,6 +50,7 @@ import FounderMediaManagement from '../components/admin/FounderMediaManagement';
 import LeaderManagement from '../components/admin/LeaderManagement';
 import AboutPageManagement from '../components/admin/AboutPageManagement';
 import FounderContentManagement from '../components/admin/FounderContentManagement';
+import CulturalQuotesManagement from '../components/admin/CulturalQuotesManagement';
 import NewMembersManagement from '../components/admin/NewMembersManagement';
 import SettingsManagement from '../components/admin/SettingsManagement';
 import SponsorManagementFixed from '../components/admin/SponsorManagementFixed';
@@ -3130,6 +3132,7 @@ const AdminPanel = () => {
     { name: 'Founder Media', href: '/admin/founder-media', icon: Star },
     { name: 'About Page', href: '/admin/about-page', icon: FileText },
     { name: 'Founder Content', href: '/admin/founder-content', icon: Users },
+    { name: 'Cultural Quotes', href: '/admin/cultural-quotes', icon: Quote },
     { name: 'Leaders', href: '/admin/leaders', icon: Users },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
@@ -3161,6 +3164,8 @@ const AdminPanel = () => {
         return <AboutPageManagement />;
       case 'founder content':
         return <FounderContentManagement />;
+      case 'cultural quotes':
+        return <CulturalQuotesManagement />;
       case 'leaders':
         return <LeaderManagement />;
       case 'users':

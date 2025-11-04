@@ -20,7 +20,8 @@ const TABLES = {
   MISSION_MEDIA: 'bow-mission-media',
   ABOUT_PAGE: 'bow-about-page',
   FOUNDER_CONTENT: 'bow-founder-content',
-  SPONSORS: 'bow-sponsors'
+  SPONSORS: 'bow-sponsors',
+  CULTURAL_QUOTES: 'bow-cultural-quotes'
 };
 
 // Table schemas for creation
@@ -284,6 +285,19 @@ const TABLE_SCHEMAS = {
           WriteCapacityUnits: 5
         }
       }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.CULTURAL_QUOTES]: {
+    TableName: TABLES.CULTURAL_QUOTES,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
     ],
     ProvisionedThroughput: {
       ReadCapacityUnits: 5,

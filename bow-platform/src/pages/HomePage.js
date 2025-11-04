@@ -12,7 +12,8 @@ import {
   Clock,
   Building2,
   Award,
-  Sparkles
+  Sparkles,
+  Quote
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -520,26 +521,101 @@ const HomePage = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Shivam Pawar",
-      role: "Community Member",
-      content: "BOW has transformed our neighborhood through the power of music. The events bring people together in ways I never imagined possible.",
-      rating: 5
-    },
-    {
-      name: "Mandar",
-      role: "Volunteer",
-      content: "Being part of BOW has given me a sense of purpose and community. The impact we make on people's lives is incredible.",
-      rating: 5
-    },
-    {
-      name: "Nirmal Mantri",
-      role: "Volunteer",
-      content: "BOW provides a platform for local artists to showcase their talent and connect with the community. It's been life-changing.",
-      rating: 5
+  // Cultural quotes state
+  const [culturalQuotes, setCulturalQuotes] = useState([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(true);
+  const [quotesFetched, setQuotesFetched] = useState(false);
+
+  // State for rotating quotes
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [quoteFade, setQuoteFade] = useState(true);
+
+  // Fetch cultural quotes from API
+  const fetchCulturalQuotes = useCallback(async () => {
+    if (quotesFetched) {
+      console.log('⚠️ Cultural quotes already fetched, skipping duplicate request');
+      return;
     }
-  ];
+    
+    setLoadingQuotes(true);
+    try {
+      const res = await api.get('/cultural-quotes');
+      if (!res.ok) throw new Error('Failed to fetch cultural quotes');
+      const data = await res.json();
+      
+      // Use fetched quotes if available, otherwise use defaults
+      if (Array.isArray(data) && data.length > 0) {
+        setCulturalQuotes(data);
+      } else {
+        // Default quotes if none exist in DB
+        setCulturalQuotes([
+          {
+            id: 'default-1',
+            text: "Music is the universal language that transcends all boundaries and unites hearts.",
+            author: "Ancient Wisdom"
+          },
+          {
+            id: 'default-2',
+            text: "Unity in diversity creates the strongest communities where everyone belongs.",
+            author: "Community Philosophy"
+          },
+          {
+            id: 'default-3',
+            text: "When we celebrate our culture together, we build bridges that connect generations.",
+            author: "Cultural Heritage"
+          },
+          {
+            id: 'default-4',
+            text: "The rhythm of community beats stronger when every voice is heard.",
+            author: "BOW Mission"
+          },
+          {
+            id: 'default-5',
+            text: "Through music and culture, we preserve traditions and create new memories.",
+            author: "Legacy & Innovation"
+          }
+        ]);
+      }
+      setQuotesFetched(true);
+    } catch (err) {
+      console.error('Error fetching cultural quotes:', err);
+      // Use default quotes on error
+      setCulturalQuotes([
+        {
+          id: 'default-1',
+          text: "Music is the universal language that transcends all boundaries and unites hearts.",
+          author: "Ancient Wisdom"
+        },
+        {
+          id: 'default-2',
+          text: "Unity in diversity creates the strongest communities where everyone belongs.",
+          author: "Community Philosophy"
+        }
+      ]);
+    } finally {
+      setLoadingQuotes(false);
+    }
+  }, [quotesFetched]);
+
+  // Fetch quotes on mount
+  useEffect(() => {
+    fetchCulturalQuotes();
+  }, [fetchCulturalQuotes]);
+
+  // Rotate quotes every 5 seconds
+  useEffect(() => {
+    if (culturalQuotes.length === 0) return;
+    
+    const quoteInterval = setInterval(() => {
+      setQuoteFade(false);
+      setTimeout(() => {
+        setCurrentQuoteIndex((prev) => (prev + 1) % culturalQuotes.length);
+        setQuoteFade(true);
+      }, 500);
+    }, 5000);
+
+    return () => clearInterval(quoteInterval);
+  }, [culturalQuotes.length]);
 
   // Sponsors are now fetched dynamically from the API
 
@@ -1077,88 +1153,174 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="bg-white py-20 relative overflow-hidden">
-        {/* Background decorative elements */}
+      {/* Animated Cultural Section */}
+      <section className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 py-24 relative overflow-hidden">
+        {/* Animated background patterns */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-orange-400/10 to-amber-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+          {/* Floating cultural pattern elements */}
+          <div className="absolute top-10 left-10 w-32 h-32 opacity-20">
+            <svg className="w-full h-full animate-spin-slow" style={{animation: 'spin 20s linear infinite'}} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400"/>
+              <path d="M50 10 L55 45 L90 50 L55 55 L50 90 L45 55 L10 50 L45 45 Z" fill="currentColor" className="text-orange-500 opacity-60"/>
+            </svg>
+          </div>
+          <div className="absolute bottom-20 right-20 w-40 h-40 opacity-15">
+            <svg className="w-full h-full animate-spin-slow-reverse" style={{animation: 'spin 25s linear infinite reverse'}} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-400"/>
+              <path d="M50 5 L60 40 L95 50 L60 60 L50 95 L40 60 L5 50 L40 40 Z" fill="currentColor" className="text-amber-500 opacity-50"/>
+              <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" strokeWidth="1" className="text-yellow-400"/>
+            </svg>
+          </div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 opacity-10">
+            <svg className="w-full h-full animate-pulse" viewBox="0 0 100 100">
+              <path d="M50 10 Q30 30 50 50 Q70 30 50 10" fill="currentColor" className="text-orange-500"/>
+              <path d="M50 50 Q30 70 50 90 Q70 70 50 50" fill="currentColor" className="text-amber-500"/>
+            </svg>
+          </div>
+          <div className="absolute bottom-10 left-1/3 w-28 h-28 opacity-12">
+            <svg className="w-full h-full animate-bounce" style={{animationDuration: '4s'}} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-500"/>
+              <path d="M50 20 L55 45 L80 50 L55 55 L50 80 L45 55 L20 50 L45 45 Z" fill="currentColor" className="text-orange-400 opacity-70"/>
+            </svg>
+          </div>
+          
+          {/* Gradient orbs */}
+          <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-yellow-500/15 to-orange-500/15 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
         </div>
         
         <div className="container-custom relative z-10">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full mb-8 shadow-lg animate-pulse overflow-hidden">
+            {/* Animated cultural icon */}
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full mb-8 shadow-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt="BOW Logo" 
-                  className="w-full h-full object-cover animate-fade-in"
+                  className="w-full h-full object-cover relative z-10 animate-fade-in"
                 />
               ) : (
-                <Users className="w-10 h-10 text-white animate-bounce" />
+                <Music className="w-12 h-12 text-white relative z-10 animate-bounce" style={{animationDuration: '2s'}} />
               )}
+              {/* Rotating decorative rings */}
+              <div className="absolute inset-0 border-4 border-white/30 rounded-full animate-spin-slow"></div>
+              <div className="absolute inset-2 border-2 border-white/20 rounded-full animate-spin-slow-reverse" style={{animationDuration: '3s'}}></div>
             </div>
+            
             <h2 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent animate-fade-in">
-              What Our Community Says
+              Cultural Wisdom & Heritage
             </h2>
             <div className="relative">
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
-                Hear from the people who make our community vibrant and diverse.
+              <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed animate-fade-in-up">
+                Timeless wisdom that guides our community and celebrates our shared values
               </p>
               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 rounded-full animate-pulse"></div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div 
-                key={index} 
-                className="group bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl border border-gray-100 hover:border-orange-300 transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up"
-                style={{animationDelay: `${0.2 + index * 0.2}s`}}
-              >
-                {/* Rating stars with enhanced styling */}
-                <div className="flex mb-6">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className="w-6 h-6 text-yellow-500 fill-current mr-1 transform hover:scale-110 transition-transform duration-200 animate-pulse"
-                      style={{animationDelay: `${i * 0.1}s`}}
-                    />
-                  ))}
-                </div>
-                
-                {/* Quote icon */}
-                <div className="absolute top-6 right-6 opacity-30 group-hover:opacity-60 transition-opacity duration-500">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white text-2xl font-serif">"</span>
-                  </div>
-                </div>
-                
-                {/* Testimonial content */}
-                <p className="text-gray-700 mb-8 leading-relaxed text-lg group-hover:text-gray-900 transition-colors duration-300">
-                  "{testimonial.content}"
-                </p>
-                
-                {/* Author info with enhanced styling */}
-                <div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <span className="text-white font-bold text-xl">
-                      {testimonial.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-gray-900 text-lg mb-1 group-hover:text-orange-600 transition-colors duration-300">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-orange-600 font-medium text-sm bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-2 rounded-full inline-block group-hover:from-orange-100 group-hover:to-amber-100 transition-all duration-300 border border-orange-200">
-                      {testimonial.role}
-                    </div>
-                  </div>
-                </div>
+          {/* Rotating Quote Display */}
+          <div className="max-w-4xl mx-auto">
+            <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-2xl border-2 border-orange-200/50 overflow-hidden">
+              {/* Animated border gradient */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 opacity-20 animate-pulse"></div>
+              <div className="absolute inset-[2px] rounded-3xl bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50"></div>
+              
+              {/* Decorative corner elements */}
+              <div className="absolute top-4 left-4 w-16 h-16 opacity-30">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-orange-400 animate-pulse">
+                  <path d="M10 10 L40 10 L10 40 Z" fill="currentColor"/>
+                  <circle cx="25" cy="25" r="5" fill="currentColor" className="text-amber-500"/>
+                </svg>
               </div>
-            ))}
+              <div className="absolute bottom-4 right-4 w-16 h-16 opacity-30">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-yellow-400 animate-pulse" style={{animationDelay: '1s'}}>
+                  <path d="M90 90 L60 90 L90 60 Z" fill="currentColor"/>
+                  <circle cx="75" cy="75" r="5" fill="currentColor" className="text-orange-500"/>
+                </svg>
+              </div>
+
+              {/* Quote content */}
+              <div className="relative z-10">
+                <div className="flex items-center justify-center mb-8">
+                  <Quote className="w-12 h-12 text-orange-500 animate-pulse" style={{animationDelay: '0.5s'}} />
+                </div>
+                
+                {loadingQuotes ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading cultural wisdom...</p>
+                  </div>
+                ) : culturalQuotes.length > 0 ? (
+                  <>
+                    <div 
+                      className={`transition-opacity duration-500 ${quoteFade ? 'opacity-100' : 'opacity-0'}`}
+                    >
+                      <p className="text-3xl md:text-4xl font-serif text-gray-800 text-center leading-relaxed mb-8 italic">
+                        "{culturalQuotes[currentQuoteIndex]?.text || ''}"
+                      </p>
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-orange-600 bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-3 rounded-full inline-block border border-orange-200">
+                          — {culturalQuotes[currentQuoteIndex]?.author || ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quote indicator dots */}
+                    <div className="flex justify-center gap-2 mt-8">
+                      {culturalQuotes.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            index === currentQuoteIndex
+                              ? 'bg-orange-500 w-8'
+                              : 'bg-orange-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 text-lg">No quotes available at the moment.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Floating decorative elements */}
+              <div className="absolute top-8 right-8 w-20 h-20 opacity-10">
+                <svg className="w-full h-full animate-spin-slow" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400"/>
+                  <path d="M50 10 L55 45 L90 50 L55 55 L50 90 L45 55 L10 50 L45 45 Z" fill="currentColor" className="text-amber-500"/>
+                </svg>
+              </div>
+              <div className="absolute bottom-8 left-8 w-16 h-16 opacity-10">
+                <svg className="w-full h-full animate-spin-slow-reverse" viewBox="0 0 100 100" style={{animationDuration: '8s'}}>
+                  <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-yellow-400"/>
+                  <path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z" fill="currentColor" className="text-orange-400"/>
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Add custom CSS for animations */}
+        <style>{`
+          @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes spin-slow-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+          }
+          .animate-spin-slow {
+            animation: spin-slow 20s linear infinite;
+          }
+          .animate-spin-slow-reverse {
+            animation: spin-slow-reverse 25s linear infinite;
+          }
+        `}</style>
       </section>
 
       {/* Enhanced Sponsors Slider Section */}
