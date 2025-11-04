@@ -13,7 +13,11 @@ import {
   Building2,
   Award,
   Sparkles,
-  Quote
+  Quote,
+  ChevronLeft,
+  ChevronRight,
+  Image,
+  Play
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -281,6 +285,12 @@ const HomePage = () => {
   const [sponsors, setSponsors] = useState([]);
   const [loadingSponsors, setLoadingSponsors] = useState(true);
   const [sponsorsFetched, setSponsorsFetched] = useState(false);
+
+  // Slideshow photos state
+  const [slideshowPhotos, setSlideshowPhotos] = useState([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loadingSlideshow, setLoadingSlideshow] = useState(true);
+  const [slideshowFetched, setSlideshowFetched] = useState(false);
 
   // Fetch functions defined outside useEffect to prevent recreation
   const fetchEvents = useCallback(async () => {
@@ -617,6 +627,80 @@ const HomePage = () => {
     return () => clearInterval(quoteInterval);
   }, [culturalQuotes.length]);
 
+  // Fetch slideshow photos from gallery
+  const fetchSlideshowPhotos = useCallback(async () => {
+    if (slideshowFetched) {
+      console.log('⚠️ Slideshow photos already fetched, skipping duplicate request');
+      return;
+    }
+    
+    setLoadingSlideshow(true);
+    try {
+      const res = await api.get('/gallery');
+      if (!res.ok) throw new Error('Failed to fetch gallery photos');
+      const data = await res.json();
+      
+      // Get recent photos (limit to 10, exclude videos and event-linked photos for slideshow)
+      const photos = data
+        .filter(item => {
+          const url = item.imageUrl || '';
+          const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.avi');
+          // Only include photos that are not linked to events (random uploads)
+          return !isVideo && url && url.trim() !== '' && !item.eventId;
+        })
+        .sort((a, b) => {
+          // Sort by creation date (newest first)
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB - dateA;
+        })
+        .slice(0, 10) // Take the 10 most recent photos
+        .map(item => ({
+          id: item.id,
+          url: item.imageUrl,
+          title: item.title || 'Gallery Photo',
+          description: item.description || ''
+        }));
+      
+      setSlideshowPhotos(photos);
+      setSlideshowFetched(true);
+    } catch (err) {
+      console.error('Error fetching slideshow photos:', err);
+      setSlideshowPhotos([]);
+    } finally {
+      setLoadingSlideshow(false);
+    }
+  }, [slideshowFetched]);
+
+  // Fetch slideshow photos on mount
+  useEffect(() => {
+    fetchSlideshowPhotos();
+  }, [fetchSlideshowPhotos]);
+
+  // Auto-rotate slideshow every 5 seconds
+  useEffect(() => {
+    if (slideshowPhotos.length <= 1) return;
+    
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slideshowPhotos.length);
+    }, 5000);
+
+    return () => clearInterval(slideInterval);
+  }, [slideshowPhotos.length]);
+
+  // Navigate slideshow
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slideshowPhotos.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slideshowPhotos.length) % slideshowPhotos.length);
+  };
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
   // Sponsors are now fetched dynamically from the API
 
   // Style for event badge (match event section)
@@ -876,6 +960,120 @@ const HomePage = () => {
                       </div>
         </div>
       </section>
+
+      {/* Gallery Slideshow Section */}
+      {slideshowPhotos.length > 0 && (
+        <section className="relative py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
+          {/* Background decorative elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-10 right-10 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-10 left-10 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+          </div>
+
+          <div className="container-custom relative z-10">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                Our Community in Action
+              </h2>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Moments captured from our events and celebrations
+              </p>
+            </div>
+
+            <div className="relative max-w-5xl mx-auto">
+              {/* Slideshow Container */}
+              <div className="relative h-[400px] md:h-[450px] rounded-2xl overflow-hidden shadow-2xl">
+                {loadingSlideshow ? (
+                  <div className="flex items-center justify-center h-full bg-gray-800">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                      <p className="text-gray-400">Loading gallery photos...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Slides */}
+                    {slideshowPhotos.map((photo, index) => (
+                      <div
+                        key={photo.id}
+                        className={`absolute inset-0 transition-opacity duration-1000 ${
+                          index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                        }`}
+                      >
+                        <img
+                          src={photo.url}
+                          alt={photo.title}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Overlay gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                        
+                        {/* Photo Info */}
+                        <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-20">
+                          <h3 className="text-2xl md:text-3xl font-bold mb-2">{photo.title}</h3>
+                          {photo.description && (
+                            <p className="text-gray-200 text-lg">{photo.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Navigation Arrows */}
+                    {slideshowPhotos.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevSlide}
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+                          aria-label="Previous slide"
+                        >
+                          <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <button
+                          onClick={nextSlide}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+                          aria-label="Next slide"
+                        >
+                          <ChevronRight className="w-6 h-6" />
+                        </button>
+                      </>
+                    )}
+
+                    {/* Dots Indicator */}
+                    {slideshowPhotos.length > 1 && (
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-2">
+                        {slideshowPhotos.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => goToSlide(index)}
+                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                              index === currentSlide
+                                ? 'bg-white w-8'
+                                : 'bg-white/40 hover:bg-white/60'
+                            }`}
+                            aria-label={`Go to slide ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* View Gallery Button */}
+              <div className="text-center mt-8">
+                <Link
+                  to="/gallery"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-orange-600 hover:via-amber-600 hover:to-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  <Image className="w-5 h-5" />
+                  View Full Gallery
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Our Impact in Numbers Section */}
       <section className="stats-section relative py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
