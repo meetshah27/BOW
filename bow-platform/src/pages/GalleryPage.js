@@ -13,7 +13,11 @@ import {
   Copy,
   ExternalLink,
   MessageCircle,
-  Loader
+  Loader,
+  Grid,
+  Folder,
+  Calendar,
+  ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ImagePlaceholder from '../components/common/ImagePlaceholder';
@@ -31,6 +35,9 @@ const GalleryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [logoUrl, setLogoUrl] = useState('');
+  const [viewMode, setViewMode] = useState('all'); // 'all' or 'albums'
+  const [eventAlbums, setEventAlbums] = useState([]);
+  const [selectedAlbum, setSelectedAlbum] = useState(null);
 
   // Fetch logo from about page content
   useEffect(() => {
@@ -56,6 +63,23 @@ const GalleryPage = () => {
     { value: 'performances', label: 'Performances', count: 0 }
   ];
 
+  // Fetch event albums (for both albums view and all media view)
+  useEffect(() => {
+    const fetchEventAlbums = async () => {
+      try {
+        const response = await api.get('/gallery/albums/events');
+        if (response.ok) {
+          const data = await response.json();
+          setEventAlbums(data);
+        }
+      } catch (err) {
+        console.error('Error fetching event albums:', err);
+      }
+    };
+    
+    fetchEventAlbums();
+  }, []);
+
   // Fetch gallery data from backend
   useEffect(() => {
     const fetchGalleryItems = async () => {
@@ -75,6 +99,7 @@ const GalleryPage = () => {
             title: item.title || 'Untitled',
             type: item.imageUrl?.includes('.mp4') || item.imageUrl?.includes('.mov') || item.imageUrl?.includes('.avi') ? 'video' : 'image',
             category: item.album || 'general',
+            eventId: item.eventId || '',
             url: item.imageUrl,
             thumbnail: item.imageUrl, // Use the same URL for thumbnail
             createdAt: item.createdAt,
@@ -86,9 +111,9 @@ const GalleryPage = () => {
         const sortedData = transformedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setGalleryItems(sortedData);
         
-        // Update category counts
+        // Update category counts (only for non-event media)
         const categoryCounts = {};
-        transformedData.forEach(item => {
+        transformedData.filter(i => !i.eventId).forEach(item => {
           categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
         });
         
@@ -97,7 +122,8 @@ const GalleryPage = () => {
             cat.count = categoryCounts[cat.value] || 0;
           }
         });
-        categories[0].count = transformedData.length; // All Media count
+        // All Media count shows only non-event items
+        categories[0].count = transformedData.filter(i => !i.eventId).length;
         
       } catch (err) {
         console.error('Error fetching gallery items:', err);
@@ -111,7 +137,10 @@ const GalleryPage = () => {
     fetchGalleryItems();
   }, []);
 
-  const filteredItems = galleryItems.filter(item => {
+  // In All Media view, hide event-linked items (albums will represent them)
+  const baseItems = galleryItems.filter(i => !i.eventId);
+
+  const filteredItems = baseItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -256,6 +285,47 @@ const GalleryPage = () => {
       {/* Filters and Search */}
       <section className="bg-white py-8 border-b">
         <div className="container-custom">
+          {/* View Mode Toggle */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setViewMode('all');
+                  setSelectedAlbum(null);
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  viewMode === 'all'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Grid className="w-4 h-4" />
+                All Media
+              </button>
+              <button
+                onClick={() => setViewMode('albums')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  viewMode === 'albums'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Folder className="w-4 h-4" />
+                Albums by Event
+              </button>
+            </div>
+            {selectedAlbum && (
+              <button
+                onClick={() => setSelectedAlbum(null)}
+                className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Albums
+              </button>
+            )}
+          </div>
+
+          {!selectedAlbum && (
           <div className="grid md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
@@ -271,7 +341,8 @@ const GalleryPage = () => {
               </div>
             </div>
 
-            {/* Category Filter */}
+              {/* Category Filter - Only show in 'all' view */}
+              {viewMode === 'all' && (
             <div>
               <select
                 value={selectedCategory}
@@ -285,13 +356,239 @@ const GalleryPage = () => {
                 ))}
               </select>
             </div>
+              )}
           </div>
+          )}
         </div>
       </section>
 
-      {/* Gallery Grid */}
+      {/* Event Albums View */}
+      {viewMode === 'albums' && !selectedAlbum && (
+        <section className="py-16 bg-gray-50">
+          <div className="container-custom">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Event Albums
+              </h2>
+              <p className="text-gray-600">
+                Browse photos organized by event
+              </p>
+            </div>
+
+            {eventAlbums.length === 0 ? (
+              <div className="text-center py-20">
+                <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Event Albums Yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Upload photos and assign them to events to see albums here.
+                </p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {eventAlbums.map((album) => (
+                  <div
+                    key={album.eventId}
+                    onClick={() => setSelectedAlbum(album)}
+                    className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300 group"
+                  >
+                    {/* Album Cover Image */}
+                    <div className="relative h-48 overflow-hidden">
+                      {album.eventImage ? (
+                        <img
+                          src={album.eventImage}
+                          alt={album.eventTitle}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : album.photos.length > 0 ? (
+                        <img
+                          src={album.photos[0].imageUrl}
+                          alt={album.eventTitle}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary-400 to-secondary-600 flex items-center justify-center">
+                          <Folder className="w-16 h-16 text-white opacity-50" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        <h3 className="text-xl font-bold mb-1">{album.eventTitle}</h3>
+                        {album.eventDate && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(album.eventDate).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Album Info */}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          {album.photos.length} {album.photos.length === 1 ? 'photo' : 'photos'}
+                        </span>
+                        <span className="text-primary-600 font-medium group-hover:text-primary-700">
+                          View Album →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Selected Album View */}
+      {selectedAlbum && (
+        <section className="py-16 bg-gray-50">
+          <div className="container-custom">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {selectedAlbum.eventTitle}
+              </h2>
+              {selectedAlbum.eventDate && (
+                <p className="text-gray-600 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(selectedAlbum.eventDate).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              )}
+            </div>
+
+            {selectedAlbum.photos.length === 0 ? (
+              <div className="text-center py-20">
+                <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">No photos in this album yet.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {selectedAlbum.photos.map((photo) => {
+                  const item = {
+                    id: photo.id,
+                    title: photo.title || 'Untitled',
+                    type: photo.imageUrl?.includes('.mp4') || photo.imageUrl?.includes('.mov') || photo.imageUrl?.includes('.avi') ? 'video' : 'image',
+                    url: photo.imageUrl,
+                    thumbnail: photo.imageUrl,
+                    createdAt: photo.createdAt
+                  };
+                  return (
+                    <div key={photo.id} className="card group cursor-pointer" onClick={() => openModal(item)}>
+                      <div className="relative overflow-hidden rounded-t-xl">
+                        <ImagePlaceholder
+                          src={item.thumbnail}
+                          alt={item.title}
+                          className="w-full h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
+                          placeholderClassName="w-full h-48 bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                          {item.type === 'video' ? <Video className="w-4 h-4 mr-1" /> : <Image className="w-4 h-4 mr-1" />}
+                          {item.type === 'video' ? 'Video' : 'Photo'}
+                        </div>
+                        <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <button
+                            onClick={(e) => handleLike(item.id, e)}
+                            className={`p-2 rounded-full ${
+                              isLiked(item.id) 
+                                ? 'bg-red-500 text-white' 
+                                : 'bg-white/90 text-gray-700 hover:bg-red-500 hover:text-white'
+                            } transition-all duration-200`}
+                          >
+                            <Heart className={`w-4 h-4 ${isLiked(item.id) ? 'fill-current' : ''}`} />
+                          </button>
+                          <button
+                            onClick={(e) => handleShare(item, e)}
+                            className="p-2 rounded-full bg-white/90 text-gray-700 hover:bg-primary-500 hover:text-white transition-all duration-200"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Gallery Grid - All Media View */}
+      {viewMode === 'all' && !selectedAlbum && (
       <section className="py-16 bg-gray-50">
         <div className="container-custom">
+          {/* Event Albums Section */}
+          {eventAlbums.length > 0 && (
+            <div className="mb-12">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Albums</h2>
+                <p className="text-gray-600">Browse photos organized by events</p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {eventAlbums.map((album) => (
+                  <div
+                    key={album.eventId}
+                    onClick={() => setSelectedAlbum(album)}
+                    className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300 group"
+                  >
+                    {/* Album Cover Image */}
+                    <div className="relative h-48 overflow-hidden">
+                      {album.eventImage ? (
+                        <img
+                          src={album.eventImage}
+                          alt={album.eventTitle}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : album.photos.length > 0 ? (
+                        <img
+                          src={album.photos[0].imageUrl}
+                          alt={album.eventTitle}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary-400 to-secondary-600 flex items-center justify-center">
+                          <Folder className="w-16 h-16 text-white opacity-50" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        <h3 className="text-xl font-bold mb-1">{album.eventTitle}</h3>
+                        {album.eventDate && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(album.eventDate).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Album Info */}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          {album.photos.length} {album.photos.length === 1 ? 'photo' : 'photos'}
+                        </span>
+                        <span className="text-primary-600 font-medium group-hover:text-primary-700">
+                          View Album →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Individual Media Items Section */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               {loading ? 'Loading...' : `${filteredItems.length} Items Found`}
@@ -415,6 +712,7 @@ const GalleryPage = () => {
         )}
         </div>
       </section>
+      )}
 
       {/* Media Modal */}
       {selectedMedia && (
