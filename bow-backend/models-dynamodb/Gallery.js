@@ -9,6 +9,7 @@ class Gallery {
     this.title = data.title;
     this.description = data.description;
     this.album = data.album;
+    this.eventId = data.eventId || null; // Link to specific event
     this.imageUrl = data.imageUrl;
     this.createdAt = data.createdAt || new Date().toISOString();
   }
@@ -22,6 +23,19 @@ class Gallery {
 
   static async findAll() {
     const command = new ScanCommand({ TableName: TABLES.GALLERY });
+    const result = await docClient.send(command);
+    return result.Items.map(item => new Gallery(item));
+  }
+
+  // Find all gallery items for a specific event
+  static async findByEventId(eventId) {
+    const command = new ScanCommand({ 
+      TableName: TABLES.GALLERY,
+      FilterExpression: 'eventId = :eventId',
+      ExpressionAttributeValues: {
+        ':eventId': eventId
+      }
+    });
     const result = await docClient.send(command);
     return result.Items.map(item => new Gallery(item));
   }

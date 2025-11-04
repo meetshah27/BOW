@@ -1456,15 +1456,18 @@ const GalleryManager = () => {
   const [mediaData, setMediaData] = useState({
     title: '',
     description: '',
-    album: ''
+    album: '',
+    eventId: ''
   });
   const [editData, setEditData] = useState({
     title: '',
     description: '',
-    album: ''
+    album: '',
+    eventId: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAlbum, setSelectedAlbum] = useState('all');
+  const [events, setEvents] = useState([]);
 
   // Fetch gallery items
   const fetchGalleryItems = async () => {
@@ -1483,7 +1486,21 @@ const GalleryManager = () => {
 
   useEffect(() => {
     fetchGalleryItems();
+    fetchEvents();
   }, []);
+
+  // Fetch events for event selection
+  const fetchEvents = async () => {
+    try {
+      const response = await api.get('/events');
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+      }
+    } catch (err) {
+      console.error('Error fetching events:', err);
+    }
+  };
 
   // Get unique albums for filtering
   const albums = ['all', ...new Set(galleryItems.map(item => item.album).filter(Boolean))];
@@ -1514,6 +1531,7 @@ const GalleryManager = () => {
           title: mediaData.title || selectedItem.title,
           description: mediaData.description || selectedItem.description,
           album: mediaData.album || selectedItem.album,
+          eventId: mediaData.eventId || selectedItem.eventId || null,
           imageUrl: media.fileUrl,
           type: media.mimetype.startsWith('image/') ? 'image' : 'video'
         });
@@ -1527,6 +1545,7 @@ const GalleryManager = () => {
             title: mediaData.title || media.originalName,
             description: mediaData.description || '',
             album: mediaData.album || 'General',
+            eventId: mediaData.eventId || null,
             imageUrl: media.fileUrl,
             type: media.mimetype.startsWith('image/') ? 'image' : 'video'
           });
@@ -1538,7 +1557,7 @@ const GalleryManager = () => {
       
       setShowUploadModal(false);
       setUploadedMedia([]);
-      setMediaData({ title: '', description: '', album: '' });
+      setMediaData({ title: '', description: '', album: '', eventId: '' });
       setSelectedItem(null);
       fetchGalleryItems(); // Refresh the list
     } catch (err) {
@@ -1551,7 +1570,8 @@ const GalleryManager = () => {
     setEditData({
       title: item.title || '',
       description: item.description || '',
-      album: item.album || ''
+      album: item.album || '',
+      eventId: item.eventId || ''
     });
     setShowEditModal(true);
   };
@@ -1564,7 +1584,7 @@ const GalleryManager = () => {
       toast.success('Gallery item updated successfully!');
       setShowEditModal(false);
       setSelectedItem(null);
-      setEditData({ title: '', description: '', album: '' });
+      setEditData({ title: '', description: '', album: '', eventId: '' });
       fetchGalleryItems(); // Refresh the list
     } catch (err) {
       toast.error('Error updating gallery item: ' + err.message);
@@ -1797,6 +1817,28 @@ const GalleryManager = () => {
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Event (Optional - Creates event album)</label>
+                    <select
+                      className="w-full border rounded px-3 py-2"
+                      value={mediaData.eventId}
+                      onChange={e => setMediaData({ ...mediaData, eventId: e.target.value })}
+                    >
+                      <option value="">No Event</option>
+                      {events
+                        .filter(event => event.isActive)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map(event => (
+                          <option key={event.id} value={event.id}>
+                            {event.title} - {new Date(event.date).toLocaleDateString()}
+                          </option>
+                        ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Select an event to organize photos into an event album
+                    </p>
+                  </div>
                   
                   <div>
                     <label className="block text-sm font-medium mb-1">Description (for all media)</label>
@@ -1859,6 +1901,28 @@ const GalleryManager = () => {
                   onChange={e => setEditData({ ...editData, album: e.target.value })} 
                   placeholder="Enter album name"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Event (Optional - Creates event album)</label>
+                <select
+                  className="w-full border rounded px-3 py-2"
+                  value={editData.eventId}
+                  onChange={e => setEditData({ ...editData, eventId: e.target.value })}
+                >
+                  <option value="">No Event</option>
+                  {events
+                    .filter(event => event.isActive)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map(event => (
+                      <option key={event.id} value={event.id}>
+                        {event.title} - {new Date(event.date).toLocaleDateString()}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select an event to organize photos into an event album
+                </p>
               </div>
               
               <div>

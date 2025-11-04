@@ -1232,14 +1232,14 @@ const HomePage = () => {
                   <path d="M10 10 L40 10 L10 40 Z" fill="currentColor"/>
                   <circle cx="25" cy="25" r="5" fill="currentColor" className="text-amber-500"/>
                 </svg>
-              </div>
+                  </div>
               <div className="absolute bottom-4 right-4 w-16 h-16 opacity-30">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-yellow-400 animate-pulse" style={{animationDelay: '1s'}}>
                   <path d="M90 90 L60 90 L90 60 Z" fill="currentColor"/>
                   <circle cx="75" cy="75" r="5" fill="currentColor" className="text-orange-500"/>
                 </svg>
-              </div>
-
+                </div>
+                
               {/* Quote content */}
               <div className="relative z-10">
                 <div className="flex items-center justify-center mb-8">
@@ -1259,11 +1259,11 @@ const HomePage = () => {
                       <p className="text-3xl md:text-4xl font-serif text-gray-800 text-center leading-relaxed mb-8 italic">
                         "{culturalQuotes[currentQuoteIndex]?.text || ''}"
                       </p>
-                      <div className="text-center">
+                  <div className="text-center">
                         <p className="text-lg font-semibold text-orange-600 bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-3 rounded-full inline-block border border-orange-200">
                           — {culturalQuotes[currentQuoteIndex]?.author || ''}
                         </p>
-                      </div>
+                    </div>
                     </div>
 
                     {/* Quote indicator dots */}
@@ -1278,12 +1278,12 @@ const HomePage = () => {
                           }`}
                         />
                       ))}
-                    </div>
+                  </div>
                   </>
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-600 text-lg">No quotes available at the moment.</p>
-                  </div>
+                </div>
                 )}
               </div>
 
@@ -1293,13 +1293,13 @@ const HomePage = () => {
                   <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400"/>
                   <path d="M50 10 L55 45 L90 50 L55 55 L50 90 L45 55 L10 50 L45 45 Z" fill="currentColor" className="text-amber-500"/>
                 </svg>
-              </div>
+          </div>
               <div className="absolute bottom-8 left-8 w-16 h-16 opacity-10">
                 <svg className="w-full h-full animate-spin-slow-reverse" viewBox="0 0 100 100" style={{animationDuration: '8s'}}>
                   <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-yellow-400"/>
                   <path d="M50 15 L60 40 L85 50 L60 60 L50 85 L40 60 L15 50 L40 40 Z" fill="currentColor" className="text-orange-400"/>
                 </svg>
-              </div>
+        </div>
             </div>
           </div>
         </div>
