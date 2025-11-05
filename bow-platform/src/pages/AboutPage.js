@@ -821,65 +821,10 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Board of Directors */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 right-20 w-48 h-48 bg-primary-100 rounded-full blur-3xl floating-bg"></div>
-          <div className="absolute bottom-20 left-20 w-32 h-32 bg-secondary-100 rounded-full blur-2xl floating-bg" style={{animationDelay: '3s'}}></div>
-        </div>
-        
-        <div className="container-custom relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-6">
-              Board of Directors
-            </h2>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Our board provides strategic guidance and ensures we remain accountable 
-              to our mission and community.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            {boardMembers.map((member, index) => (
-              <div key={index} className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
-                <div className="relative bg-white rounded-2xl p-10 shadow-xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-                  <div className="text-center">
-                    <div className="relative mb-6">
-                      <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2">
-                        <span className="text-white font-bold text-2xl">
-                          {member.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-md">
-                        <Award className="w-3 h-3 text-white" />
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors duration-300">
-                      {member.name}
-                    </h3>
-                    <p className="text-orange-600 font-semibold text-lg mb-3 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                      {member.role}
-                    </p>
-                    <p className="text-gray-600 text-base font-medium">
-                      {member.organization}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* 501(c)(3) Status Section */}
-      <section className="py-20 bg-primary-600 text-white">
+      <section className="py-20 bg-primary-600 text-white relative overflow-hidden">
         <div className="container-custom">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">
@@ -944,6 +889,46 @@ const AboutPage = () => {
               Make a Donation
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
+
+            {/* Compact "Feel the Beat" band (white variant) */}
+            <div className="mt-10">
+              <div className="relative overflow-hidden rounded-2xl border border-white/30 bg-white/10">
+                {/* local keyframes fallback */}
+                <style>{`
+                  @keyframes waveHeightMini { 0%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} 100%{transform:scaleY(0.3)} }
+                  @keyframes floatYMini { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
+                `}</style>
+                {/* Floating icons */}
+                <div className="absolute left-3 top-3 text-2xl select-none" style={{ animation: 'floatYMini 3s ease-in-out infinite' }}>🥁</div>
+                <div className="absolute right-4 bottom-3 text-2xl select-none" style={{ animation: 'floatYMini 3.2s ease-in-out infinite', animationDelay: '0.4s' }}>🪘</div>
+
+                <div className="px-6 pt-6 text-center">
+                  <h4 className="text-white font-bold text-lg tracking-tight drop-shadow-sm">Feel the Beat · Dhol & Tasha</h4>
+                  <p className="text-white/80 text-xs mt-1 mb-4">A subtle rhythm celebrating our cultural heartbeat</p>
+                </div>
+                <div className="px-6 pb-6">
+                  <div className="mx-auto max-w-4xl h-16 flex items-end gap-[3px] justify-center">
+                    {Array.from({ length: 96 }).map((_, i) => {
+                      const delay = (i % 8) * 0.1;
+                      const width = i % 5 === 0 ? 4 : 3;
+                      const base = 10 + (i % 7);
+                      const shades = ['bg-white/90','bg-white/70','bg-white/60'];
+                      return (
+                        <div
+                          key={`mini-beat-${i}`}
+                          className={`origin-bottom rounded-full ${shades[i % shades.length]}`}
+                          style={{
+                            width: `${width}px`,
+                            height: `${base}px`,
+                            animation: `waveHeightMini 1.7s ease-in-out ${delay}s infinite`,
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
