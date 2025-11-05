@@ -93,13 +93,6 @@ const EventsPage = () => {
   const [founderContent, setFounderContent] = useState(null);
   const [selectedEventModal, setSelectedEventModal] = useState(null);
 
-  // Scroll to events section when view mode changes
-  useEffect(() => {
-    const eventsSection = document.getElementById('events-content');
-    if (eventsSection) {
-      eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [viewMode]);
 
   // Fetch logo from about page content
   useEffect(() => {
