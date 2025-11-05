@@ -92,7 +92,18 @@ const EventsPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [founderContent, setFounderContent] = useState(null);
   const [selectedEventModal, setSelectedEventModal] = useState(null);
+  const [shouldScrollToEvents, setShouldScrollToEvents] = useState(false);
 
+  // Scroll to events section only when view mode is changed by button click (not on initial load)
+  useEffect(() => {
+    if (shouldScrollToEvents) {
+      const eventsSection = document.getElementById('events-content');
+      if (eventsSection) {
+        eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setShouldScrollToEvents(false); // Reset flag after scrolling
+      }
+    }
+  }, [viewMode, shouldScrollToEvents]);
 
   // Fetch logo from about page content
   useEffect(() => {
@@ -300,7 +311,7 @@ const EventsPage = () => {
               <button
                 onClick={() => {
                   setViewMode('list');
-                  // Scroll to top is handled by useEffect
+                  setShouldScrollToEvents(true);
                 }}
                 className={`px-4 py-2 rounded-md font-medium transition-colors flex items-center gap-2 ${
                   viewMode === 'list'
@@ -314,7 +325,7 @@ const EventsPage = () => {
               <button
                 onClick={() => {
                   setViewMode('calendar');
-                  // Scroll to top is handled by useEffect
+                  setShouldScrollToEvents(true);
                 }}
                 className={`px-4 py-2 rounded-md font-medium transition-colors flex items-center gap-2 ${
                   viewMode === 'calendar'
