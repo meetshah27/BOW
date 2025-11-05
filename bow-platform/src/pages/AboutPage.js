@@ -824,107 +824,109 @@ const AboutPage = () => {
       
 
       {/* 501(c)(3) Status Section */}
-      <section className="py-20 bg-primary-600 text-white relative overflow-hidden">
+      <section className="py-20 bg-transparent relative overflow-hidden">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">
-              501(c)(3) Non-Profit Status
-            </h2>
-            <p className="text-xl max-w-3xl mx-auto">
-              Beats of Washington is a registered 501(c)(3) non-profit organization, 
-              ensuring transparency and accountability in all our operations.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Tax Exempt</h3>
-              <p className="text-gray-100">
-                All donations are tax-deductible to the extent allowed by law.
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-3xl p-10 shadow-2xl overflow-hidden">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold mb-4">
+                501(c)(3) Non-Profit Status
+              </h2>
+              <p className="text-xl max-w-3xl mx-auto text-white/95">
+                Beats of Washington is a registered 501(c)(3) non-profit organization,
+                ensuring transparency and accountability in all our operations.
               </p>
             </div>
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogoSpinning(true);
-                  try { triggerConfetti(); } catch (e) {}
-                  setTimeout(() => setIsLogoSpinning(false), 1200);
-                }}
-                aria-label="Celebrate BOW 501(c)(3)"
-                className={`w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden cursor-pointer transition-transform duration-300 ${isLogoSpinning ? 'animate-spin' : ''}`}
-              >
-                {aboutPageContent.logo ? (
-                  <img 
-                    src={aboutPageContent.logo} 
-                    alt="BOW Logo" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-4xl">B</span>
-                  </div>
-                )}
-              </button>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Accountable</h3>
-              <p className="text-gray-100">
-                Governed by a volunteer board of directors from the community.
-              </p>
-            </div>
-          </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-lg mb-6">
-              <strong>EIN:</strong> 84-4396168 | <strong>Founded:</strong> 2019
-            </p>
-            <Link to="/donate" className="btn-secondary">
-              Make a Donation
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-
-            {/* Compact "Feel the Beat" band (white variant) */}
-            <div className="mt-10">
-              <div className="relative overflow-hidden rounded-2xl border border-white/30 bg-white/10">
-                {/* local keyframes fallback */}
-                <style>{`
-                  @keyframes waveHeightMini { 0%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} 100%{transform:scaleY(0.3)} }
-                  @keyframes floatYMini { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
-                `}</style>
-                {/* Floating icons */}
-                <div className="absolute left-3 top-3 text-2xl select-none" style={{ animation: 'floatYMini 3s ease-in-out infinite' }}>🥁</div>
-                <div className="absolute right-4 bottom-3 text-2xl select-none" style={{ animation: 'floatYMini 3.2s ease-in-out infinite', animationDelay: '0.4s' }}>🪘</div>
-
-                <div className="px-6 pt-6 text-center">
-                  <h4 className="text-white font-bold text-lg tracking-tight drop-shadow-sm">Feel the Beat · Dhol & Tasha</h4>
-                  <p className="text-white/80 text-xs mt-1 mb-4">A subtle rhythm celebrating our cultural heartbeat</p>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8" />
                 </div>
-                <div className="px-6 pb-6">
-                  <div className="mx-auto max-w-4xl h-16 flex items-end gap-[3px] justify-center">
-                    {Array.from({ length: 96 }).map((_, i) => {
-                      const delay = (i % 8) * 0.1;
-                      const width = i % 5 === 0 ? 4 : 3;
-                      const base = 10 + (i % 7);
-                      const shades = ['bg-white/90','bg-white/70','bg-white/60'];
-                      return (
-                        <div
-                          key={`mini-beat-${i}`}
-                          className={`origin-bottom rounded-full ${shades[i % shades.length]}`}
-                          style={{
-                            width: `${width}px`,
-                            height: `${base}px`,
-                            animation: `waveHeightMini 1.7s ease-in-out ${delay}s infinite`,
-                          }}
-                        />
-                      );
-                    })}
+                <h3 className="text-xl font-semibold mb-3">Tax Exempt</h3>
+                <p className="text-white/90">
+                  All donations are tax-deductible to the extent allowed by law.
+                </p>
+              </div>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogoSpinning(true);
+                    try { triggerConfetti(); } catch (e) {}
+                    setTimeout(() => setIsLogoSpinning(false), 1200);
+                  }}
+                  aria-label="Celebrate BOW 501(c)(3)"
+                  className={`w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden cursor-pointer transition-transform duration-300 ${isLogoSpinning ? 'animate-spin' : ''}`}
+                >
+                  {aboutPageContent.logo ? (
+                    <img
+                      src={aboutPageContent.logo}
+                      alt="BOW Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-4xl">B</span>
+                    </div>
+                  )}
+                </button>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Award className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Accountable</h3>
+                <p className="text-white/90">
+                  Governed by a volunteer board of directors from the community.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-12 text-center">
+              <p className="text-lg mb-6 text-white/95">
+                <strong>EIN:</strong> 84-4396168 | <strong>Founded:</strong> 2019
+              </p>
+              <Link to="/donate" className="btn-secondary">
+                Make a Donation
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+
+              {/* Compact "Feel the Beat" band (white variant) */}
+              <div className="mt-10">
+                <div className="relative overflow-hidden rounded-2xl border border-white/30 bg-white/10">
+                  {/* local keyframes fallback */}
+                  <style>{`
+                    @keyframes waveHeightMini { 0%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} 100%{transform:scaleY(0.3)} }
+                    @keyframes floatYMini { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
+                  `}</style>
+                  {/* Floating icons */}
+                  <div className="absolute left-3 top-3 text-2xl select-none" style={{ animation: 'floatYMini 3s ease-in-out infinite' }}>🥁</div>
+                  <div className="absolute right-4 bottom-3 text-2xl select-none" style={{ animation: 'floatYMini 3.2s ease-in-out infinite', animationDelay: '0.4s' }}>🪘</div>
+
+                  <div className="px-6 pt-6 text-center">
+                    <h4 className="text-white font-bold text-lg tracking-tight drop-shadow-sm">Feel the Beat · Dhol & Tasha</h4>
+                    <p className="text-white/80 text-xs mt-1 mb-4">A subtle rhythm celebrating our cultural heartbeat</p>
+                  </div>
+                  <div className="px-6 pb-6">
+                    <div className="mx-auto max-w-4xl h-16 flex items-end gap-[3px] justify-center">
+                      {Array.from({ length: 96 }).map((_, i) => {
+                        const delay = (i % 8) * 0.1;
+                        const width = i % 5 === 0 ? 4 : 3;
+                        const base = 10 + (i % 7);
+                        const shades = ['bg-white/90','bg-white/70','bg-white/60'];
+                        return (
+                          <div
+                            key={`mini-beat-${i}`}
+                            className={`origin-bottom rounded-full ${shades[i % shades.length]}`}
+                            style={{
+                              width: `${width}px`,
+                              height: `${base}px`,
+                              animation: `waveHeightMini 1.7s ease-in-out ${delay}s infinite`,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -934,7 +936,7 @@ const AboutPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="pt-12 pb-20 bg-gray-50">
         <div className="container-custom text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             Join Our Mission
