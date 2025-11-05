@@ -11,7 +11,16 @@ import {
   ArrowRight,
   Star,
   Tag,
-  Music
+  Music,
+  ChevronLeft,
+  ChevronRight,
+  Grid,
+  Calendar as CalendarIcon,
+  X,
+  DollarSign,
+  Phone,
+  Mail,
+  ExternalLink
 } from 'lucide-react';
 import { formatDate, parseDateString, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -79,6 +88,18 @@ const EventsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [logoUrl, setLogoUrl] = useState('');
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [founderContent, setFounderContent] = useState(null);
+  const [selectedEventModal, setSelectedEventModal] = useState(null);
+
+  // Scroll to events section when view mode changes
+  useEffect(() => {
+    const eventsSection = document.getElementById('events-content');
+    if (eventsSection) {
+      eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [viewMode]);
 
   // Fetch logo from about page content
   useEffect(() => {
@@ -94,6 +115,22 @@ const EventsPage = () => {
       }
     };
     fetchLogo();
+  }, []);
+
+  // Fetch founder content
+  useEffect(() => {
+    const fetchFounderContent = async () => {
+      try {
+        const response = await api.get('/founder-content');
+        if (response.ok) {
+          const data = await response.json();
+          setFounderContent(data);
+        }
+      } catch (error) {
+        console.error('Error fetching founder content:', error);
+      }
+    };
+    fetchFounderContent();
   }, []);
 
   useEffect(() => {
@@ -181,6 +218,58 @@ const EventsPage = () => {
     }
   };
 
+  // Calendar helper functions
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
+  };
+
+  const getEventsForDate = (date) => {
+    if (!date) return [];
+    const dateString = date.toISOString().split('T')[0];
+    return filteredEvents.filter(event => {
+      const eventDate = event.date ? event.date.split('T')[0] : '';
+      return eventDate === dateString;
+    });
+  };
+
+  const goToPreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentMonth(new Date());
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   return (
     <>
       <Helmet>
@@ -211,6 +300,40 @@ const EventsPage = () => {
       {/* Search and Filters */}
       <section className="bg-white py-8 border-b">
         <div className="container-custom">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">Events</h2>
+            {/* View Toggle */}
+            <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => {
+                  setViewMode('list');
+                  // Scroll to top is handled by useEffect
+                }}
+                className={`px-4 py-2 rounded-md font-medium transition-colors flex items-center gap-2 ${
+                  viewMode === 'list'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Grid className="w-4 h-4" />
+                List View
+              </button>
+              <button
+                onClick={() => {
+                  setViewMode('calendar');
+                  // Scroll to top is handled by useEffect
+                }}
+                className={`px-4 py-2 rounded-md font-medium transition-colors flex items-center gap-2 ${
+                  viewMode === 'calendar'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <CalendarIcon className="w-4 h-4" />
+                Calendar View
+              </button>
+            </div>
+          </div>
           <div className="grid md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
@@ -259,8 +382,8 @@ const EventsPage = () => {
         </div>
       </section>
 
-      {/* Events Grid */}
-      <section className="py-16 bg-gray-50">
+      {/* Events Content */}
+      <section id="events-content" className="py-16 bg-gray-50">
         <div className="container-custom">
           {/* Loading State */}
           {loading && (
@@ -286,8 +409,192 @@ const EventsPage = () => {
             </div>
           )}
 
-          {/* Events Content */}
-          {!loading && (
+          {/* Calendar View */}
+          {!loading && viewMode === 'calendar' && (
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+              {/* Calendar Header */}
+              <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-secondary-600 text-white p-6 relative overflow-hidden">
+                {/* Decorative background elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -ml-24 -mb-24"></div>
+                
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center gap-3">
+                    {logoUrl && (
+                      <div className="flex flex-col items-center bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20">
+                        <img 
+                          src={logoUrl} 
+                          alt="BOW Logo" 
+                          className="w-12 h-12 object-cover rounded-full shadow-lg"
+                        />
+                        <span className="text-white text-xs font-bold mt-1">BOW</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={goToPreviousMonth}
+                      className="p-2.5 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110 shadow-lg backdrop-blur-sm border border-white/20"
+                      aria-label="Previous month"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                  </div>
+                   <div className="text-center">
+                     <h2 className="text-3xl font-bold mb-1 drop-shadow-lg">
+                       {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                     </h2>
+                     <div className="text-xl font-bold mb-2 text-yellow-300 drop-shadow-lg">
+                       गणपती बाप्पा मोरया
+                     </div>
+                     <button
+                       onClick={goToToday}
+                       className="text-sm opacity-90 hover:opacity-100 mt-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-all duration-300 border border-white/30 font-medium"
+                       title="Click to go to today"
+                     >
+                       {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                     </button>
+                   </div>
+                  <button
+                    onClick={goToNextMonth}
+                    className="p-2.5 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110 shadow-lg backdrop-blur-sm border border-white/20"
+                    aria-label="Next month"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
+                {/* Day Names Header */}
+                <div className="grid grid-cols-7 gap-2 mb-3">
+                  {dayNames.map(day => (
+                    <div key={day} className="text-center text-sm font-bold text-gray-700 py-3 bg-gradient-to-b from-gray-100 to-gray-50 rounded-lg border border-gray-200">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Days */}
+                <div className="grid grid-cols-7 gap-3">
+                  {getDaysInMonth(currentMonth).map((date, index) => {
+                    const isToday = date && 
+                      date.toDateString() === new Date().toDateString();
+                    const isCurrentMonth = date && 
+                      date.getMonth() === currentMonth.getMonth();
+                    const dayEvents = date ? getEventsForDate(date) : [];
+                    const hasEvents = dayEvents.length > 0;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`min-h-[120px] rounded-xl p-3 transition-all duration-300 ${
+                          !isCurrentMonth 
+                            ? 'bg-gray-50/50 opacity-40 border border-gray-100' 
+                            : isToday
+                            ? 'bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-400 shadow-lg transform scale-105'
+                            : 'bg-white border border-gray-200 hover:border-primary-300 hover:shadow-md hover:scale-105'
+                        } ${hasEvents ? 'ring-2 ring-primary-200' : ''}`}
+                      >
+                        {date && (
+                          <>
+                            <div className={`text-sm font-bold mb-2 flex items-center justify-between ${
+                              isToday 
+                                ? 'text-primary-700' 
+                                : isCurrentMonth 
+                                ? 'text-gray-900' 
+                                : 'text-gray-400'
+                            }`}>
+                              <span className={`${isToday ? 'bg-primary-600 text-white px-2 py-1 rounded-full' : ''}`}>
+                                {date.getDate()}
+                              </span>
+                              {hasEvents && (
+                                <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              {dayEvents.slice(0, 2).map((event, eventIndex) => (
+                                <div
+                                  key={event.id}
+                                  className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg"
+                                  title={event.title}
+                                  onClick={() => {
+                                    setSelectedEventModal(event);
+                                  }}
+                                >
+                                  {/* Event Image */}
+                                  <div className="relative h-12 overflow-hidden">
+                                    <img
+                                      src={event.image || 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'}
+                                      alt={event.title}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                      onError={(e) => {
+                                        e.target.src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
+                                      }}
+                                    />
+                                    {/* Subtle Gradient Overlay for text readability */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                                    {/* Event Title */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-1.5">
+                                      <p className="text-[10px] font-bold text-white leading-tight line-clamp-2 drop-shadow-lg">
+                                        {event.title}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              {dayEvents.length > 2 && (
+                                <div className="text-[10px] text-primary-700 font-bold px-2 py-1.5 bg-gradient-to-r from-primary-100 to-primary-50 rounded-lg text-center border border-primary-200 hover:from-primary-200 hover:to-primary-100 transition-colors cursor-pointer">
+                                  +{dayEvents.length - 2} more events
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 p-5">
+                <div className="flex items-center justify-center gap-8 text-sm flex-wrap">
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                    <div className="w-5 h-5 border-2 border-primary-500 rounded-lg bg-primary-50"></div>
+                    <span className="text-gray-700 font-medium">Today</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                    <div className="w-5 h-5 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg"></div>
+                    <span className="text-gray-700 font-medium">Events</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                    <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">Has Events</span>
+                  </div>
+                  
+                  {/* Organization Name */}
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                    <span className="text-sm font-bold text-primary-600">
+                      Beats Of Washington
+                    </span>
+                  </div>
+                  
+                  {/* Founders Section */}
+                  {founderContent && (
+                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                      <span className="text-xs text-gray-500">Founded by</span>
+                      <span className="text-sm font-semibold text-gray-700">
+                        {founderContent.aandSane?.name || 'Aand Sane'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* List View */}
+          {!loading && viewMode === 'list' && (
             <>
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -319,11 +626,12 @@ const EventsPage = () => {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Array.isArray(filteredEvents) && filteredEvents.map((event) => {
+                  const eventId = `event-${event.id}`;
                   const registrationStatus = getRegistrationStatus(event);
                   const registrationPercentage = (event.registeredCount / event.capacity) * 100;
                   
                   return (
-                    <div key={event.id} className="card group">
+                    <div key={event.id} id={eventId} className="card group">
                       <div className="relative overflow-hidden rounded-t-xl">
                         <img
                           src={event.image}
@@ -481,6 +789,214 @@ const EventsPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Event Modal */}
+      {selectedEventModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" onClick={() => setSelectedEventModal(null)}>
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="relative">
+              <img
+                src={selectedEventModal.image || 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
+                alt={selectedEventModal.title}
+                className="w-full h-64 object-cover rounded-t-2xl"
+                onError={(e) => {
+                  e.target.src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-t-2xl"></div>
+              
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedEventModal(null)}
+                className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Event Title Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <div className="flex items-center gap-2 mb-2">
+                  {selectedEventModal.featured && (
+                    <div className="bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center">
+                      <Star className="w-3 h-3 mr-1 fill-current" />
+                      Featured
+                    </div>
+                  )}
+                  <div className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    {selectedEventModal.category}
+                  </div>
+                </div>
+                <h2 className="text-3xl font-bold mb-2 drop-shadow-lg">{selectedEventModal.title}</h2>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Event Details */}
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center text-gray-700">
+                  <Calendar className="w-5 h-5 mr-3 text-primary-600" />
+                  <span className="font-medium">{formatDateLocal(selectedEventModal.date)}</span>
+                </div>
+                
+                <div className="flex items-center text-gray-700">
+                  <Clock className="w-5 h-5 mr-3 text-primary-600" />
+                  <span className="font-medium">{selectedEventModal.time}</span>
+                </div>
+                
+                <div className="flex items-center text-gray-700">
+                  <MapPin className="w-5 h-5 mr-3 text-primary-600" />
+                  <div>
+                    <span className="font-medium">{selectedEventModal.location}</span>
+                    {selectedEventModal.address && (
+                      <p className="text-sm text-gray-500">{selectedEventModal.address}</p>
+                    )}
+                  </div>
+                </div>
+
+                {selectedEventModal.price !== undefined && (
+                  <div className="flex items-center text-gray-700">
+                    <DollarSign className="w-5 h-5 mr-3 text-primary-600" />
+                    <span className="font-medium">
+                      {selectedEventModal.price === 0 ? 'Free' : `$${selectedEventModal.price}`}
+                    </span>
+                  </div>
+                )}
+
+                {selectedEventModal.organizer && (
+                  <div className="flex items-center text-gray-700">
+                    <Users className="w-5 h-5 mr-3 text-primary-600" />
+                    <span className="font-medium">{selectedEventModal.organizer}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Description */}
+              {selectedEventModal.description && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">About This Event</h3>
+                  <p className="text-gray-600 leading-relaxed">{selectedEventModal.description}</p>
+                </div>
+              )}
+
+              {/* Long Description */}
+              {selectedEventModal.longDescription && (
+                <div className="mb-6">
+                  <p className="text-gray-600 leading-relaxed">{selectedEventModal.longDescription}</p>
+                </div>
+              )}
+
+              {/* Tags */}
+              {selectedEventModal.tags && selectedEventModal.tags.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedEventModal.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
+                      >
+                        <Tag className="w-3 h-3 mr-1" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Registration Status */}
+              {selectedEventModal.capacity && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Registration</span>
+                    <span className={`text-sm font-semibold ${
+                      getRegistrationStatus(selectedEventModal).status === 'full' 
+                        ? 'text-red-600' 
+                        : getRegistrationStatus(selectedEventModal).status === 'limited'
+                        ? 'text-orange-600'
+                        : 'text-green-600'
+                    }`}>
+                      {getRegistrationStatus(selectedEventModal).text}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all ${
+                        getRegistrationStatus(selectedEventModal).status === 'full'
+                          ? 'bg-red-500'
+                          : getRegistrationStatus(selectedEventModal).status === 'limited'
+                          ? 'bg-orange-500'
+                          : 'bg-green-500'
+                      }`}
+                      style={{
+                        width: `${Math.min((selectedEventModal.registeredCount / selectedEventModal.capacity) * 100, 100)}%`
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {selectedEventModal.registeredCount} of {selectedEventModal.capacity} spots filled
+                  </p>
+                </div>
+              )}
+
+              {/* Contact Info */}
+              {selectedEventModal.contact && (
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact Information</h3>
+                  <div className="space-y-2">
+                    {selectedEventModal.contact.phone && (
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Phone className="w-4 h-4 mr-2 text-primary-600" />
+                        <a href={`tel:${selectedEventModal.contact.phone}`} className="hover:text-primary-600">
+                          {selectedEventModal.contact.phone}
+                        </a>
+                      </div>
+                    )}
+                    {selectedEventModal.contact.email && (
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Mail className="w-4 h-4 mr-2 text-primary-600" />
+                        <a href={`mailto:${selectedEventModal.contact.email}`} className="hover:text-primary-600">
+                          {selectedEventModal.contact.email}
+                        </a>
+                      </div>
+                    )}
+                    {selectedEventModal.contact.website && (
+                      <div className="flex items-center text-sm text-gray-700">
+                        <ExternalLink className="w-4 h-4 mr-2 text-primary-600" />
+                        <a href={selectedEventModal.contact.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600">
+                          Visit Website
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Link
+                  to={`/events/${selectedEventModal.id}`}
+                  className="flex-1 btn-primary flex items-center justify-center"
+                  onClick={() => setSelectedEventModal(null)}
+                >
+                  View Full Details
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+                {selectedEventModal.capacity && getRegistrationStatus(selectedEventModal).status !== 'full' && (
+                  <Link
+                    to={`/events/${selectedEventModal.id}?register=true`}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl"
+                    onClick={() => setSelectedEventModal(null)}
+                  >
+                    Register Now
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
