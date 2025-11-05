@@ -485,6 +485,7 @@ const EventsPage = () => {
                       date.toDateString() === new Date().toDateString();
                     const isCurrentMonth = date && 
                       date.getMonth() === currentMonth.getMonth();
+                    const isWeekend = !!date && (date.getDay() === 0 || date.getDay() === 6);
                     const dayEvents = date ? getEventsForDate(date) : [];
                     const hasEvents = dayEvents.length > 0;
 
@@ -497,18 +498,25 @@ const EventsPage = () => {
                             : isToday
                             ? 'bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-400 shadow-lg transform scale-105'
                             : 'bg-white border border-gray-200 hover:border-primary-300 hover:shadow-md hover:scale-105'
-                        } ${hasEvents ? 'ring-2 ring-primary-200' : ''}`}
+                        } ${hasEvents ? 'ring-2 ring-primary-200' : ''} ${
+                          // subtle weekend highlight (only for current month and non-today)
+                          isCurrentMonth && !isToday && isWeekend ? 'bg-amber-50' : ''
+                        }`}
                       >
                         {date && (
                           <>
-                            <div className={`text-sm font-bold mb-2 flex items-center justify-between ${
+                            <div className={`text-sm font-bold mb-1.5 tracking-tight flex items-center justify-between ${
                               isToday 
                                 ? 'text-primary-700' 
                                 : isCurrentMonth 
                                 ? 'text-gray-900' 
                                 : 'text-gray-400'
                             }`}>
-                              <span className={`${isToday ? 'bg-primary-600 text-white px-2 py-1 rounded-full' : ''}`}>
+                              <span className={`${
+                                isToday 
+                                  ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white px-2.5 py-1 rounded-full shadow-md ring-2 ring-primary-200'
+                                  : 'bg-white text-gray-900 px-2 py-0.5 rounded-full border border-gray-200 shadow-sm'
+                              }`}>
                                 {date.getDate()}
                               </span>
                               {hasEvents && (
