@@ -113,3 +113,15 @@ npm run build
 3. Check browser console for API connection errors
 4. Verify API calls are going to the correct backend URL
 
+Front-end Deployment (Amplify)
+
+- Ensure the Amplify CLI is configured (run `amplify configure` once).
+- In `bow-platform`, build the React bundle:
+  ```
+  npm run build
+  ```
+- Publish the updated bundle and invalidate CloudFront cache so the latest assets go live immediately:
+  ```
+  amplify publish --invalidateCloudFront true
+  ```
+
