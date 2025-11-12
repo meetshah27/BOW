@@ -16,5 +16,23 @@
         "S3AndCloudFront": {}
       }
     }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-bow-prod-5c481-authRole",
+      "UnauthRoleArn": "arn:aws:iam::955259371642:role/amplify-bow-prod-5c481-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::955259371642:role/amplify-bow-prod-5c481-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-bow-prod-5c481-deployment",
+      "UnauthRoleName": "amplify-bow-prod-5c481-unauthRole",
+      "StackName": "amplify-bow-prod-5c481",
+      "StackId": "arn:aws:cloudformation:us-west-2:955259371642:stack/amplify-bow-prod-5c481/573a6890-bbd1-11f0-bee2-066aa856d967",
+      "AmplifyAppId": "d224iu3td9iis9"
+    },
+    "categories": {
+      "hosting": {
+        "S3AndCloudFront": {}
+      }
+    }
   }
 }

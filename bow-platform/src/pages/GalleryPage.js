@@ -43,7 +43,7 @@ const GalleryPage = () => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await fetch('/api/about-page');
+        const response = await api.get('/about-page');
         if (response.ok) {
           const data = await response.json();
           setLogoUrl(data.logo || '');

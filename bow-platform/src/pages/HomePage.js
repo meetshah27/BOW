@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Image,
-  Play
+  Play,
+  Mail
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -177,7 +178,7 @@ function LiveEventTimer({ event }) {
   const hasTimeLeft = timeLeft.days + timeLeft.hours + timeLeft.minutes + timeLeft.seconds > 0;
 
   return (
-    <div className="mt-4 text-center">
+    <div className="mt-16 mb-0 text-center">
       <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 max-w-xl mx-auto">
         <h3 className="text-base font-semibold text-white mb-3">
           🎉 Next Event: {event.title}
@@ -238,6 +239,15 @@ function LiveEventTimer({ event }) {
             🎊 Event is happening now!
           </div>
         )}
+        <div className="mt-4">
+          <Link
+            to={`/events/${event.id}`}
+            className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-full shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200"
+          >
+            Register Now
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -743,76 +753,6 @@ const HomePage = () => {
           style={{ opacity: heroSettings.overlayOpacity || 0.2 }}
         ></div>
         <div className="container-custom py-12 relative z-10">
-          {/* Live event placeholder absolutely at the far left of the hero section, outside the centered container */}
-          {(loadingEvents || liveEvent) && (
-            <div className="absolute -left-8 top-[35%] -translate-y-1/2 z-20">
-              {loadingEvents ? (
-                <div className="bg-white/80 rounded-2xl px-5 py-5 min-w-[240px] max-w-[280px] flex items-center justify-center shadow-2xl border-2 border-orange-200 animate-pulse text-gray-400 text-base">
-                  Loading event...
-                </div>
-              ) : eventsError ? null : liveEvent ? (
-                <div className="bg-white rounded-2xl shadow-2xl border-2 border-orange-200 px-5 py-5 min-w-[240px] max-w-[280px] h-[280px] flex flex-col items-start hover:shadow-2xl transition-all duration-200 text-left text-base">
-                                     <div className="flex items-center mb-3 w-full">
-                     <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 mr-2">Live</span>
-                     <span className="text-xs text-gray-500 font-medium truncate mr-2">{liveEvent.isActive ? 'Available' : 'Draft'}</span>
-                     
-                     {/* Dhol Animation next to Live/Available icons */}
-                     <div className="dhol-animation-container relative">
-                       {/* Dhol Drum */}
-                       <div className="dhol-drum"></div>
-                       
-                       {/* Two Dhol Sticks */}
-                       <div className="dhol-stick"></div>
-                       <div className="dhol-stick"></div>
-                       
-                       {/* Ripple Effect */}
-                       <div className="dhol-ripple"></div>
-                     </div>
-                   </div>
-                  <div className="font-bold text-gray-900 text-base w-full mb-2 break-words leading-tight">{liveEvent.title}</div>
-                  <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
-                    <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{(() => {
-                      // Parse the date string manually to avoid timezone issues
-                      const [year, month, day] = liveEvent.date.split('-').map(Number);
-                      const localDate = new Date(year, month - 1, day); // month is 0-indexed
-                      return localDate.toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      });
-                    })()}</span>
-                  </div>
-                  {liveEvent.time && (
-                    <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
-                      <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">{liveEvent.time}</span>
-                    </div>
-                  )}
-                  {/* Countdown Timer */}
-                  <div className="mb-2 w-full">
-                    <CountdownTimer targetDate={liveEvent.date} />
-                  </div>
-                  <div className="flex items-center text-gray-600 mb-2 text-sm w-full">
-                    <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{liveEvent.location || '—'}</span>
-                  </div>
-                  <div className="flex items-center text-gray-600 mb-3 text-sm w-full">
-                    <span className="mr-2">/</span>
-                    <span className="font-medium text-green-700 truncate">{liveEvent.registeredCount || 0}{liveEvent.capacity ? ` / ${liveEvent.capacity}` : ''} registered</span>
-                  </div>
-                                     <div className="mt-auto w-full">
-                     <Link
-                       to={`/events/${liveEvent.id}`}
-                       className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold py-2 rounded-xl shadow hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center block"
-                     >
-                       Register Now
-                     </Link>
-                   </div>
-                </div>
-              ) : null}
-            </div>
-          )}
           <div className="max-w-4xl mx-auto mb-3 flex items-center justify-center">
             <div className="flex-1 text-center">
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
@@ -826,17 +766,6 @@ const HomePage = () => {
               {heroSettings.description}
           </p>
           )}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/events" className="btn-secondary text-lg px-8 py-4">
-              <Calendar className="w-5 h-5 mr-2" />
-              Find Events
-            </Link>
-            <Link to="/get-involved" className="btn-outline text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-primary-600">
-              <Users className="w-5 h-5 mr-2" />
-              Get Involved
-            </Link>
-          </div>
-          
           {/* Live Event Timer */}
           {liveEvent && (
             <LiveEventTimer event={liveEvent} />
@@ -952,12 +881,26 @@ const HomePage = () => {
             ))}
           </div>
 
-                                           <div className="text-center mt-12">
-                        <Link to="/events" className="btn-primary dhol-enhanced">
-                          View All Events
-                          <ArrowRight className="w-5 h-5 ml-2" />
-                        </Link>
-                      </div>
+          <div className="mt-12 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
+            <Link to="/events" className="btn-primary dhol-enhanced inline-flex items-center gap-2">
+              View All Events
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              to="/newsletter"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-primary-500 text-primary-600 font-semibold shadow hover:bg-primary-500 hover:text-white transition-all duration-300"
+            >
+              <Mail className="w-5 h-5" />
+              Stay Subscribed
+            </Link>
+            <Link
+              to="/donate"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold shadow-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300"
+            >
+              <Heart className="w-5 h-5" />
+              Donate
+            </Link>
+          </div>
         </div>
       </section>
 

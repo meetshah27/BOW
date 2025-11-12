@@ -20,6 +20,7 @@ import {
   Coffee
 } from 'lucide-react';
 import HeroSection from '../components/common/HeroSection';
+import api from '../config/api';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ const ContactPage = () => {
   React.useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await fetch('/api/about-page');
+        const response = await api.get('/about-page');
         if (response.ok) {
           const data = await response.json();
           setLogoUrl(data.logo || '');
@@ -59,12 +60,23 @@ const ContactPage = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const response = await api.post('/contact', formData);
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert(data.message || 'Thank you for your message! We\'ll get back to you soon.');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        alert(data.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
       setLoading(false);
-      alert('Thank you for your message! We\'ll get back to you soon.');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 2000);
+    }
   };
 
   const contactInfo = [

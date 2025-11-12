@@ -7,7 +7,7 @@ const API_CONFIG = {
   },
   // Production environment
   production: {
-    baseURL: process.env.REACT_APP_API_URL || 'https://jzggm21wjh.execute-api.us-west-2.amazonaws.com/default/backend-clean',
+    baseURL: process.env.REACT_APP_API_URL || 'https://b312t31med.execute-api.us-west-2.amazonaws.com/prod',
     apiPath: '/api'
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, X, Upload, Trash2, Video } from 'lucide-react';
 
 const ImagePlaceholder = ({ 
@@ -14,6 +14,10 @@ const ImagePlaceholder = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [src]);
 
   // Standard placeholder SVG (200x200)
   const placeholderSvg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04MCAxMDBDODAgODkuNTQ0NyA4OC4wMDAxIDgxIDk4IDgxSDEwMkMxMTEuOTk5OSA4MSAxMjAgODkuNTQ0NyAxMjAgMTAwVjEwNEMxMjAgMTE0LjQ1NSAxMTEuOTk5OSAxMjMgMTAyIDEyM0g5OEM4OC4wMDAxIDEyMyA4MCAxMTQuNDU1IDgwIDEwNFYxMDBaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0xMDAgMTMwQzExMC40NTUgMTMwIDExOSAxMjEuNDU1IDExOSAxMTFDMTE5IDEwMC41NDUgMTEwLjQ1NSA5MiAxMDAgOTJDODkuNTQ0NyA5MiA4MSAxMDAuNTQ1IDgxIDExMUM4MSAxMjEuNDU1IDg5LjU0NDcgMTMwIDEwMCAxMzBaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=';
