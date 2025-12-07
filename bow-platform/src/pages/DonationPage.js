@@ -170,20 +170,20 @@ function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
       {/* Card Number */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
           Card Number *
         </label>
-        <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+        <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
           <CardNumberElement 
             options={{
               showIcon: true,
               disableLink: true, // Disabled autofill link
               style: {
                 base: {
-                  fontSize: '16px',
+                  fontSize: '14px',
                   color: '#424770',
                   '::placeholder': {
                     color: '#aab7c4',
@@ -199,18 +199,18 @@ function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
       </div>
 
       {/* Card Details Row */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {/* Expiration Date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
             Expiration Date (MM/YY) *
           </label>
-          <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+          <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
             <CardExpiryElement 
               options={{
                 style: {
                   base: {
-                    fontSize: '16px',
+                    fontSize: '14px',
                     color: '#424770',
                     '::placeholder': {
                       color: '#aab7c4',
@@ -227,15 +227,15 @@ function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
 
         {/* CVC */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
             CVC *
           </label>
-          <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+          <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
             <CardCvcElement 
               options={{
                 style: {
                   base: {
-                    fontSize: '16px',
+                    fontSize: '14px',
                     color: '#424770',
                     '::placeholder': {
                       color: '#aab7c4',
@@ -253,7 +253,7 @@ function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
 
       <button 
         type="submit" 
-        className="btn-primary w-full" 
+        className="btn-primary w-full text-sm sm:text-base py-2.5 sm:py-3" 
         disabled={!stripe || loading}
       >
         {loading ? 'Processing Payment...' : `Donate $${amount}`}
@@ -401,13 +401,13 @@ const DonationPage = () => {
       />
 
       {/* Donation Form */}
-      <section className="py-20 bg-gray-50">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12">
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="container-custom px-4 sm:px-6">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12">
             {/* Donation Form */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-5 sm:p-6 md:p-8">
+              <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                   {logoUrl ? (
                     <img 
                       src={logoUrl} 
@@ -415,20 +415,20 @@ const DonationPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-white font-bold text-xl">B</span>
+                    <span className="text-white font-bold text-lg sm:text-xl">B</span>
                   )}
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
                   Make a Donation
                 </h2>
               </div>
 
               {/* Amount Selection */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 mb-4">
+              <div className="mb-6 sm:mb-8">
+                <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3 sm:mb-4">
                   Select Amount
                 </label>
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-4">
                   {presetAmounts.map((amount) => (
                     <button
                       key={amount}
@@ -436,7 +436,7 @@ const DonationPage = () => {
                         setSelectedAmount(amount);
                         setCustomAmount('');
                       }}
-                      className={`py-3 px-4 rounded-lg border-2 font-medium transition-all duration-200 ${
+                      className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 rounded-lg border-2 text-xs sm:text-sm md:text-base font-medium transition-all duration-200 ${
                         selectedAmount === amount && !customAmount
                           ? 'border-primary-600 bg-primary-50 text-primary-600'
                           : 'border-gray-300 text-gray-700 hover:border-primary-300 hover:bg-gray-50'
@@ -448,7 +448,7 @@ const DonationPage = () => {
                 </div>
                 
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm sm:text-base">$</span>
                   <input
                     type="number"
                     placeholder="Enter custom amount"
@@ -457,43 +457,43 @@ const DonationPage = () => {
                       setCustomAmount(e.target.value);
                       setSelectedAmount(0);
                     }}
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full pl-7 sm:pl-8 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
 
               {/* Donation Summary */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-gray-50 rounded-lg p-4 sm:p-5 md:p-6 mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">
                   Donation Summary
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-600">Donation Amount:</span>
-                    <span className="font-medium">${getAmount()}</span>
+                    <span className="font-medium break-words">${getAmount()}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-600">Type:</span>
-                    <span className="font-medium">One-time Donation</span>
+                    <span className="font-medium break-words">One-time Donation</span>
                   </div>
                   <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-sm sm:text-base">
                       <span className="text-gray-900 font-semibold">Total:</span>
-                      <span className="text-gray-900 font-semibold">${getAmount()}</span>
+                      <span className="text-gray-900 font-semibold break-words">${getAmount()}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Donor Information */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">
                   Donor Information
                 </h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       Full Name *
                     </label>
                     <input
@@ -501,12 +501,12 @@ const DonationPage = () => {
                       value={donorName}
                       onChange={(e) => setDonorName(e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Enter your full name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       Email Address *
                     </label>
                     <input
@@ -514,7 +514,7 @@ const DonationPage = () => {
                       value={donorEmail}
                       onChange={(e) => setDonorEmail(e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Enter your email address"
                     />
                   </div>
@@ -554,49 +554,49 @@ const DonationPage = () => {
                )}
 
               {/* Security Notice */}
-              <div className="mt-4 flex items-center justify-center text-sm text-gray-500">
-                <Shield className="w-4 h-4 mr-2" />
-                Secure payment processed by Stripe
+              <div className="mt-3 sm:mt-4 flex items-center justify-center text-xs sm:text-sm text-gray-500">
+                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <span className="break-words">Secure payment processed by Stripe</span>
               </div>
             </div>
 
             {/* Donation Tiers */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-5 md:mb-6 break-words">
                 Donation Impact
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-7 md:mb-8 break-words">
                 See how your donation helps our community and unlocks exclusive benefits.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-5 md:space-y-6">
                 {donationTiers.map((tier, index) => (
                   <div
                     key={index}
-                    className={`border-2 rounded-lg p-6 transition-all duration-200 ${
+                    className={`border-2 rounded-lg p-4 sm:p-5 md:p-6 transition-all duration-200 ${
                       getAmount() >= tier.amount
                         ? 'border-primary-600 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900">
+                    <div className="flex justify-between items-start mb-3 sm:mb-4">
+                      <div className="min-w-0">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
                           {tier.name}
                         </h3>
-                        <p className="text-2xl font-bold text-primary-600">
+                        <p className="text-xl sm:text-2xl font-bold text-primary-600 break-words">
                           ${tier.amount}
                         </p>
                       </div>
                       {getAmount() >= tier.amount && (
-                        <CheckCircle className="w-6 h-6 text-primary-600" />
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 flex-shrink-0 ml-2" />
                       )}
                     </div>
-                    <ul className="space-y-2">
+                    <ul className="space-y-1.5 sm:space-y-2">
                       {tier.benefits.map((benefit, benefitIndex) => (
-                        <li key={benefitIndex} className="flex items-center text-gray-600">
-                          <Star className="w-4 h-4 text-primary-500 mr-2" />
-                          {benefit}
+                        <li key={benefitIndex} className="flex items-start text-sm sm:text-base text-gray-600">
+                          <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="break-words">{benefit}</span>
                         </li>
                       ))}
                     </ul>
@@ -609,51 +609,51 @@ const DonationPage = () => {
       </section>
 
       {/* How Your Donation Helps */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="container-custom px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 break-words px-2">
               How Your Donation Helps
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed break-words px-2">
               Your generous support enables us to create meaningful programs and events 
               that bring communities together through music.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Music className="w-8 h-8 text-primary-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Music className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 break-words">
                 Music Education
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
                 Provide free and low-cost music education programs for youth and adults 
                 in underserved communities.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-primary-600" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Users className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 break-words">
                 Community Events
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
                 Host inclusive community events, workshops, and performances that bring 
                 people together across cultural boundaries.
               </p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8 text-primary-600" />
+            <div className="text-center sm:col-span-2 md:col-span-1">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Award className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 break-words">
                 Cultural Programs
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
                 Support cultural preservation and celebration through music, dance, 
                 and artistic expression programs.
               </p>
@@ -663,28 +663,28 @@ const DonationPage = () => {
       </section>
 
       {/* Other Ways to Support */}
-      <section className="py-20 bg-gray-50">
-        <div className="container-custom text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="container-custom text-center px-4 sm:px-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-5 md:mb-6 break-words px-2">
             Other Ways to Support
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-7 md:mb-8 max-w-2xl mx-auto leading-relaxed break-words px-2">
             Financial donations aren't the only way to support our mission. 
             There are many ways to get involved and make a difference.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <a
               href="/get-involved"
-              className="btn-primary text-lg px-8 py-4"
+              className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center"
             >
-              <Users className="w-5 h-5 mr-2" />
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
               Volunteer
             </a>
             <a
               href="/events"
-              className="btn-outline text-lg px-8 py-4"
+              className="btn-outline text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center"
             >
-              <ArrowRight className="w-5 h-5 mr-2" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
               Attend Events
             </a>
           </div>

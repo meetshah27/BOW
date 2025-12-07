@@ -333,70 +333,70 @@ const AboutPage = () => {
       />
 
       {/* Mission Section */}
-      <section className="py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">                                                
         {/* Background decorative elements */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-full blur-3xl floating-bg"></div>
-          <div className="absolute bottom-20 left-20 w-48 h-48 bg-gradient-to-r from-secondary-200 to-primary-200 rounded-full blur-2xl floating-bg" style={{animationDelay: '2s'}}></div>
+          <div className="absolute top-20 right-20 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-full blur-3xl floating-bg hidden md:block"></div>       
+          <div className="absolute bottom-20 left-20 w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-gradient-to-r from-secondary-200 to-primary-200 rounded-full blur-2xl floating-bg hidden sm:block" style={{animationDelay: '2s'}}></div>                                                      
         </div>
-        
-        <div className="container-custom relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="animate-fade-in-up">
-              <div className="inline-block mb-6">
-                <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
+
+        <div className="container-custom relative z-10 px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
+            <div className="animate-fade-in-up order-1 lg:order-1">
+              <div className="inline-block mb-4 sm:mb-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg overflow-hidden">                                                             
                   {aboutPageContent.logo ? (
-                    <img 
-                      src={aboutPageContent.logo} 
-                      alt="BOW Logo" 
+                    <img
+                      src={aboutPageContent.logo}
+                      alt="BOW Logo"
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Music className="w-12 h-12 text-white" />
+                    <Music className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" />
                   )}
                 </div>
               </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-5 md:mb-6 animate-fade-in-up px-2" style={{animationDelay: '0.2s'}}>                                        
                 {missionMedia.missionTitle}
               </h2>
-              <p className="text-lg text-black mb-6 leading-relaxed font-semibold animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+              <p className="text-base sm:text-lg text-black mb-4 sm:mb-5 md:mb-6 leading-relaxed font-semibold animate-fade-in-up px-2" style={{animationDelay: '0.4s'}}>                         
                 {missionMedia.missionDescription}
               </p>
-              <p className="text-lg text-primary-600 mb-6 leading-relaxed italic animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+              <p className="text-base sm:text-lg text-primary-600 mb-4 sm:mb-5 md:mb-6 leading-relaxed italic animate-fade-in-up px-2" style={{animationDelay: '0.6s'}}>                          
                 {missionMedia.missionLegacy}
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-                <Link to="/get-involved" className="btn-primary transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up px-2" style={{animationDelay: '0.8s'}}>                                             
+                <Link to="/get-involved" className="btn-primary text-sm sm:text-base px-4 sm:px-6 py-2.5 sm:py-3 transform transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center">                         
                   Get Involved
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Link>
-                <Link to="/donate" className="btn-outline transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <Link to="/donate" className="btn-outline text-sm sm:text-base px-4 sm:px-6 py-2.5 sm:py-3 transform transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center">                               
                   Support Our Mission
                 </Link>
               </div>
             </div>
-            <div className="relative animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+            <div className="relative animate-fade-in-up order-2 lg:order-2" style={{animationDelay: '0.3s'}}>                                                                      
               {loadingMission ? (
-                <div className="w-full h-80 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl shadow-2xl flex items-center justify-center transform transition-all duration-500 hover:scale-105">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading mission media...</p>
+                <div className="w-full h-48 sm:h-64 md:h-80 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl sm:rounded-2xl shadow-2xl flex items-center justify-center transform transition-all duration-500 hover:scale-105">                                         
+                  <div className="text-center px-4">
+                    <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 border-b-2 border-primary-600 mx-auto mb-3 sm:mb-4"></div>                                      
+                    <p className="text-sm sm:text-base text-gray-600">Loading mission media...</p>   
                   </div>
                 </div>
               ) : missionMedia.mediaUrl && missionMedia.isActive ? (
-                <div className="relative transform transition-all duration-500 hover:scale-105 hover:shadow-3xl" key={`mission-media-${missionMedia.overlayOpacity}`}>
+                <div className="relative transform transition-all duration-500 hover:scale-105 hover:shadow-3xl" key={`mission-media-${missionMedia.overlayOpacity}`}>                                                                          
                   {missionMedia.mediaType === 'image' ? (
                     <img
                       src={missionMedia.mediaUrl}
                       alt={missionMedia.altText}
-                      className="rounded-2xl shadow-2xl w-full h-80 object-cover"
+                      className="rounded-xl sm:rounded-2xl shadow-2xl w-full h-48 sm:h-64 md:h-80 object-cover"                                                                               
                     />
                   ) : (
                     <video
                       src={missionMedia.mediaUrl}
                       controls
-                      className="rounded-2xl shadow-2xl w-full h-80 object-cover bg-black"
+                      className="rounded-xl sm:rounded-2xl shadow-2xl w-full h-48 sm:h-64 md:h-80 object-cover bg-black"                                                                      
                     >
                       Sorry, your browser doesn't support embedded videos.
                     </video>
@@ -416,14 +416,14 @@ const AboutPage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="w-full h-80 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl shadow-2xl flex items-center justify-center transform transition-all duration-500 hover:scale-105 hover:shadow-3xl">
-                  <div className="text-center text-primary-600">
+                <div className="w-full h-48 sm:h-64 md:h-80 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-xl sm:rounded-2xl shadow-2xl flex items-center justify-center transform transition-all duration-500 hover:scale-105 hover:shadow-3xl">                
+                  <div className="text-center text-primary-600 px-4">
                     <div className="relative">
-                      <Music className="w-16 h-16 mx-auto mb-4 animate-bounce" />
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></div>
+                      <Music className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 animate-bounce" />                                                                               
+                      <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-yellow-400 rounded-full animate-ping"></div>                                          
                     </div>
-                    <p className="text-lg font-semibold">Mission Media</p>
-                    <p className="text-sm">Upload image or video from admin panel</p>
+                    <p className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Mission Media</p>      
+                    <p className="text-xs sm:text-sm">Upload image or video from admin panel</p>                                                                           
                   </div>
                 </div>
               )}
@@ -433,180 +433,180 @@ const AboutPage = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-primary-50/30 to-secondary-50/30 relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-gray-50 via-primary-50/30 to-secondary-50/30 relative overflow-hidden">                                  
         {/* Background Effects - Always Visible */}
         <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-primary-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-10 w-96 h-96 bg-secondary-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
-          <div className="absolute -bottom-8 left-1/2 w-80 h-80 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{animationDelay: '4s'}}></div>
+          <div className="absolute top-10 left-10 w-36 h-36 sm:w-56 sm:h-56 md:w-72 md:h-72 bg-primary-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse hidden md:block"></div>                 
+          <div className="absolute top-40 right-10 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-secondary-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse hidden md:block" style={{animationDelay: '2s'}}></div>                                                               
+          <div className="absolute -bottom-8 left-1/2 w-40 h-40 sm:w-60 sm:h-60 md:w-80 md:h-80 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl animate-pulse hidden md:block" style={{animationDelay: '4s'}}></div>                                                               
         </div>
-        
-        <div className="container-custom relative z-10">
-          <div className="text-center mb-16">
+
+        <div className="container-custom relative z-10 px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
             <div className="inline-block">
-              <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-600 bg-clip-text text-transparent mb-6 animate-fade-in-up">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-600 bg-clip-text text-transparent mb-4 sm:mb-5 md:mb-6 animate-fade-in-up px-2">                                                                      
                 Our Values
               </h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 mx-auto rounded-full animate-scale-in"></div>
+              <div className="w-16 sm:w-20 md:w-24 h-0.5 sm:h-1 bg-gradient-to-r from-primary-500 to-secondary-500 mx-auto rounded-full animate-scale-in"></div>                         
             </div>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-8 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-              These core values guide everything we do and shape our approach to community building.
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mt-6 sm:mt-7 md:mt-8 leading-relaxed animate-fade-in-up px-4" style={{animationDelay: '0.2s'}}>                    
+              These core values guide everything we do and shape our approach to community building.                                                            
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {values.map((value, index) => (
               <div
                 key={index}
-                className="group relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center transform transition-all duration-500 hover:-translate-y-4 hover:scale-105 hover:shadow-3xl animate-fade-in-up animate-values-card"
+                className="group relative bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8 text-center transform transition-all duration-500 hover:-translate-y-4 hover:scale-105 hover:shadow-3xl animate-fade-in-up animate-values-card"
                 style={{
                   animationDelay: `${index * 0.2}s`,
                   animationFillMode: 'both'
                 }}
               >
                 {/* Card Background Effects - Always Visible */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 rounded-3xl opacity-60 animate-values-glow"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-secondary-100/20 rounded-3xl opacity-40 animate-values-shimmer"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 to-secondary-50/50 rounded-2xl sm:rounded-3xl opacity-60 animate-values-glow"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-100/20 to-secondary-100/20 rounded-2xl sm:rounded-3xl opacity-40 animate-values-shimmer"></div>
                 
-                {/* Floating Particles Effect - Always Visible */}
-                <div className="absolute top-4 right-4 w-2 h-2 bg-primary-400 rounded-full opacity-80 animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="absolute top-8 right-8 w-1 h-1 bg-secondary-400 rounded-full opacity-80 animate-bounce" style={{animationDelay: '0.3s'}}></div>
-                <div className="absolute bottom-6 left-6 w-1.5 h-1.5 bg-orange-400 rounded-full opacity-80 animate-bounce" style={{animationDelay: '0.5s'}}></div>
-                <div className="absolute bottom-4 right-8 w-1 h-1 bg-green-400 rounded-full opacity-70 animate-bounce" style={{animationDelay: '0.7s'}}></div>
-                <div className="absolute top-12 left-4 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-75 animate-bounce" style={{animationDelay: '0.9s'}}></div>
+                {/* Floating Particles Effect - Always Visible, smaller on mobile */}
+                <div className="absolute top-4 right-4 w-1 h-1 sm:w-2 sm:h-2 md:w-2 md:h-2 bg-primary-400 rounded-full opacity-60 sm:opacity-80 animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="absolute top-8 right-8 w-1 h-1 sm:w-1 sm:h-1 bg-secondary-400 rounded-full opacity-60 sm:opacity-80 animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                <div className="absolute bottom-6 left-6 w-1 h-1 sm:w-2 sm:h-2 bg-orange-400 rounded-full opacity-60 sm:opacity-80 animate-bounce" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute bottom-4 right-8 w-1 h-1 sm:w-1 sm:h-1 bg-green-400 rounded-full opacity-50 sm:opacity-70 animate-bounce" style={{animationDelay: '0.7s'}}></div>
+                <div className="absolute top-12 left-4 w-1 h-1 sm:w-2 sm:h-2 bg-purple-400 rounded-full opacity-55 sm:opacity-75 animate-bounce" style={{animationDelay: '0.9s'}}></div>
 
                 <div className="relative z-10">
-                  <div className="flex justify-center mb-6">
+                  <div className="flex justify-center mb-4 sm:mb-5 md:mb-6">
                     <div className="relative">
                       {/* Icon Container with Multiple Effects - Always Visible */}
-                      <div className="w-20 h-20 bg-gradient-to-br from-white to-primary-50 shadow-2xl rounded-full flex items-center justify-center border-4 border-primary-100 animate-values-icon-container">
-                        <value.icon className="w-10 h-10 text-primary-600 animate-values-icon" />
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 bg-gradient-to-br from-white to-primary-50 shadow-2xl rounded-full flex items-center justify-center border-2 sm:border-4 border-primary-100 animate-values-icon-container">
+                        <value.icon className="w-8 h-8 sm:w-10 sm:h-10 md:w-10 md:h-10 text-primary-600 animate-values-icon" />
                       </div>
                       
-                      {/* Pulsing Ring Effect - Always Visible */}
-                      <div className="absolute inset-0 w-20 h-20 border-4 border-primary-200 rounded-full opacity-60 animate-ping"></div>
-                      <div className="absolute inset-2 w-16 h-16 border-2 border-secondary-200 rounded-full opacity-50 animate-ping" style={{animationDelay: '0.2s'}}></div>
-                      <div className="absolute inset-4 w-12 h-12 border border-orange-200 rounded-full opacity-40 animate-ping" style={{animationDelay: '0.4s'}}></div>
+                      {/* Pulsing Ring Effect - Always Visible, smaller/subtle on mobile */}
+                      <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 border border-primary-200/40 sm:border-2 sm:border-primary-200 rounded-full opacity-30 sm:opacity-60 animate-ping"></div>
+                      <div className="absolute inset-2 w-12 h-12 sm:w-16 sm:h-16 md:w-16 md:h-16 border border-secondary-200/40 sm:border-2 sm:border-secondary-200 rounded-full opacity-25 sm:opacity-50 animate-ping" style={{animationDelay: '0.2s'}}></div>
+                      <div className="absolute inset-4 w-8 h-8 sm:w-12 sm:h-12 md:w-12 md:h-12 border border-orange-200/30 sm:border-orange-200 rounded-full opacity-20 sm:opacity-40 animate-ping" style={{animationDelay: '0.4s'}}></div>
                     </div>
                   </div>
                   
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-secondary-700 bg-clip-text text-transparent mb-4 tracking-tight animate-values-title">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-primary-700 to-secondary-700 bg-clip-text text-transparent mb-3 sm:mb-4 tracking-tight animate-values-title">
                     {value.title}
                   </h3>
                   
-                  <p className="text-gray-700 leading-relaxed text-lg animate-values-description">
+                  <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed animate-values-description px-2">
                     {value.description}
                   </p>
                 </div>
 
                 {/* Always Visible Border Effect */}
-                <div className="absolute inset-0 rounded-3xl border-2 border-gradient-to-r from-primary-400 to-secondary-400 opacity-60 animate-values-border"></div>
+                <div className="absolute inset-0 rounded-2xl sm:rounded-3xl border-2 border-gradient-to-r from-primary-400 to-secondary-400 opacity-60 animate-values-border"></div>
               </div>
             ))}
           </div>
 
           {/* Bottom Decorative Element - Enhanced */}
-          <div className="text-center mt-16">
-            <div className="inline-flex items-center space-x-2 text-primary-600 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-              <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-              <span className="ml-4 text-lg font-medium text-gray-600 animate-values-text">Building Community Through Shared Values</span>
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-              <div className="w-2 h-2 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+          <div className="text-center mt-10 sm:mt-12 md:mt-16">
+            <div className="inline-flex items-center space-x-1.5 sm:space-x-2 text-primary-600 animate-fade-in-up flex-wrap justify-center gap-1.5 sm:gap-2 px-2" style={{animationDelay: '0.8s'}}>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary-500 rounded-full animate-pulse"></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              <span className="ml-1.5 sm:ml-2 md:ml-4 text-xs sm:text-sm md:text-base lg:text-lg font-medium text-gray-600 animate-values-text break-words">Building Community Through Shared Values</span>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Enhanced History Section - Our Story */}
-      <section ref={storyRef} className={`py-20 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 relative overflow-hidden transition-all duration-1000 ${isStoryVisible ? 'animate-story-entrance' : 'opacity-0'}`}>
+      <section ref={storyRef} className={`py-12 sm:py-16 md:py-20 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 relative overflow-hidden transition-all duration-1000 ${isStoryVisible ? 'animate-story-entrance' : 'opacity-0'}`}>                 
         {/* Animated Background Elements */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-full blur-3xl animate-float-slow"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-secondary-200 to-primary-200 rounded-full blur-3xl animate-float-slow-reverse" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-200 to-yellow-200 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+          <div className="absolute top-20 left-20 w-36 h-36 sm:w-56 sm:h-56 md:w-72 md:h-72 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-full blur-3xl animate-float-slow hidden md:block"></div> 
+          <div className="absolute bottom-20 right-20 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-gradient-to-r from-secondary-200 to-primary-200 rounded-full blur-3xl animate-float-slow-reverse hidden md:block" style={{animationDelay: '2s'}}></div>                                      
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-r from-orange-200 to-yellow-200 rounded-full blur-2xl animate-pulse hidden md:block" style={{animationDelay: '4s'}}></div>             
         </div>
 
-        {/* Enhanced Floating Particles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-10 left-10 w-2 h-2 bg-primary-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '0.5s'}}></div>
-          <div className="absolute top-32 right-20 w-1.5 h-1.5 bg-secondary-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '1.5s'}}></div>
+        {/* Enhanced Floating Particles - Hidden on mobile */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none hidden md:block">  
+          <div className="absolute top-10 left-10 w-2 h-2 bg-primary-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '0.5s'}}></div>  
+          <div className="absolute top-32 right-20 w-1.5 h-1.5 bg-secondary-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '1.5s'}}></div>                                                                           
           <div className="absolute bottom-40 left-32 w-2 h-2 bg-orange-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '2.5s'}}></div>
           <div className="absolute bottom-20 right-40 w-1 h-1 bg-green-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '3.5s'}}></div>
-          <div className="absolute top-1/2 right-10 w-1.5 h-1.5 bg-purple-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '4.5s'}}></div>
-          <div className="absolute top-20 left-1/2 w-1 h-1 bg-pink-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '5.5s'}}></div>
-          <div className="absolute bottom-32 left-10 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '6.5s'}}></div>
+          <div className="absolute top-1/2 right-10 w-1.5 h-1.5 bg-purple-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '4.5s'}}></div>                                                                             
+          <div className="absolute top-20 left-1/2 w-1 h-1 bg-pink-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '5.5s'}}></div>    
+          <div className="absolute bottom-32 left-10 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '6.5s'}}></div>                                                                              
           <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-yellow-400 rounded-full animate-particle-float-enhanced" style={{animationDelay: '7.5s'}}></div>
         </div>
 
-        <div className="container-custom relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-8">
+        <div className="container-custom relative z-10 px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <div className="inline-block mb-6 sm:mb-8">
               <div className="relative">
-                <h2 className="text-6xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-600 bg-clip-text text-transparent mb-6 animate-fade-in-up">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-600 bg-clip-text text-transparent mb-4 sm:mb-5 md:mb-6 animate-fade-in-up px-2">                                                                    
                   {aboutPageContent.storyTitle}
                 </h2>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full animate-scale-in"></div>
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 sm:w-24 md:w-32 h-0.5 sm:h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full animate-scale-in"></div>                                                        
               </div>
             </div>
-            <p className="text-xl text-gray-700 max-w-4xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-4xl mx-auto leading-relaxed animate-fade-in-up px-4" style={{animationDelay: '0.2s'}}>                         
               {aboutPageContent.storySubtitle}
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-start">
             {/* Enhanced Founding Story */}
             <div className="relative group">
               {/* Glow Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-3xl blur-2xl opacity-0 group-hover:opacity-30 transition-all duration-700 transform group-hover:scale-105"></div>
               
-              <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-10 shadow-2xl border border-white/20 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl">
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-2xl border border-white/20 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl">                                            
                 {/* Decorative Border */}
-                <div className="absolute inset-0 rounded-3xl border-2 border-gradient-to-r from-primary-400 to-secondary-400 opacity-20"></div>
-                
-                {/* Floating Elements */}
-                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                  <Star className="w-4 h-4 text-white" />
+                <div className="absolute inset-0 rounded-2xl sm:rounded-3xl border-2 border-gradient-to-r from-primary-400 to-secondary-400 opacity-20"></div>                 
+
+                {/* Floating Elements - Hidden on mobile */}
+                <div className="absolute -top-3 -right-3 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg animate-pulse hidden sm:block">                                                         
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
-                <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-lg animate-pulse" style={{animationDelay: '1s'}}>
-                  <Heart className="w-3 h-3 text-white" />
+                <div className="absolute -bottom-3 -left-3 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-lg animate-pulse hidden sm:block" style={{animationDelay: '1s'}}>                           
+                  <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                 </div>
 
                 <div className="relative z-10">
-                  <div className="flex items-center mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mr-6 shadow-xl overflow-hidden">
+                  <div className="flex items-center mb-4 sm:mb-6 md:mb-8">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mr-3 sm:mr-4 md:mr-6 shadow-xl overflow-hidden flex-shrink-0">                                                                
                       {aboutPageContent.logo ? (
-                        <img 
-                          src={aboutPageContent.logo} 
-                          alt="BOW Logo" 
+                        <img
+                          src={aboutPageContent.logo}
+                          alt="BOW Logo"
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <Music className="w-8 h-8 text-white" />
+                        <Music className="w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8 text-white" />
                       )}
                     </div>
-                    <div>
-                      <h3 className="text-3xl font-bold bg-gradient-to-r from-primary-700 to-secondary-700 bg-clip-text text-transparent mb-2">
+                    <div className="min-w-0">
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary-700 to-secondary-700 bg-clip-text text-transparent mb-1 sm:mb-2 break-words">                 
                         {aboutPageContent.foundingTitle}
                       </h3>
-                      <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"></div>
+                      <div className="w-16 sm:w-20 md:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"></div>                                          
                     </div>
                   </div>
-                  
-                  <div className="space-y-6">
-                    <p className="text-lg text-gray-700 leading-relaxed font-medium animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+
+                  <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                    <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed font-medium animate-fade-in-up break-words" style={{animationDelay: '0.3s'}}>                       
                       {aboutPageContent.foundingDescription}
                     </p>
-                    <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-6 border-l-4 border-primary-400 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-                      <p className="text-lg text-gray-700 leading-relaxed italic">
+                    <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border-l-4 border-primary-400 animate-fade-in-up" style={{animationDelay: '0.4s'}}>                                                        
+                      <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed italic break-words">                                                                              
                         {aboutPageContent.founderBelief}
                       </p>
                     </div>
-                    <p className="text-lg text-gray-700 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.5s'}}>
+                    <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed animate-fade-in-up break-words" style={{animationDelay: '0.5s'}}>                                   
                       {aboutPageContent.todayVision}
                     </p>
                   </div>
@@ -615,56 +615,56 @@ const AboutPage = () => {
             </div>
 
             {/* Enhanced Timeline with Scroll Animations */}
-            <div ref={timelineRef} className={`relative transition-all duration-1000 ${isTimelineVisible ? 'animate-story-entrance' : 'opacity-0'}`}>
+            <div ref={timelineRef} className={`relative transition-all duration-1000 ${isTimelineVisible ? 'animate-story-entrance' : 'opacity-0'}`}>           
               {/* Animated Timeline Line */}
-              <div className="absolute left-8 top-0 w-1 bg-gradient-to-b from-primary-400 via-secondary-400 to-primary-400 rounded-full animate-draw-line"></div>
-              
-              <div className="space-y-8">
-                {aboutPageContent.achievements.map((achievement, index) => (
-                  <div 
-                    key={index} 
+              <div className="absolute left-4 sm:left-6 md:left-8 top-0 w-0.5 sm:w-1 bg-gradient-to-b from-primary-400 via-secondary-400 to-primary-400 rounded-full animate-draw-line"></div>                                                                               
+
+              <div className="space-y-4 sm:space-y-6 md:space-y-8">
+                {aboutPageContent.achievements.map((achievement, index) => (    
+                  <div
+                    key={index}
                     className="relative group animate-stagger-fade-in"
                     style={{animationDelay: `${0.6 + index * 0.15}s`}}
                   >
                     {/* Enhanced Timeline Dot */}
-                    <div className="absolute left-6 w-4 h-4 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full shadow-lg z-10 group-hover:scale-125 transition-transform duration-300 animate-timeline-pulse">
-                      <div className="absolute inset-0 bg-white rounded-full scale-50"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full scale-75 opacity-60 animate-ping"></div>
+                    <div className="absolute left-3 sm:left-5 md:left-6 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full shadow-lg z-10 group-hover:scale-125 transition-transform duration-300 animate-timeline-pulse">                     
+                      <div className="absolute inset-0 bg-white rounded-full scale-50"></div>                                                                   
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full scale-75 opacity-60 animate-ping hidden sm:block"></div> 
                     </div>
-                    
+
                     {/* Achievement Card with Enhanced Effects */}
-                    <div className="ml-16 relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-all duration-500 transform group-hover:scale-105"></div>
-                      
-                      <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl group-hover:border-primary-200 animate-card-glow">
+                    <div className="ml-10 sm:ml-14 md:ml-16 relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-xl sm:rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-all duration-500 transform group-hover:scale-105"></div>              
+
+                      <div className="relative bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-5 md:p-6 border border-white/20 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl group-hover:border-primary-200 animate-card-glow">                                                                     
                         {/* Year Badge with Enhanced Animation */}
-                        <div className="absolute -top-3 -right-3 w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                          <span className="text-white font-bold text-sm">{achievement.year}</span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full scale-75 opacity-60 animate-ping"></div>
+                        <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-white font-bold text-xs sm:text-sm">{achievement.year}</span>                                                              
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary-300 to-secondary-300 rounded-full scale-75 opacity-60 animate-ping hidden sm:block"></div>                                                                             
                         </div>
-                        
+
                         {/* Content with Shimmer Effect */}
-                        <div className="pr-8 relative overflow-hidden">
-                          <h4 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-3 group-hover:text-primary-700 transition-colors duration-300">
-                            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                              <CheckCircle className="w-5 h-5 text-white" />
+                        <div className="pr-10 sm:pr-12 md:pr-16 relative overflow-hidden">
+                          <h4 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3 group-hover:text-primary-700 transition-colors duration-300 break-words">                                                                             
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">                                      
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 text-white" />    
                             </div>
-                            {achievement.title}
+                            <span className="break-words">{achievement.title}</span>
                           </h4>
-                          <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                          <p className="text-sm sm:text-base text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300 break-words">                                
                             {achievement.description}
                           </p>
-                          
+
                           {/* Shimmer Effect on Hover */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 animate-shimmer"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 animate-shimmer"></div>                                                                               
                         </div>
-                        
+
                         {/* Enhanced Hover Effect Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary-50/50 to-secondary-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        
-                        {/* Corner Accent */}
-                        <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="absolute bottom-2 left-2 w-1 h-1 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary-50/50 to-secondary-50/50 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>                                           
+
+                        {/* Corner Accent - Hidden on mobile */}
+                        <div className="absolute top-2 right-2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block"></div>                                
+                        <div className="absolute bottom-2 left-2 w-1 h-1 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block"></div>                              
                       </div>
                     </div>
                   </div>
@@ -674,17 +674,17 @@ const AboutPage = () => {
           </div>
 
           {/* Bottom Decorative Element */}
-          <div className="text-center mt-20">
-            <div className="inline-flex items-center space-x-3 text-primary-600 animate-fade-in-up" style={{animationDelay: '1s'}}>
-              <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse"></div>
-              <div className="w-3 h-3 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-              <span className="ml-6 text-xl font-semibold text-gray-700">Our Journey Continues</span>
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-              <div className="w-3 h-3 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-              <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+          <div className="text-center mt-12 sm:mt-16 md:mt-20">
+            <div className="inline-flex items-center space-x-2 sm:space-x-3 text-primary-600 animate-fade-in-up flex-wrap justify-center gap-2 px-2" style={{animationDelay: '1s'}}>                             
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-primary-500 rounded-full animate-pulse"></div>                                                                         
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>                                      
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>                                         
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>                                          
+              <span className="ml-2 sm:ml-4 md:ml-6 text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-gray-700 break-words">Our Journey Continues</span>                                                           
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>                                          
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>                                         
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-secondary-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>                                      
+              <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-primary-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>                                        
             </div>
           </div>
         </div>
@@ -693,69 +693,69 @@ const AboutPage = () => {
 
 
       {/* Founders Section */}
-      <section id="founders" className="py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">
+      <section id="founders" className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 relative overflow-hidden">                                  
         {/* Background decorative elements */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-primary-200 rounded-full blur-3xl floating-bg"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-secondary-200 rounded-full blur-3xl floating-bg" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-200 rounded-full blur-2xl floating-bg" style={{animationDelay: '4s'}}></div>
+          <div className="absolute top-10 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary-200 rounded-full blur-3xl floating-bg hidden sm:block"></div>                                            
+          <div className="absolute bottom-10 right-10 w-30 h-30 sm:w-40 sm:h-40 bg-secondary-200 rounded-full blur-3xl floating-bg hidden sm:block" style={{animationDelay: '2s'}}></div>       
+          <div className="absolute top-1/2 left-1/4 w-20 h-20 sm:w-24 sm:h-24 bg-blue-200 rounded-full blur-2xl floating-bg hidden md:block" style={{animationDelay: '4s'}}></div>              
         </div>
-        
-        <div className="container-custom relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-6">
-              <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg pulse-glow overflow-hidden">
+
+        <div className="container-custom relative z-10 px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <div className="inline-block mb-4 sm:mb-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg pulse-glow overflow-hidden">                                                    
                 {aboutPageContent.logo ? (
-                  <img 
-                    src={aboutPageContent.logo} 
-                    alt="BOW Logo" 
+                  <img
+                    src={aboutPageContent.logo}
+                    alt="BOW Logo"
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Star className="w-12 h-12 text-white" />
+                  <Star className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" />
                 )}
               </div>
             </div>
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4 sm:mb-5 md:mb-6 px-2">                           
               {founderContent.sectionTitle}
             </h2>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed px-4">                                                                             
               {founderContent.sectionSubtitle}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 md:gap-16">
             {/* Anand Sane */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
-              <div className="relative bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">
-                <div className="text-center mb-8">
-                  <div className="relative mb-6">
-                    <div className="w-28 h-28 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto shadow-2xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 founder-avatar">
-                      <span className="text-white font-bold text-3xl">A</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-2xl sm:rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>                     
+              <div className="relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">                                                   
+                <div className="text-center mb-6 sm:mb-8">
+                  <div className="relative mb-4 sm:mb-5 md:mb-6">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto shadow-2xl transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 founder-avatar">                                                        
+                      <span className="text-white font-bold text-2xl sm:text-3xl md:text-3xl">A</span>
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
-                      <Star className="w-4 h-4 text-white" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">                    
+                      <Star className="w-3 h-3 sm:w-4 sm:h-4 md:w-4 md:h-4 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-primary-600 transition-colors duration-300 break-words px-2">                            
                     {founderContent.aandSane.name}
                   </h3>
-                  <p className="text-primary-600 font-semibold text-xl mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+                  <p className="text-primary-600 font-semibold text-base sm:text-lg md:text-xl mb-4 sm:mb-5 md:mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent break-words px-2">  
                     {founderContent.aandSane.role}
                   </p>
-                  <p className="text-secondary-600 font-medium text-lg mb-4">
+                  <p className="text-secondary-600 font-medium text-sm sm:text-base md:text-lg mb-3 sm:mb-4 break-words px-2">   
                     {founderContent.aandSane.partnership}
                   </p>
                 </div>
-                <p className="text-gray-700 leading-relaxed text-center text-lg group-hover:text-gray-800 transition-colors duration-300">
+                <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed text-center group-hover:text-gray-800 transition-colors duration-300 break-words px-2">                      
                   {founderContent.aandSane.description}
                 </p>
-                <div className="mt-8 flex justify-center space-x-4">
-                  {founderContent.aandSane.traits.map((trait, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-primary-600">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="text-sm font-medium">{trait}</span>
+                <div className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
+                  {founderContent.aandSane.traits.map((trait, index) => (       
+                    <div key={index} className="flex items-center space-x-1.5 sm:space-x-2 text-primary-600">                                                                  
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium break-words">{trait}</span>      
                     </div>
                   ))}
                 </div>
@@ -764,54 +764,54 @@ const AboutPage = () => {
 
                          {/* Deepali Sane - Media Placeholder */}
              <div className="group relative">
-               <div className="absolute inset-0 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
-               <div className="relative bg-white rounded-3xl p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">
+               <div className="absolute inset-0 bg-gradient-to-r from-secondary-400 to-primary-400 rounded-2xl sm:rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>                    
+               <div className="relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-2xl border border-gray-100 transform transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl founder-card">                                                  
                  {/* Media Display */}
                   {loadingFounder ? (
-                    <div className="w-full h-96 bg-gradient-to-br from-secondary-100 to-primary-100 rounded-2xl shadow-lg flex items-center justify-center mb-6">
-                      <div className="text-center text-secondary-600">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary-600 mx-auto mb-3"></div>
-                        <p className="text-sm font-medium">Loading media...</p>
+                    <div className="w-full h-64 sm:h-80 md:h-96 bg-gradient-to-br from-secondary-100 to-primary-100 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center mb-4 sm:mb-5 md:mb-6">                                                                               
+                      <div className="text-center text-secondary-600 px-4">
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 md:h-8 md:w-8 border-b-2 border-secondary-600 mx-auto mb-2 sm:mb-3"></div>                                  
+                        <p className="text-xs sm:text-sm font-medium">Loading media...</p> 
                       </div>
                     </div>
-                  ) : founderMedia.mediaUrl && founderMedia.isActive ? (
-                    <div className="relative w-full h-96 mb-6">
+                  ) : founderMedia.mediaUrl && founderMedia.isActive ? (        
+                    <div className="relative w-full h-64 sm:h-80 md:h-96 mb-4 sm:mb-5 md:mb-6">
                       {founderMedia.mediaType === 'image' ? (
                         <img
                           src={founderMedia.mediaUrl}
                           alt={founderMedia.altText || 'Deepali Sane'}
-                          className="w-full h-full object-cover rounded-2xl shadow-lg"
+                          className="w-full h-full object-cover rounded-xl sm:rounded-2xl shadow-lg"                                                                          
                         />
                       ) : (
                         <video
                           src={founderMedia.mediaUrl}
                           controls
-                          className="w-full h-full object-cover rounded-2xl shadow-lg bg-black"
+                          className="w-full h-full object-cover rounded-xl sm:rounded-2xl shadow-lg bg-black"                                                                 
                         >
                           Your browser does not support the video tag.
                         </video>
                       )}
-                      {/* Dynamic overlay based on founder media settings */}
-                      <div 
-                        className="absolute inset-0 bg-secondary-600 rounded-2xl pointer-events-none"
-                        style={{ opacity: founderMedia.overlayOpacity || 0.1 }}
+                      {/* Dynamic overlay based on founder media settings */}   
+                      <div
+                        className="absolute inset-0 bg-secondary-600 rounded-xl sm:rounded-2xl pointer-events-none"                                                           
+                        style={{ opacity: founderMedia.overlayOpacity || 0.1 }} 
                       ></div>
                     </div>
                   ) : (
-                    <div className="w-full h-96 bg-gradient-to-br from-secondary-100 to-primary-100 rounded-2xl shadow-lg flex items-center justify-center mb-6">
-                      <div className="text-center text-secondary-600">
-                        <Music className="w-20 h-20 mx-auto mb-6" />
-                        <p className="text-xl font-semibold">Deepali Sane Media</p>
-                        <p className="text-base text-gray-500">Upload photo/video from admin panel</p>
+                    <div className="w-full h-64 sm:h-80 md:h-96 bg-gradient-to-br from-secondary-100 to-primary-100 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center mb-4 sm:mb-5 md:mb-6">                                                                               
+                      <div className="text-center text-secondary-600 px-4">
+                        <Music className="w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 mx-auto mb-4 sm:mb-5 md:mb-6" />
+                        <p className="text-base sm:text-lg md:text-xl font-semibold mb-1 sm:mb-2">Deepali Sane Media</p>                                                                             
+                        <p className="text-xs sm:text-sm md:text-base text-gray-500">Upload photo/video from admin panel</p>                                                          
                       </div>
                     </div>
                   )}
-                 
-                 <div className="mt-6 flex justify-center space-x-4">
-                   {founderContent.deepaliSane.traits.map((trait, index) => (
-                     <div key={index} className="flex items-center space-x-2 text-secondary-600">
-                       <CheckCircle className="w-5 h-5" />
-                       <span className="text-sm font-medium">{trait}</span>
+
+                 <div className="mt-4 sm:mt-5 md:mt-6 flex flex-wrap justify-center gap-3 sm:gap-4">
+                   {founderContent.deepaliSane.traits.map((trait, index) => (   
+                     <div key={index} className="flex items-center space-x-1.5 sm:space-x-2 text-secondary-600">                                                               
+                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                       <span className="text-xs sm:text-sm font-medium break-words">{trait}</span>     
                      </div>
                    ))}
                  </div>
@@ -824,26 +824,26 @@ const AboutPage = () => {
       
 
       {/* 501(c)(3) Status Section */}
-      <section className="py-20 bg-transparent relative overflow-hidden">
-        <div className="container-custom">
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-3xl p-10 shadow-2xl overflow-hidden">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4">
+      <section className="py-12 sm:py-16 md:py-20 bg-transparent relative overflow-hidden">       
+        <div className="container-custom px-4 sm:px-6">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-2xl overflow-hidden">                               
+            <div className="text-center mb-8 sm:mb-10 md:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2">
                 501(c)(3) Non-Profit Status
               </h2>
-              <p className="text-xl max-w-3xl mx-auto text-white/95">
-                Beats of Washington is a registered 501(c)(3) non-profit organization,
-                ensuring transparency and accountability in all our operations.
+              <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto text-white/95 px-4">
+                Beats of Washington is a registered 501(c)(3) non-profit organization,                                                                          
+                ensuring transparency and accountability in all our operations. 
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
               <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">                                              
+                  <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Tax Exempt</h3>
-                <p className="text-white/90">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Tax Exempt</h3>      
+                <p className="text-sm sm:text-base text-white/90 px-2">
                   All donations are tax-deductible to the extent allowed by law.
                 </p>
               </div>
@@ -856,7 +856,7 @@ const AboutPage = () => {
                     setTimeout(() => setIsLogoSpinning(false), 1200);
                   }}
                   aria-label="Celebrate BOW 501(c)(3)"
-                  className={`w-40 h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden cursor-pointer transition-transform duration-300 ${isLogoSpinning ? 'animate-spin' : ''}`}
+                  className={`w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 overflow-hidden cursor-pointer transition-transform duration-300 ${isLogoSpinning ? 'animate-spin' : ''}`}                       
                 >
                   {aboutPageContent.logo ? (
                     <img
@@ -865,54 +865,54 @@ const AboutPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-4xl">B</span>
+                    <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">                                                   
+                      <span className="text-white font-bold text-3xl sm:text-4xl md:text-4xl">B</span>  
                     </div>
                   )}
                 </button>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-8 h-8" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">                                              
+                  <Award className="w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Accountable</h3>
-                <p className="text-white/90">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Accountable</h3>     
+                <p className="text-sm sm:text-base text-white/90 px-2">
                   Governed by a volunteer board of directors from the community.
                 </p>
               </div>
             </div>
 
-            <div className="mt-12 text-center">
-              <p className="text-lg mb-6 text-white/95">
-                <strong>EIN:</strong> 84-4396168 | <strong>Founded:</strong> 2019
+            <div className="mt-8 sm:mt-10 md:mt-12 text-center">
+              <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-5 md:mb-6 text-white/95 px-4 break-words">
+                <strong>EIN:</strong> 84-4396168 | <strong>Founded:</strong> 2019                                                                               
               </p>
-              <Link to="/donate" className="btn-secondary">
+              <Link to="/donate" className="btn-secondary text-sm sm:text-base px-4 sm:px-6 py-2.5 sm:py-3 inline-flex items-center justify-center">
                 Make a Donation
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Link>
 
               {/* Compact "Feel the Beat" band (white variant) */}
-              <div className="mt-10">
-                <div className="relative overflow-hidden rounded-2xl border border-white/30 bg-white/10">
+              <div className="mt-6 sm:mt-8 md:mt-10">
+                <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/30 bg-white/10">
                   {/* local keyframes fallback */}
                   <style>{`
                     @keyframes waveHeightMini { 0%{transform:scaleY(0.3)} 50%{transform:scaleY(1)} 100%{transform:scaleY(0.3)} }
                     @keyframes floatYMini { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
                   `}</style>
-                  {/* Floating icons */}
-                  <div className="absolute left-3 top-3 text-2xl select-none" style={{ animation: 'floatYMini 3s ease-in-out infinite' }}>🥁</div>
-                  <div className="absolute right-4 bottom-3 text-2xl select-none" style={{ animation: 'floatYMini 3.2s ease-in-out infinite', animationDelay: '0.4s' }}>🪘</div>
+                  {/* Floating icons - Hidden on mobile */}
+                  <div className="absolute left-2 sm:left-3 top-2 sm:top-3 text-xl sm:text-2xl select-none hidden sm:block" style={{ animation: 'floatYMini 3s ease-in-out infinite' }}>🥁</div>
+                  <div className="absolute right-3 sm:right-4 bottom-2 sm:bottom-3 text-xl sm:text-2xl select-none hidden sm:block" style={{ animation: 'floatYMini 3.2s ease-in-out infinite', animationDelay: '0.4s' }}>🪘</div>
 
-                  <div className="px-6 pt-6 text-center">
-                    <h4 className="text-white font-bold text-lg tracking-tight drop-shadow-sm">Feel the Beat · Dhol & Tasha</h4>
-                    <p className="text-white/80 text-xs mt-1 mb-4">A subtle rhythm celebrating our cultural heartbeat</p>
+                  <div className="px-4 sm:px-5 md:px-6 pt-4 sm:pt-5 md:pt-6 text-center">
+                    <h4 className="text-white font-bold text-sm sm:text-base md:text-lg tracking-tight drop-shadow-sm break-words">Feel the Beat · Dhol & Tasha</h4>
+                    <p className="text-white/80 text-xs mt-1 mb-3 sm:mb-4 break-words">A subtle rhythm celebrating our cultural heartbeat</p>
                   </div>
-                  <div className="px-6 pb-6">
-                    <div className="mx-auto max-w-4xl h-16 flex items-end gap-[3px] justify-center">
+                  <div className="px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6 overflow-x-auto">
+                    <div className="mx-auto max-w-4xl h-12 sm:h-14 md:h-16 flex items-end gap-[2px] sm:gap-[3px] justify-center">
                       {Array.from({ length: 96 }).map((_, i) => {
                         const delay = (i % 8) * 0.1;
-                        const width = i % 5 === 0 ? 4 : 3;
-                        const base = 10 + (i % 7);
+                        const width = i % 5 === 0 ? 3 : 2;
+                        const base = 8 + (i % 7);
                         const shades = ['bg-white/90','bg-white/70','bg-white/60'];
                         return (
                           <div
@@ -936,18 +936,18 @@ const AboutPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="pt-12 pb-20 bg-gray-50">
-        <div className="container-custom text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+      <section className="pt-10 sm:pt-12 pb-16 sm:pb-20 bg-gray-50">
+        <div className="container-custom text-center px-4 sm:px-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-5 md:mb-6 px-2">
             Join Our Mission
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-7 md:mb-8 max-w-2xl mx-auto px-4">
             Whether you want to volunteer, attend events, or support our work financially, 
             there are many ways to get involved with Beats of Washington.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/get-involved" className="btn-primary text-lg px-8 py-4">
-              <Users className="w-5 h-5 mr-2" />
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <Link to="/get-involved" className="btn-primary text-sm sm:text-base md:text-lg px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 md:py-4 inline-flex items-center justify-center">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Get Involved
             </Link>
           </div>

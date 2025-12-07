@@ -283,41 +283,41 @@ const GalleryPage = () => {
       />
 
       {/* Filters and Search */}
-      <section className="bg-white py-8 border-b">
-        <div className="container-custom">
+      <section className="bg-white py-4 sm:py-6 md:py-8 border-b">
+        <div className="container-custom px-4 sm:px-6">
           {/* View Mode Toggle */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => {
                   setViewMode('all');
                   setSelectedAlbum(null);
                 }}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors flex items-center gap-1.5 sm:gap-2 ${
                   viewMode === 'all'
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Grid className="w-4 h-4" />
-                All Media
+                <Grid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="whitespace-nowrap">All Media</span>
               </button>
               <button
                 onClick={() => setViewMode('albums')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors flex items-center gap-1.5 sm:gap-2 ${
                   viewMode === 'albums'
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Folder className="w-4 h-4" />
-                Albums by Event
+                <Folder className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="whitespace-nowrap">Albums by Event</span>
               </button>
             </div>
             {selectedAlbum && (
               <button
                 onClick={() => setSelectedAlbum(null)}
-                className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+                className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium text-sm sm:text-base"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Albums
@@ -326,17 +326,17 @@ const GalleryPage = () => {
           </div>
 
           {!selectedAlbum && (
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {/* Search */}
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                 <input
                   type="text"
                   placeholder="Search gallery..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -347,7 +347,7 @@ const GalleryPage = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 {categories.map(category => (
                   <option key={category.value} value={category.value}>
@@ -364,27 +364,27 @@ const GalleryPage = () => {
 
       {/* Event Albums View */}
       {viewMode === 'albums' && !selectedAlbum && (
-        <section className="py-16 bg-gray-50">
-          <div className="container-custom">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <section className="py-8 sm:py-12 md:py-16 bg-gray-50">
+          <div className="container-custom px-4 sm:px-6">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Event Albums
               </h2>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Browse photos organized by event
               </p>
             </div>
 
             {eventAlbums.length === 0 ? (
-              <div className="text-center py-20">
-                <Folder className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Event Albums Yet</h3>
-                <p className="text-gray-600 mb-4">
+              <div className="text-center py-12 sm:py-16 md:py-20">
+                <Folder className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Event Albums Yet</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4 px-4">
                   Upload photos and assign them to events to see albums here.
                 </p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {eventAlbums.map((album) => (
                   <div
                     key={album.eventId}
@@ -392,7 +392,7 @@ const GalleryPage = () => {
                     className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300 group"
                   >
                     {/* Album Cover Image */}
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-40 sm:h-48 overflow-hidden">
                       {album.eventImage ? (
                         <img
                           src={album.eventImage}
@@ -407,15 +407,15 @@ const GalleryPage = () => {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-primary-400 to-secondary-600 flex items-center justify-center">
-                          <Folder className="w-16 h-16 text-white opacity-50" />
+                          <Folder className="w-12 h-12 sm:w-16 sm:h-16 text-white opacity-50" />
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                        <h3 className="text-xl font-bold mb-1">{album.eventTitle}</h3>
+                      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
+                        <h3 className="text-base sm:text-xl font-bold mb-1 break-words">{album.eventTitle}</h3>
                         {album.eventDate && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4" />
+                          <div className="flex items-center gap-2 text-xs sm:text-sm">
+                            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                             <span>{new Date(album.eventDate).toLocaleDateString()}</span>
                           </div>
                         )}
@@ -423,12 +423,12 @@ const GalleryPage = () => {
                     </div>
                     
                     {/* Album Info */}
-                    <div className="p-4">
+                    <div className="p-3 sm:p-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm text-gray-600">
                           {album.photos.length} {album.photos.length === 1 ? 'photo' : 'photos'}
                         </span>
-                        <span className="text-primary-600 font-medium group-hover:text-primary-700">
+                        <span className="text-primary-600 font-medium group-hover:text-primary-700 text-xs sm:text-sm">
                           View Album →
                         </span>
                       </div>
@@ -443,32 +443,32 @@ const GalleryPage = () => {
 
       {/* Selected Album View */}
       {selectedAlbum && (
-        <section className="py-16 bg-gray-50">
-          <div className="container-custom">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <section className="py-8 sm:py-12 md:py-16 bg-gray-50">
+          <div className="container-custom px-4 sm:px-6">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
                 {selectedAlbum.eventTitle}
               </h2>
               {selectedAlbum.eventDate && (
-                <p className="text-gray-600 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(selectedAlbum.eventDate).toLocaleDateString('en-US', { 
+                <p className="text-sm sm:text-base text-gray-600 flex items-center gap-2 flex-wrap">
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span className="break-words">{new Date(selectedAlbum.eventDate).toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
-                  })}
+                  })}</span>
                 </p>
               )}
             </div>
 
             {selectedAlbum.photos.length === 0 ? (
-              <div className="text-center py-20">
-                <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600">No photos in this album yet.</p>
+              <div className="text-center py-12 sm:py-16 md:py-20">
+                <Image className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-sm sm:text-base text-gray-600">No photos in this album yet.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                 {selectedAlbum.photos.map((photo) => {
                   const item = {
                     id: photo.id,
@@ -484,34 +484,34 @@ const GalleryPage = () => {
                         <ImagePlaceholder
                           src={item.thumbnail}
                           alt={item.title}
-                          className="w-full h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
-                          placeholderClassName="w-full h-48 bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-40 sm:h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
+                          placeholderClassName="w-full h-40 sm:h-48 bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
                         />
-                        <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
-                          {item.type === 'video' ? <Video className="w-4 h-4 mr-1" /> : <Image className="w-4 h-4 mr-1" />}
-                          {item.type === 'video' ? 'Video' : 'Photo'}
+                        <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-black/70 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium flex items-center">
+                          {item.type === 'video' ? <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> : <Image className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />}
+                          <span className="whitespace-nowrap">{item.type === 'video' ? 'Video' : 'Photo'}</span>
                         </div>
-                        <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex space-x-1.5 sm:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           <button
                             onClick={(e) => handleLike(item.id, e)}
-                            className={`p-2 rounded-full ${
+                            className={`p-1.5 sm:p-2 rounded-full ${
                               isLiked(item.id) 
                                 ? 'bg-red-500 text-white' 
                                 : 'bg-white/90 text-gray-700 hover:bg-red-500 hover:text-white'
                             } transition-all duration-200`}
                           >
-                            <Heart className={`w-4 h-4 ${isLiked(item.id) ? 'fill-current' : ''}`} />
+                            <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked(item.id) ? 'fill-current' : ''}`} />
                           </button>
                           <button
                             onClick={(e) => handleShare(item, e)}
-                            className="p-2 rounded-full bg-white/90 text-gray-700 hover:bg-primary-500 hover:text-white transition-all duration-200"
+                            className="p-1.5 sm:p-2 rounded-full bg-white/90 text-gray-700 hover:bg-primary-500 hover:text-white transition-all duration-200"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                      <div className="p-3 sm:p-4">
+                        <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 break-words">{item.title}</h3>
                       </div>
                     </div>
                   );
@@ -524,16 +524,16 @@ const GalleryPage = () => {
 
       {/* Gallery Grid - All Media View */}
       {viewMode === 'all' && !selectedAlbum && (
-      <section className="py-16 bg-gray-50">
-        <div className="container-custom">
+      <section className="py-8 sm:py-12 md:py-16 bg-gray-50">
+        <div className="container-custom px-4 sm:px-6">
           {/* Event Albums Section */}
           {eventAlbums.length > 0 && (
-            <div className="mb-12">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Albums</h2>
-                <p className="text-gray-600">Browse photos organized by events</p>
+            <div className="mb-8 sm:mb-12">
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Event Albums</h2>
+                <p className="text-sm sm:text-base text-gray-600">Browse photos organized by events</p>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {eventAlbums.map((album) => (
                   <div
                     key={album.eventId}
@@ -541,7 +541,7 @@ const GalleryPage = () => {
                     className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300 group"
                   >
                     {/* Album Cover Image */}
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-40 sm:h-48 overflow-hidden">
                       {album.eventImage ? (
                         <img
                           src={album.eventImage}
@@ -556,15 +556,15 @@ const GalleryPage = () => {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-primary-400 to-secondary-600 flex items-center justify-center">
-                          <Folder className="w-16 h-16 text-white opacity-50" />
+                          <Folder className="w-12 h-12 sm:w-16 sm:h-16 text-white opacity-50" />
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                        <h3 className="text-xl font-bold mb-1">{album.eventTitle}</h3>
+                      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
+                        <h3 className="text-base sm:text-xl font-bold mb-1 break-words">{album.eventTitle}</h3>
                         {album.eventDate && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4" />
+                          <div className="flex items-center gap-2 text-xs sm:text-sm">
+                            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                             <span>{new Date(album.eventDate).toLocaleDateString()}</span>
                           </div>
                         )}
@@ -572,12 +572,12 @@ const GalleryPage = () => {
                     </div>
                     
                     {/* Album Info */}
-                    <div className="p-4">
+                    <div className="p-3 sm:p-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm text-gray-600">
                           {album.photos.length} {album.photos.length === 1 ? 'photo' : 'photos'}
                         </span>
-                        <span className="text-primary-600 font-medium group-hover:text-primary-700">
+                        <span className="text-primary-600 font-medium group-hover:text-primary-700 text-xs sm:text-sm">
                           View Album →
                         </span>
                       </div>
@@ -589,11 +589,11 @@ const GalleryPage = () => {
           )}
 
           {/* Individual Media Items Section */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               {loading ? 'Loading...' : `${filteredItems.length} Items Found`}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               {loading ? 'Fetching gallery items...' : (searchTerm && `Searching for "${searchTerm}"`)}
             </p>
           </div>
@@ -652,57 +652,57 @@ const GalleryPage = () => {
 
           {/* Gallery Items Grid */}
           {!loading && !error && filteredItems.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
               {filteredItems.map((item) => (
               <div key={item.id} className="card group cursor-pointer" onClick={() => openModal(item)}>
                 <div className="relative overflow-hidden rounded-t-xl">
                   <ImagePlaceholder
                     src={item.thumbnail}
                     alt={item.title}
-                    className="w-full h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
-                    placeholderClassName="w-full h-48 bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-40 sm:h-48 object-contain bg-gray-100 group-hover:scale-105 transition-transform duration-300"
+                    placeholderClassName="w-full h-40 sm:h-48 bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
                   />
                   
                   {/* Media Type Badge */}
-                  <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                  <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-black/70 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium flex items-center">
                     {item.type === 'video' ? (
-                      <Video className="w-4 h-4 mr-1" />
+                      <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     ) : (
-                      <Image className="w-4 h-4 mr-1" />
+                      <Image className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     )}
-                    {item.type === 'video' ? 'Video' : 'Photo'}
+                    <span className="whitespace-nowrap">{item.type === 'video' ? 'Video' : 'Photo'}</span>
                   </div>
                   
 
                   {/* Action Buttons */}
-                  <div className="absolute bottom-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex space-x-1.5 sm:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={(e) => handleLike(item.id, e)}
-                      className={`p-2 rounded-full ${
+                      className={`p-1.5 sm:p-2 rounded-full ${
                         isLiked(item.id) 
                           ? 'bg-red-500 text-white' 
                           : 'bg-white/90 text-gray-700 hover:bg-red-500 hover:text-white'
                       } transition-all duration-200`}
                     >
-                      <Heart className={`w-4 h-4 ${isLiked(item.id) ? 'fill-current' : ''}`} />
+                      <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked(item.id) ? 'fill-current' : ''}`} />
                     </button>
                     <button
                       onClick={(e) => handleShare(item, e)}
-                      className="p-2 rounded-full bg-white/90 text-gray-700 hover:bg-primary-500 hover:text-white transition-all duration-200"
+                      className="p-1.5 sm:p-2 rounded-full bg-white/90 text-gray-700 hover:bg-primary-500 hover:text-white transition-all duration-200"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                     <button
                       onClick={(e) => handleDownload(item, e)}
-                      className="p-2 rounded-full bg-white/90 text-gray-700 hover:bg-green-500 hover:text-white transition-all duration-200"
+                      className="p-1.5 sm:p-2 rounded-full bg-white/90 text-gray-700 hover:bg-green-500 hover:text-white transition-all duration-200"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </div>
                 
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-200">
+                <div className="p-4 sm:p-6">
+                  <h3 className="text-base sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 group-hover:text-primary-600 transition-colors duration-200 break-words">
                     {item.title}
                   </h3>
                 </div>
@@ -716,15 +716,15 @@ const GalleryPage = () => {
 
       {/* Media Modal */}
       {selectedMedia && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="relative">
               {/* Close Button */}
               <button
                 onClick={closeModal}
-                className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors duration-200"
+                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 bg-black/50 text-white rounded-full p-1.5 sm:p-2 hover:bg-black/70 transition-colors duration-200"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               
               {/* Media Content */}
@@ -733,48 +733,49 @@ const GalleryPage = () => {
                   <video
                     src={selectedMedia.url}
                     controls
-                    className="w-full h-96 object-cover rounded-t-2xl"
+                    className="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 object-contain bg-black rounded-t-xl sm:rounded-t-2xl"
+                    playsInline
                   />
                 ) : (
                   <ImagePlaceholder
                     src={selectedMedia.url}
                     alt={selectedMedia.title}
-                    className="w-full h-96 object-contain bg-gray-100 rounded-t-2xl"
-                    placeholderClassName="w-full h-96 bg-gray-100 flex items-center justify-center rounded-t-2xl"
+                    className="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 object-contain bg-gray-100 rounded-t-xl sm:rounded-t-2xl"
+                    placeholderClassName="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 bg-gray-100 flex items-center justify-center rounded-t-xl sm:rounded-t-2xl"
                   />
                 )}
               </div>
               
               {/* Media Info */}
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <div className="p-4 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 break-words">
                   {selectedMedia.title}
                 </h2>
                 
-                <div className="flex items-center justify-center space-x-4 mb-6">
+                <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                   <button 
                     onClick={(e) => handleLike(selectedMedia.id, e)}
-                    className={`flex items-center transition-colors duration-200 ${
+                    className={`flex items-center transition-colors duration-200 text-sm sm:text-base ${
                       isLiked(selectedMedia.id) 
                         ? 'text-red-600' 
                         : 'text-gray-600 hover:text-red-600'
                     }`}
                   >
-                    <Heart className={`w-5 h-5 mr-1 ${isLiked(selectedMedia.id) ? 'fill-current' : ''}`} />
+                    <Heart className={`w-4 h-4 sm:w-5 sm:h-5 mr-1 ${isLiked(selectedMedia.id) ? 'fill-current' : ''}`} />
                     {selectedMedia.likes}
                   </button>
                   <button 
                     onClick={(e) => handleShare(selectedMedia, e)}
-                    className="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                    className="flex items-center text-sm sm:text-base text-gray-600 hover:text-primary-600 transition-colors duration-200"
                   >
-                    <Share2 className="w-5 h-5 mr-1" />
+                    <Share2 className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
                     Share
                   </button>
                   <button 
                     onClick={(e) => handleDownload(selectedMedia, e)}
-                    className="flex items-center text-gray-600 hover:text-green-600 transition-colors duration-200"
+                    className="flex items-center text-sm sm:text-base text-gray-600 hover:text-green-600 transition-colors duration-200"
                   >
-                    <Download className="w-5 h-5 mr-1" />
+                    <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
                     Download
                   </button>
                 </div>
@@ -787,56 +788,59 @@ const GalleryPage = () => {
       {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">Share This Content</h3>
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full p-4 sm:p-6">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Share This Content</h3>
               <button
                 onClick={() => setShowShareModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Copy Link */}
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
                   value={shareUrl}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                  className="flex-1 px-2 sm:px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg bg-gray-50"
                 />
                 <button
                   onClick={copyToClipboard}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
+                  className="px-3 sm:px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
               </div>
               
               {/* Social Media Buttons */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <button
                   onClick={() => shareOnSocialMedia('facebook')}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  className="flex flex-col sm:flex-row items-center justify-center px-2 sm:px-4 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
                 >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Facebook
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+                  <span className="hidden sm:inline">Facebook</span>
+                  <span className="sm:hidden">FB</span>
                 </button>
                 <button
                   onClick={() => shareOnSocialMedia('twitter')}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors duration-200"
+                  className="flex flex-col sm:flex-row items-center justify-center px-2 sm:px-4 py-2 text-xs sm:text-sm bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors duration-200"
                 >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Twitter
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+                  <span className="hidden sm:inline">Twitter</span>
+                  <span className="sm:hidden">TW</span>
                 </button>
                 <button
                   onClick={() => shareOnSocialMedia('linkedin')}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors duration-200"
+                  className="flex flex-col sm:flex-row items-center justify-center px-2 sm:px-4 py-2 text-xs sm:text-sm bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors duration-200"
                 >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  LinkedIn
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 mb-1 sm:mb-0" />
+                  <span className="hidden sm:inline">LinkedIn</span>
+                  <span className="sm:hidden">LI</span>
                 </button>
               </div>
             </div>
@@ -845,22 +849,22 @@ const GalleryPage = () => {
       )}
 
       {/* CTA Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="container-custom px-4 sm:px-6 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
             Share Your Memories
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto">
             Have photos or videos from BOW events? We'd love to see them! 
             Share your memories with our community.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/contact" className="btn-primary text-lg px-8 py-4">
-              <Image className="w-5 h-5 mr-2" />
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <a href="/contact" className="btn-primary text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center">
+              <Image className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Share Your Media
             </a>
-            <a href="/events" className="btn-outline text-lg px-8 py-4">
-              <Video className="w-5 h-5 mr-2" />
+            <a href="/events" className="btn-outline text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center">
+              <Video className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Attend Events
             </a>
           </div>

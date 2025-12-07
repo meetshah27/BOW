@@ -23,7 +23,9 @@ const TABLES = {
   ABOUT_PAGE: 'bow-about-page',
   FOUNDER_CONTENT: 'bow-founder-content',
   SPONSORS: 'bow-sponsors',
-  CULTURAL_QUOTES: 'bow-cultural-quotes'
+  CULTURAL_QUOTES: 'bow-cultural-quotes',
+  SETTINGS: 'bow-settings',
+  EVENT_ADDONS: 'bow-event-addons'
 };
 
 // Table schemas for creation
@@ -300,6 +302,48 @@ const TABLE_SCHEMAS = {
     ],
     AttributeDefinitions: [
       { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.SETTINGS]: {
+    TableName: TABLES.SETTINGS,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.EVENT_ADDONS]: {
+    TableName: TABLES.EVENT_ADDONS,
+    KeySchema: [
+      { AttributeName: 'id', KeyType: 'HASH' } // Partition key
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'eventId', AttributeType: 'S' }
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'eventId-index',
+        KeySchema: [
+          { AttributeName: 'eventId', KeyType: 'HASH' }
+        ],
+        Projection: {
+          ProjectionType: 'ALL'
+        },
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5
+        }
+      }
     ],
     ProvisionedThroughput: {
       ReadCapacityUnits: 5,

@@ -83,7 +83,7 @@ const HeroSection = ({
             )}
             
             {/* Interactive elements */}
-            <div className="mt-8 flex justify-center lg:justify-start space-x-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+            <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-3 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
               {defaultInteractiveElements.map((element, index) => (
                 <div key={index} className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
                   <element.icon className={`w-5 h-5 ${element.color}`} />

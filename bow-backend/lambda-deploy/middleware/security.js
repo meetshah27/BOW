@@ -2,17 +2,41 @@ const helmet = require('helmet');
 
 // Security middleware configuration
 const securityMiddleware = (app) => {
-  // Basic security headers
+  // Basic security headers + Content Security Policy
   app.use(helmet({
     contentSecurityPolicy: {
+      useDefaults: true,
       directives: {
         defaultSrc: ["'self'"],
+        // Allow inline styles for Tailwind / React, and Google Fonts
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        // Allow images from our domain, S3/HTTPS, data URLs (for inline icons) and blobs
         imgSrc: ["'self'", "data:", "https:", "blob:"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        connectSrc: ["'self'", "https://api.stripe.com"],
-        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+        // Scripts: self, inline/eval (CRA/React dev tools), and Stripe JS
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://js.stripe.com"
+        ],
+        // XHR / fetch / websockets destinations
+        connectSrc: [
+          "'self'",
+          "https://api.stripe.com",
+          // API Gateway / Lambda endpoints (wildcard for stages)
+          "https://*.execute-api.us-west-2.amazonaws.com",
+          // Cognito hosted UI
+          "https://bow-users.auth.us-west-2.amazoncognito.com"
+        ],
+        // Frames we allow to be embedded (Stripe, YouTube iframes, etc.)
+        frameSrc: [
+          "'self'",
+          "https://js.stripe.com",
+          "https://hooks.stripe.com",
+          "https://www.youtube.com",
+          "https://youtube.com"
+        ],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: []
       }

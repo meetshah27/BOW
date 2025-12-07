@@ -249,11 +249,11 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
 
   if (success) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md mx-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+        <div className="bg-white rounded-xl sm:rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md mx-auto">
                      <div className="text-center">
              {logoUrl ? (
-               <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden mx-auto mb-4">
+               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden mx-auto mb-3 sm:mb-4">
                  <img 
                    src={logoUrl} 
                    alt="BOW Logo" 
@@ -261,17 +261,17 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                  />
                </div>
              ) : (
-               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+               <CheckCircle className="w-12 h-12 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4" />
              )}
-             <h3 className="text-2xl font-bold text-gray-900 mb-4">
+             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
                Application Submitted!
              </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 px-2">
               Thank you for your interest in volunteering with BOW.
             </p>
             <button
               onClick={onClose}
-              className="btn-primary w-full"
+              className="btn-primary w-full text-sm sm:text-base py-2.5 sm:py-3"
             >
               Close
             </button>
@@ -282,32 +282,33 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
   }
 
   return (
-         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto">
-       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 my-8 relative">
-                 <div className="flex justify-between items-center mb-4">
-           <div>
-           <h2 className="text-xl font-bold text-gray-900">
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto p-2 sm:p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+       <div className="bg-white rounded-xl sm:rounded-lg shadow-xl p-4 sm:p-5 md:p-6 w-full max-w-lg mx-auto my-4 sm:my-8 relative max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+                 <div className="flex justify-between items-start mb-4 sm:mb-6 sticky top-0 bg-white pb-2 border-b border-gray-200 z-10">
+           <div className="flex-1 min-w-0 pr-3">
+           <h2 className="text-lg sm:text-xl font-bold text-gray-900">
              Volunteer Application
            </h2>
-             <p className="text-xs text-gray-600 mt-1">
+             <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
                Applying for: <span className="font-medium text-primary-600">{opportunity.title}</span>
              </p>
            </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200 text-xl sm:text-2xl font-bold"
+            aria-label="Close modal"
           >
-            ✕
+            ×
           </button>
         </div>
 
                  {/* Progress Bar */}
-         <div className="mb-6">
-           <div className="flex justify-between mb-2">
+         <div className="mb-4 sm:mb-6">
+           <div className="flex justify-between mb-2 gap-1 sm:gap-2">
             {[1, 2, 3, 4].map(step => (
               <div
                 key={step}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0 ${
                   step <= currentStep
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-200 text-gray-600'
@@ -317,48 +318,48 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>Personal Info</span>
-            <span>Experience</span>
-            <span>Emergency Contact</span>
-            <span>Consent</span>
+          <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 gap-1">
+            <span className="text-center flex-1 truncate">Personal Info</span>
+            <span className="text-center flex-1 truncate">Experience</span>
+            <span className="text-center flex-1 truncate">Emergency</span>
+            <span className="text-center flex-1 truncate">Consent</span>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-            <span className="text-red-700">{error}</span>
+          <div className="mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg flex items-start sm:items-center">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" />
+            <span className="text-xs sm:text-sm text-red-700 break-words">{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           {/* Step 1: Personal Information */}
                      {currentStep === 1 && (
-             <div className="space-y-4">
+             <div className="space-y-3 sm:space-y-4">
                <div>
-                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
                   Personal Information
                 </h3>
                 {currentUser && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center text-green-800">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">Logged in as: {currentUser.displayName || currentUser.email}</span>
+                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium break-words">Logged in as: {currentUser.displayName || currentUser.email}</span>
                     </div>
                   </div>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Full Name *
                     </label>
                     <input
                       type="text"
                       value={formData.applicantName}
                       onChange={(e) => handleInputChange('applicantName', e.target.value)}
-                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      className={`w-full border rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                         currentUser ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'
                       }`}
                       required
@@ -370,14 +371,14 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Email *
                     </label>
                     <input
                       type="email"
                       value={formData.applicantEmail}
                       onChange={(e) => handleInputChange('applicantEmail', e.target.value)}
-                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      className={`w-full border rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
                         currentUser ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'
                       }`}
                       required
@@ -389,14 +390,14 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                     )}
                   </div>
                                      <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                        Phone *
                      </label>
                                            <input
                         type="tel"
                         value={formData.applicantPhone}
                         onChange={(e) => handleInputChange('applicantPhone', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         required
                         placeholder="Phone number"
                       />
@@ -405,7 +406,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                      )}
                    </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Age *
                     </label>
                     <input
@@ -413,44 +414,44 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                       min="16"
                       value={formData.applicantAge}
                       onChange={(e) => handleInputChange('applicantAge', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="mt-3 sm:mt-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Address
                   </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <input
                       type="text"
                       placeholder="Street Address"
                       value={formData.applicantAddress.street}
                       onChange={(e) => handleInputChange('applicantAddress.street', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="City"
                       value={formData.applicantAddress.city}
                       onChange={(e) => handleInputChange('applicantAddress.city', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="State"
                       value={formData.applicantAddress.state}
                       onChange={(e) => handleInputChange('applicantAddress.state', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="ZIP Code"
                       value={formData.applicantAddress.zipCode}
                       onChange={(e) => handleInputChange('applicantAddress.zipCode', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -460,61 +461,61 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
 
           {/* Step 2: Experience and Availability */}
                      {currentStep === 2 && (
-             <div className="space-y-4">
+             <div className="space-y-3 sm:space-y-4">
                <div>
-                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
                   Experience & Availability
                 </h3>
                 
                                                   <div className="mb-3">
-                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                      Relevant Experience *
                    </label>
                    <textarea
                      value={formData.experience}
                      onChange={(e) => handleInputChange('experience', e.target.value)}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                      rows="3"
                      placeholder="Describe your experience..."
                      required
                    />
                  </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Skills (comma-separated)
                   </label>
                                      <input
                      type="text"
                      value={formData.skills}
                      onChange={(e) => handleInputChange('skills', e.target.value)}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                      placeholder="e.g., event planning, music"
                    />
                 </div>
 
                                  <div className="mb-3">
-                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                      Why do you want to volunteer with BOW? *
                    </label>
                    <textarea
                      value={formData.motivation}
                      onChange={(e) => handleInputChange('motivation', e.target.value)}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                      rows="2"
                      placeholder="Tell us about your motivation..."
                      required
                    />
                  </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Time Commitment *
                   </label>
                   <select
                     value={formData.timeCommitment}
                     onChange={(e) => handleInputChange('timeCommitment', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select time commitment</option>
@@ -525,19 +526,19 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     Availability
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
                     {Object.entries(formData.availability).map(([key, value]) => (
                       <label key={key} className="flex items-center">
                         <input
                           type="checkbox"
                           checked={value}
                           onChange={() => handleAvailabilityChange(key)}
-                          className="mr-2"
+                          className="mr-2 w-4 h-4"
                         />
-                        <span className="text-sm capitalize">{key}</span>
+                        <span className="text-xs sm:text-sm capitalize">{key}</span>
                       </label>
                     ))}
                   </div>
@@ -548,95 +549,95 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
 
           {/* Step 3: Emergency Contact */}
           {currentStep === 3 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
                   Emergency Contact
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Emergency Contact Name *
                     </label>
                     <input
                       type="text"
                       value={formData.emergencyContact.name}
                       onChange={(e) => handleInputChange('emergencyContact.name', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Relationship *
                     </label>
                     <input
                       type="text"
                       value={formData.emergencyContact.relationship}
                       onChange={(e) => handleInputChange('emergencyContact.relationship', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       required
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Emergency Contact Phone *
                     </label>
                     <input
                       type="tel"
                       value={formData.emergencyContact.phone}
                       onChange={(e) => handleInputChange('emergencyContact.phone', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="mt-6">
-                  <h4 className="text-md font-medium text-gray-900 mb-3">References</h4>
+                <div className="mt-4 sm:mt-6">
+                  <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2 sm:mb-3">References</h4>
                   {formData.references.map((reference, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 mb-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h5 className="font-medium">Reference {index + 1}</h5>
+                    <div key={index} className="border border-gray-200 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                      <div className="flex justify-between items-center mb-2 sm:mb-3">
+                        <h5 className="font-medium text-sm sm:text-base">Reference {index + 1}</h5>
                         {formData.references.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeReference(index)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-xs sm:text-sm text-red-500 hover:text-red-700"
                           >
                             Remove
                           </button>
                         )}
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <input
                           type="text"
                           placeholder="Name"
                           value={reference.name}
                           onChange={(e) => handleReferenceChange(index, 'name', e.target.value)}
-                          className="border border-gray-300 rounded px-3 py-2"
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                         <input
                           type="text"
                           placeholder="Relationship"
                           value={reference.relationship}
                           onChange={(e) => handleReferenceChange(index, 'relationship', e.target.value)}
-                          className="border border-gray-300 rounded px-3 py-2"
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                         <input
                           type="tel"
                           placeholder="Phone"
                           value={reference.phone}
                           onChange={(e) => handleReferenceChange(index, 'phone', e.target.value)}
-                          className="border border-gray-300 rounded px-3 py-2"
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                         <input
                           type="email"
                           placeholder="Email"
                           value={reference.email}
                           onChange={(e) => handleReferenceChange(index, 'email', e.target.value)}
-                          className="border border-gray-300 rounded px-3 py-2"
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -644,7 +645,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                   <button
                     type="button"
                     onClick={addReference}
-                    className="text-primary-600 hover:text-primary-700 font-medium"
+                    className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
                     + Add Another Reference
                   </button>
@@ -655,16 +656,16 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
 
                      {/* Step 4: Consent */}
            {currentStep === 4 && (
-             <div className="space-y-4">
+             <div className="space-y-3 sm:space-y-4">
                <div>
-                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
                    Consent & Agreement
                  </h3>
                  
-                 <div className="space-y-4">
-                   <div className="bg-gray-50 p-4 rounded-lg">
-                     <h4 className="font-medium text-gray-900 mb-3">Volunteer Agreement</h4>
-                     <ul className="text-sm text-gray-600 space-y-2">
+                 <div className="space-y-3 sm:space-y-4">
+                   <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                     <h4 className="font-medium text-sm sm:text-base text-gray-900 mb-2 sm:mb-3">Volunteer Agreement</h4>
+                     <ul className="text-xs sm:text-sm text-gray-600 space-y-1.5 sm:space-y-2">
                        <li>• I understand this is a volunteer position with no monetary compensation</li>
                        <li>• I agree to represent BOW professionally and follow all policies</li>
                        <li>• I will provide advance notice if I cannot fulfill my commitments</li>
@@ -678,14 +679,14 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                        type="checkbox"
                        checked={formData.backgroundCheckConsent}
                        onChange={(e) => handleInputChange('backgroundCheckConsent', e.target.checked)}
-                       className="mt-1 mr-3"
+                       className="mt-1 mr-2 sm:mr-3 w-4 h-4 flex-shrink-0"
                        required
                      />
-                     <div>
-                       <label className="text-sm font-medium text-gray-700">
+                     <div className="min-w-0">
+                       <label className="text-xs sm:text-sm font-medium text-gray-700 block">
                          Background Check Consent *
                        </label>
-                       <p className="text-sm text-gray-600 mt-1">
+                       <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
                          I consent to a background check as required for this volunteer position. 
                          This is for the safety and security of our community members.
                        </p>
@@ -697,22 +698,31 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
            )}
 
                      {/* Navigation Buttons */}
-           <div className="flex justify-between mt-6">
-            {currentStep > 1 && (
+           <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 pt-4 border-t border-gray-200">
+            <div className="flex gap-3">
+              {currentStep > 1 && (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="btn-outline flex-1 sm:flex-none"
+                >
+                  Previous
+                </button>
+              )}
               <button
                 type="button"
-                onClick={prevStep}
-                className="btn-outline"
+                onClick={onClose}
+                className="btn-outline flex-1 sm:flex-none text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400"
               >
-                Previous
+                Cancel
               </button>
-            )}
+            </div>
             
             {currentStep < 4 ? (
               <button
                 type="button"
                 onClick={nextStep}
-                className="btn-primary ml-auto"
+                className="btn-primary w-full sm:w-auto sm:ml-auto"
               >
                 Next
               </button>
@@ -720,7 +730,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary ml-auto flex items-center"
+                className="btn-primary w-full sm:w-auto sm:ml-auto flex items-center justify-center"
               >
                 {isSubmitting ? (
                   <>

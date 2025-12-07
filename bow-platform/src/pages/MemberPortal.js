@@ -20,7 +20,10 @@ import {
   Trophy,
   TrendingUp,
   Award,
-  Gift
+  Gift,
+  Menu,
+  X,
+  LayoutDashboard
 } from 'lucide-react';
 import api from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
@@ -101,29 +104,29 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {/* Enhanced Hero Banner */}
-      <div className="bg-gradient-to-r from-primary-700 via-orange-500 to-secondary-600 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-3">
+      <div className="bg-gradient-to-r from-primary-700 via-orange-500 to-secondary-600 rounded-2xl p-4 md:p-8 text-white shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between flex-col md:flex-row gap-4 md:gap-0">
+          <div className="flex-1 w-full">
+            <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 break-words">
               Welcome back, {currentUser?.displayName || currentUser?.name || 'Member'}! 👋
             </h2>
-            <p className="text-primary-100 text-lg">
+            <p className="text-primary-100 text-sm md:text-lg">
               You're part of a community of over 2,000 members making a difference through music.
             </p>
-            <div className="mt-4 flex items-center space-x-4">
+            <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-3 md:gap-4">
               <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5" />
-                <span className="text-sm">2,000+ Members</span>
+                <Users className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-xs md:text-sm">2,000+ Members</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Award className="w-5 h-5" />
-                <span className="text-sm">Premium Member</span>
+                <Award className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-xs md:text-sm">Premium Member</span>
               </div>
             </div>
           </div>
-          <div className="hidden md:block">
+          <div className="hidden md:block flex-shrink-0">
             <Avatar 
               user={currentUser} 
               size="2xl" 
@@ -135,31 +138,31 @@ const Dashboard = () => {
       </div>
 
       {/* Enhanced Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         {memberStats.map((stat, index) => (
-          <div key={index} className={`${stat.bgColor} rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className={`p-3 rounded-xl ${stat.color}`}>
-                <stat.icon className="w-6 h-6" />
+          <div key={index} className={`${stat.bgColor} rounded-2xl p-3 md:p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <div className={`p-2 md:p-3 rounded-xl ${stat.color}`}>
+                <stat.icon className="w-4 h-4 md:w-6 md:h-6" />
               </div>
-              <TrendingUp className="w-5 h-5 text-gray-400" />
+              <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
-            <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+            <div className="text-lg md:text-2xl font-bold text-gray-900 mb-1 break-words">{stat.value}</div>
+            <div className="text-xs md:text-sm text-gray-600 font-medium break-words">{stat.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-2 gap-4 md:gap-8">
         {/* Enhanced Events Section */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6">
-            <h3 className="text-xl font-bold text-white flex items-center">
-              <Calendar className="w-6 h-6 mr-3" />
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 md:p-6">
+            <h3 className="text-lg md:text-xl font-bold text-white flex items-center">
+              <Calendar className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3" />
               Registered Events
             </h3>
           </div>
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -175,25 +178,27 @@ const Dashboard = () => {
                     <p className="text-sm">Start exploring our upcoming events!</p>
                   </div>
                 ) : events.map((event) => (
-                  <div key={event.eventId || event.id} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">{event.eventTitle || event.title}</h4>
-                        <div className="flex items-center text-sm text-gray-600 mb-1">
-                          <Calendar className="w-4 h-4 mr-2 text-blue-500" />
-                          {event.date ? (() => {
-                            // Parse the date string manually to avoid timezone issues
-                            const [year, month, day] = event.date.split('-').map(Number);
-                            const localDate = new Date(year, month - 1, day); // month is 0-indexed
-                            return localDate.toLocaleDateString();
-                          })() : '-'}
+                  <div key={event.eventId || event.id} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 mb-2 text-sm md:text-base break-words">{event.eventTitle || event.title}</h4>
+                        <div className="flex items-center text-xs md:text-sm text-gray-600 mb-1">
+                          <Calendar className="w-3 h-3 md:w-4 md:h-4 mr-2 text-blue-500 flex-shrink-0" />
+                          <span className="truncate">
+                            {event.date ? (() => {
+                              // Parse the date string manually to avoid timezone issues
+                              const [year, month, day] = event.date.split('-').map(Number);
+                              const localDate = new Date(year, month - 1, day); // month is 0-indexed
+                              return localDate.toLocaleDateString();
+                            })() : '-'}
+                          </span>
                         </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 mr-2 text-red-500" />
-                          {event.location || '-'}
+                        <div className="flex items-center text-xs md:text-sm text-gray-600">
+                          <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-2 text-red-500 flex-shrink-0" />
+                          <span className="truncate">{event.location || '-'}</span>
                         </div>
                       </div>
-                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200">
+                      <span className="inline-flex px-2 md:px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200 whitespace-nowrap flex-shrink-0 self-start sm:self-center">
                         {event.status || 'registered'}
                       </span>
                     </div>
@@ -212,13 +217,13 @@ const Dashboard = () => {
 
         {/* Enhanced Volunteer Applications Section */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-6">
-            <h3 className="text-xl font-bold text-white flex items-center">
-              <Users className="w-6 h-6 mr-3" />
+          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-4 md:p-6">
+            <h3 className="text-lg md:text-xl font-bold text-white flex items-center">
+              <Users className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3" />
               Volunteer Applications
             </h3>
           </div>
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -226,7 +231,7 @@ const Dashboard = () => {
             ) : error ? (
               <div className="text-red-500 text-center py-8">{error}</div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {volunteerApplications.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -234,20 +239,20 @@ const Dashboard = () => {
                     <p className="text-sm">Join our volunteer community!</p>
                   </div>
                 ) : volunteerApplications.slice(0, 3).map((application) => (
-                  <div key={application.opportunityId + application.applicantEmail} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">{application.opportunityTitle}</h4>
-                        <div className="flex items-center text-sm text-gray-600 mb-1">
-                          <Clock className="w-4 h-4 mr-2 text-indigo-500" />
-                          {application.timeCommitment || 'Flexible'}
+                  <div key={application.opportunityId + application.applicantEmail} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 mb-2 text-sm md:text-base break-words">{application.opportunityTitle}</h4>
+                        <div className="flex items-center text-xs md:text-sm text-gray-600 mb-1">
+                          <Clock className="w-3 h-3 md:w-4 md:h-4 mr-2 text-indigo-500 flex-shrink-0" />
+                          <span className="truncate">{application.timeCommitment || 'Flexible'}</span>
                         </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 mr-2 text-red-500" />
-                          {application.opportunityCategory || 'General'}
+                        <div className="flex items-center text-xs md:text-sm text-gray-600">
+                          <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-2 text-red-500 flex-shrink-0" />
+                          <span className="truncate">{application.opportunityCategory || 'General'}</span>
                         </div>
                       </div>
-                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full border ${
+                      <span className={`inline-flex px-2 md:px-3 py-1 text-xs font-semibold rounded-full border whitespace-nowrap flex-shrink-0 self-start sm:self-center ${
                         application.status === 'active' ? 'bg-green-100 text-green-800 border-green-200' :
                         application.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
                         application.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-200' :
@@ -260,9 +265,9 @@ const Dashboard = () => {
                 ))}
               </div>
             )}
-            <div className="mt-6">
-              <Link to="/member/volunteers" className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-6 rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center">
-                <Users className="w-5 h-5 mr-2" />
+            <div className="mt-4 md:mt-6">
+              <Link to="/member/volunteers" className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-2 md:py-3 px-4 md:px-6 rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center text-sm md:text-base">
+                <Users className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 View All Applications
               </Link>
             </div>
@@ -270,16 +275,16 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-1 gap-8">
+      <div className="grid lg:grid-cols-1 gap-4 md:gap-8">
         {/* Enhanced Payments Section */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 p-6">
-            <h3 className="text-xl font-bold text-white flex items-center">
-              <Gift className="w-6 h-6 mr-3" />
+          <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 md:p-6">
+            <h3 className="text-lg md:text-xl font-bold text-white flex items-center">
+              <Gift className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3" />
               Recent Donations
             </h3>
           </div>
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -287,7 +292,7 @@ const Dashboard = () => {
             ) : error ? (
               <div className="text-red-500 text-center py-8">{error}</div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {payments.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Gift className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -295,14 +300,14 @@ const Dashboard = () => {
                     <p className="text-sm">Make your first contribution to our cause!</p>
                   </div>
                 ) : payments.slice(0, 5).map((p) => (
-                  <div key={p.paymentIntentId} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-bold text-gray-900 text-lg">${(p.amount / 100).toFixed(2)}</div>
+                  <div key={p.paymentIntentId} className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-3 md:p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-gray-900 text-base md:text-lg">${(p.amount / 100).toFixed(2)}</div>
                         <div className="text-xs text-gray-600 capitalize">{p.status}</div>
                         <div className="text-xs text-gray-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-'}</div>
                       </div>
-                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                      <span className="inline-flex px-2 md:px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200 whitespace-nowrap flex-shrink-0 self-start sm:self-center">
                         {p.frequency || 'one-time'}
                       </span>
                     </div>
@@ -310,9 +315,9 @@ const Dashboard = () => {
                 ))}
               </div>
             )}
-            <div className="mt-6">
-              <Link to="/member/payments" className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-6 rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center">
-                <CreditCard className="w-5 h-5 mr-2" />
+            <div className="mt-4 md:mt-6">
+              <Link to="/member/payments" className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 md:py-3 px-4 md:px-6 rounded-xl font-medium hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center text-sm md:text-base">
+                <CreditCard className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                 View All Donations
               </Link>
             </div>
@@ -1060,6 +1065,7 @@ const MemberPortal = () => {
   const { logoUrl } = useLogo();
   const [userStats, setUserStats] = useState({ events: 0, volunteers: 0, donations: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch user stats for sidebar
   useEffect(() => {
@@ -1122,13 +1128,13 @@ const MemberPortal = () => {
         <title>Member Portal - Beats of Washington</title>
         <meta name="description" content="Access your personalized member dashboard, manage events, and update your profile." />
       </Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-blue-50 to-secondary-100">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-blue-50 to-secondary-100 overflow-x-hidden">
         {/* Enhanced Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-secondary-600 shadow-xl">
-          <div className="container-custom py-6">
+        <div className="bg-gradient-to-r from-primary-600 to-secondary-600 shadow-xl relative z-50">
+          <div className="container-custom py-4 md:py-6">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center overflow-hidden">
+              <div className="flex items-center space-x-3 md:space-x-4 min-w-0 flex-1">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
                   {logoUrl ? (
                     <img
                       src={logoUrl}
@@ -1136,27 +1142,36 @@ const MemberPortal = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-6 h-6 text-white" />
+                    <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   )}
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-white">Member Portal</h1>
-                  <p className="text-primary-100 text-sm">Your personalized dashboard</p>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl md:text-3xl font-bold text-white truncate">Member Portal</h1>
+                  <p className="text-primary-100 text-xs md:text-sm hidden sm:block">Your personalized dashboard</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-6">
-                <button className="p-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200">
-                  <Bell className="w-6 h-6" />
+              <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-6 flex-shrink-0">
+                {/* Mobile Menu Toggle */}
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+                  aria-label="Toggle menu"
+                  aria-expanded={sidebarOpen}
+                >
+                  {sidebarOpen ? <X className="w-5 h-5 md:w-6 md:h-6" /> : <Menu className="w-5 h-5 md:w-6 md:h-6" />}
                 </button>
-                <div className="flex items-center space-x-3">
+                <button className="p-2 md:p-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200">
+                  <Bell className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
+                </button>
+                <div className="hidden md:flex items-center space-x-3">
                   <Avatar 
                     user={currentUser} 
                     size="sm" 
                     className="bg-white/20 text-white"
                     showBorder={false}
                   />
-                  <div className="text-white">
-                    <div className="font-medium">{currentUser?.displayName || currentUser?.name || 'Member'}</div>
+                  <div className="text-white hidden lg:block">
+                    <div className="font-medium text-sm truncate max-w-[150px]">{currentUser?.displayName || currentUser?.name || 'Member'}</div>
                     <div className="text-xs text-primary-100">Premium Member</div>
                   </div>
                 </div>
@@ -1165,21 +1180,34 @@ const MemberPortal = () => {
           </div>
         </div>
 
-        <div className="container-custom py-8">
-          <div className="grid lg:grid-cols-4 gap-8">
+        <div className="container-custom py-4 md:py-8">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
             {/* Enhanced Sidebar */}
-            <div className="lg:col-span-1">
-              <nav className="bg-gradient-to-b from-primary-100 via-white to-secondary-50 rounded-2xl shadow-xl p-6 flex flex-col items-center">
-                <div className="w-full space-y-3">
+            <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 lg:inset-y-auto left-0 z-40 lg:z-auto w-64 lg:w-auto lg:flex-1 lg:max-w-xs bg-gradient-to-b from-primary-100 via-white to-secondary-50 lg:rounded-2xl shadow-xl p-4 md:p-6 flex flex-col items-center transition-transform duration-300 ease-in-out lg:transition-none overflow-y-auto`}>
+              {/* Mobile Sidebar Header */}
+              <div className="lg:hidden w-full flex items-center justify-between mb-4 pb-4 border-b border-gray-200 mt-4">
+                <h2 className="text-lg font-bold text-primary-700">Menu</h2>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+              
+              <nav className="w-full flex flex-col flex-1">
+                <div className="w-full space-y-2 md:space-y-3">
                   {memberNavigation.map((item) => (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`flex items-center px-6 py-4 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none group
+                      className={`flex items-center px-4 md:px-6 py-3 md:py-4 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none group
                         ${location.pathname === item.href 
                           ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg transform scale-105' 
                           : 'text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 hover:text-primary-700 hover:shadow-md'
                         }`}
+                      onClick={() => setSidebarOpen(false)} // Close sidebar on mobile after selection
                     >
                       <item.icon className={`w-5 h-5 mr-3 ${location.pathname === item.href ? 'text-white' : 'text-gray-500 group-hover:text-primary-600'}`} />
                       {item.name}
@@ -1188,7 +1216,7 @@ const MemberPortal = () => {
                 </div>
                 
                 {/* Quick Stats - Now Dynamic */}
-                <div className="w-full mt-8 p-4 bg-white/50 rounded-xl border border-white/20">
+                <div className="w-full mt-6 md:mt-8 p-3 md:p-4 bg-white/50 rounded-xl border border-white/20">
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">Quick Stats</h4>
                   {loading ? (
                     <div className="flex justify-center py-2">
@@ -1212,11 +1240,20 @@ const MemberPortal = () => {
                   )}
                 </div>
               </nav>
-            </div>
+            </aside>
+
+            {/* Backdrop for mobile sidebar */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+                style={{ marginTop: 0 }}
+              />
+            )}
 
             {/* Enhanced Main Content */}
-            <div className="lg:col-span-3">
-              <div className="bg-white/80 rounded-3xl shadow-2xl p-8 min-h-[60vh] animate-fade-in">
+            <main className="flex-1 lg:flex-[3] w-full overflow-x-hidden">
+              <div className="bg-white/80 rounded-3xl shadow-2xl p-4 md:p-8 min-h-[60vh] animate-fade-in overflow-x-auto">
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/events" element={<MyEvents />} />
@@ -1227,7 +1264,7 @@ const MemberPortal = () => {
                   <Route path="/support" element={<SupportHelpCenter />} />
                 </Routes>
               </div>
-            </div>
+            </main>
           </div>
         </div>
       </div>

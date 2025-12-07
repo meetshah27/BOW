@@ -84,11 +84,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
-      <div className="container-custom">
-        <div className="flex justify-between items-center h-16">
+      <div className="w-full px-2 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-1 -ml-12">
-            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+          <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
@@ -96,19 +96,22 @@ const Navbar = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-white font-bold text-lg">B</span>
+                <span className="text-white font-bold text-base sm:text-lg">B</span>
               )}
             </div>
-            <span className="text-xl font-bold text-gray-900">Beats of Washington</span>
+            <span className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">
+              <span className="inline lg:hidden">BOW</span>
+              <span className="hidden lg:inline">Beats of Washington</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex flex-1 items-center justify-center space-x-6 lg:space-x-8 xl:space-x-10 px-4">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors duration-200 ${
+                className={`text-xs lg:text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                   isActive(item.href)
                     ? 'text-primary-600 border-b-2 border-primary-600'
                     : 'text-gray-700 hover:text-primary-600'
@@ -120,23 +123,23 @@ const Navbar = () => {
             {/* Donation Button - positioned after Contact */}
             <Link
               to="/donate"
-              className="bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors duration-200"
+              className="bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors duration-200 whitespace-nowrap"
             >
               Donate
             </Link>
           </div>
 
           {/* Desktop Social Media & Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-4 ml-4">
             {/* Social Media Links */}
-            <div className="flex items-center space-x-3 mr-4">
+            <div className="flex items-center space-x-2 lg:space-x-3 mr-2 lg:mr-4">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-gray-600 transition-colors duration-200`}
+                  className={`text-gray-600 hover:text-primary-600 transition-colors duration-200`}
                   title={social.name}
                 >
                   {social.icon()}
@@ -149,20 +152,20 @@ const Navbar = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen((open) => !open)}
-                  className="flex items-center space-x-2 focus:outline-none group"
+                  className="flex items-center space-x-1.5 lg:space-x-2 focus:outline-none group"
                 >
                   <Avatar 
                     user={currentUser} 
                     size="sm" 
                     className="bg-primary-100"
                   />
-                  <span className="text-sm font-medium text-gray-900 group-hover:text-primary-600">
+                  <span className="text-xs lg:text-sm font-medium text-gray-900 group-hover:text-primary-600 hidden lg:inline truncate max-w-[180px] xl:max-w-[220px]">
                     {currentUser.displayName || 
                      (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
                      currentUser.firstName ||
                      currentUser.email}
                   </span>
-                  <svg className="w-4 h-4 ml-1 text-gray-400 group-hover:text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 ml-0.5 lg:ml-1 text-gray-400 group-hover:text-primary-600 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden animate-slide-up backdrop-blur-sm">
@@ -227,8 +230,8 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/login" className="btn-outline text-sm py-2 px-4">
+              <div className="flex items-center space-x-2 lg:space-x-4">
+                <Link to="/login" className="btn-outline text-xs lg:text-sm py-1.5 lg:py-2 px-3 lg:px-4 whitespace-nowrap">
                   Sign In
                 </Link>
               </div>
@@ -236,33 +239,52 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-primary-600 focus:outline-none focus:text-primary-600"
+              className="text-gray-700 hover:text-primary-600 focus:outline-none focus:text-primary-600 transition-colors duration-200 p-2 -mr-2"
+              aria-label="Toggle menu"
+              aria-expanded={isOpen}
             >
-              {isOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              <div className="relative w-6 h-6">
+                <Menu 
+                  className={`absolute inset-0 w-6 h-6 transition-all duration-300 ${isOpen ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`} 
+                />
+                <X 
+                  className={`absolute inset-0 w-6 h-6 transition-all duration-300 ${isOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`} 
+                />
+              </div>
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-              {navigation.map((item) => (
+        <div 
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen 
+              ? 'max-h-[2000px] opacity-100' 
+              : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className={`px-3 pt-3 pb-4 space-y-1 bg-white border-t border-gray-200 transform transition-transform duration-300 ${
+            isOpen ? 'translate-y-0' : '-translate-y-4'
+          }`}>
+              {navigation.map((item, index) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`block px-3 py-2 text-base font-medium transition-colors duration-200 ${
+                  className={`block px-4 py-2.5 text-sm sm:text-base font-medium rounded-lg transition-all duration-300 ease-out transform ${
+                    isOpen 
+                      ? 'translate-x-0 opacity-100' 
+                      : '-translate-x-4 opacity-0'
+                  } ${
                     isActive(item.href)
-                      ? 'text-primary-600 bg-primary-50'
+                      ? 'text-primary-600 bg-primary-50 border-l-4 border-primary-600'
                       : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                   }`}
+                  style={{
+                    transitionDelay: isOpen ? `${index * 30}ms` : '0ms'
+                  }}
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
@@ -272,26 +294,41 @@ const Navbar = () => {
               {/* Mobile Donation Button */}
               <Link
                 to="/donate"
-                className="block mx-3 my-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded-md text-center transition-colors duration-200"
+                className={`block mx-3 my-3 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-3 rounded-lg text-center shadow-md transition-all duration-300 ease-out transform ${
+                  isOpen 
+                    ? 'translate-y-0 opacity-100' 
+                    : 'translate-y-2 opacity-0'
+                }`}
+                style={{
+                  transitionDelay: isOpen ? `${navigation.length * 30 + 50}ms` : '0ms'
+                }}
                 onClick={() => setIsOpen(false)}
               >
                 Donate
               </Link>
               
               {/* Mobile Social Media Links */}
-              <div className="border-t pt-4 mt-4">
-                <div className="px-3 py-2">
-                  <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Follow Us</span>
+              <div className={`border-t border-gray-200 pt-4 mt-4 transition-all duration-300 ease-out transform ${
+                isOpen 
+                  ? 'translate-y-0 opacity-100' 
+                  : 'translate-y-2 opacity-0'
+              }`}
+              style={{
+                transitionDelay: isOpen ? `${navigation.length * 30 + 100}ms` : '0ms'
+              }}>
+                <div className="px-4 py-2">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Follow Us</span>
                 </div>
-                <div className="flex space-x-4 px-3 py-2">
+                <div className="flex space-x-4 px-4 py-2">
                   {socialLinks.map((social) => (
                     <a
                       key={social.name}
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors duration-200`}
+                      className={`flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-primary-100 text-gray-700 hover:text-primary-600 transition-all duration-200`}
                       onClick={() => setIsOpen(false)}
+                      aria-label={social.name}
                     >
                       {social.icon()}
                     </a>
@@ -300,59 +337,66 @@ const Navbar = () => {
               </div>
               
               {/* Mobile Auth Section */}
-              <div className="border-t pt-4 mt-4">
+              <div className={`border-t border-gray-200 pt-4 mt-4 transition-all duration-300 ease-out transform ${
+                isOpen 
+                  ? 'translate-y-0 opacity-100' 
+                  : 'translate-y-2 opacity-0'
+              }`}
+              style={{
+                transitionDelay: isOpen ? `${navigation.length * 30 + 150}ms` : '0ms'
+              }}>
                 {currentUser ? (
                   <div className="space-y-2">
                     {/* Mobile User Info Card */}
-                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg px-4 py-3 mx-3 mb-3">
+                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg px-4 py-3 mx-3 mb-3 shadow-md">
                       <div className="flex items-center space-x-3">
                         <Avatar 
                           user={currentUser} 
                           size="md" 
-                          className="bg-white/20 border-2 border-white/30 ring-2 ring-white/20"
+                          className="bg-white/20 border-2 border-white/30 ring-2 ring-white/20 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-white text-base truncate">
+                          <div className="font-bold text-white text-sm sm:text-base truncate">
                             {currentUser.displayName || 
                              (currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}`.trim() : null) ||
                              currentUser.firstName ||
                              currentUser.email?.split('@')[0]}
                           </div>
-                          <div className="text-sm text-primary-100 truncate">{currentUser.email}</div>
+                          <div className="text-xs sm:text-sm text-primary-100 truncate">{currentUser.email}</div>
                         </div>
                       </div>
                     </div>
                     
                     <button
-                      className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
+                      className="w-full flex items-center px-4 py-3 mx-3 text-sm sm:text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
                       onClick={() => { navigate('/member'); setIsOpen(false); }}
                     >
-                      <User className="w-5 h-5 mr-3 text-primary-600" />
-                      Member Portal
+                      <User className="w-5 h-5 mr-3 text-primary-600 flex-shrink-0" />
+                      <span>Member Portal</span>
                     </button>
                     
                     {currentUser && currentUser.role === 'admin' && (
                       <button
-                        className="w-full flex items-center px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
+                        className="w-full flex items-center px-4 py-3 mx-3 text-sm sm:text-base font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 rounded-lg transition-all duration-150"
                         onClick={() => { navigate('/admin'); setIsOpen(false); }}
                       >
-                        <Shield className="w-5 h-5 mr-3 text-primary-600" />
-                        Admin Portal
+                        <Shield className="w-5 h-5 mr-3 text-primary-600 flex-shrink-0" />
+                        <span>Admin Portal</span>
                       </button>
                     )}
                     <button
-                      className="w-full flex items-center px-4 py-3 mx-3 text-base font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150 mt-2"
+                      className="w-full flex items-center px-4 py-3 mx-3 text-sm sm:text-base font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-all duration-150 mt-2"
                       onClick={() => { signOut(); setIsOpen(false); }}
                     >
-                      <LogOut className="w-5 h-5 mr-3" />
-                      Sign Out
+                      <LogOut className="w-5 h-5 mr-3 flex-shrink-0" />
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Link
                       to="/login"
-                      className="block px-4 py-3 mx-3 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150 text-center"
+                      className="block px-4 py-3 mx-3 text-sm sm:text-base font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150 text-center border border-gray-200"
                       onClick={() => setIsOpen(false)}
                     >
                       Sign In
@@ -362,7 +406,6 @@ const Navbar = () => {
               </div>
             </div>
           </div>
-        )}
       </div>
     </nav>
   );

@@ -38,7 +38,8 @@ import {
   X,
   Mail,
   Star,
-  Quote
+  Quote,
+  ShoppingCart
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
 import VolunteerOpportunityManager from '../components/admin/VolunteerOpportunityManager';
@@ -92,16 +93,28 @@ const formatTimeForDisplay = (timeString) => {
 function SimpleModal({ open, onClose, children }) {
   if (!open) return null;
   return (
-    <div style={{
-      position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100vw', height: '100vh',
-      background: 'rgba(0,0,0,0.4)'
-    }} onClick={onClose}>
-      <div style={{
-        background: 'white', borderRadius: 8, maxWidth: 500, margin: '5% auto', padding: 24, position: 'relative'
-      }} onClick={e => e.stopPropagation()}>
-        <button style={{
-          position: 'absolute', top: 8, right: 8, fontWeight: 'bold', fontSize: 18
-        }} onClick={onClose}>×</button>
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto"
+      style={{
+        background: 'rgba(0,0,0,0.4)'
+      }} 
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-lg mx-4 my-8 max-w-lg w-full relative max-h-[90vh] overflow-y-auto"
+        style={{
+          margin: '5% auto',
+          padding: '1.5rem'
+        }} 
+        onClick={e => e.stopPropagation()}
+      >
+        <button 
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
         {children}
       </div>
     </div>
@@ -362,6 +375,20 @@ const EventManagement = () => {
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
   const [registrations, setRegistrations] = useState([]);
   const [loadingRegistrations, setLoadingRegistrations] = useState(false);
+  const [showAddonsModal, setShowAddonsModal] = useState(false);
+  const [eventAddons, setEventAddons] = useState([]);
+  const [loadingAddons, setLoadingAddons] = useState(false);
+  const [showAddonForm, setShowAddonForm] = useState(false);
+  const [editingAddon, setEditingAddon] = useState(null);
+  const [newAddon, setNewAddon] = useState({
+    name: '',
+    price: 0,
+    description: '',
+    stock: '',
+    isFreeWithTicket: false,
+    freeQuantityPerTicket: 0,
+    displayOrder: 0
+  });
 
   // Close dropdown on outside click
   React.useEffect(() => {
@@ -578,6 +605,137 @@ const EventManagement = () => {
       setRegistrations([]);
     } finally {
       setLoadingRegistrations(false);
+    }
+  };
+
+  const handleManageAddons = async (event) => {
+    setSelectedEvent(event);
+    setShowAddonsModal(true);
+    setLoadingAddons(true);
+    try {
+      const response = await api.get(`/events/${event.id || event._id}/addons`);
+      if (!response.ok) throw new Error('Failed to fetch addons');
+      const data = await response.json();
+      setEventAddons(data);
+    } catch (err) {
+      toast.error('Error fetching addons: ' + err.message);
+      setEventAddons([]);
+    } finally {
+      setLoadingAddons(false);
+    }
+  };
+
+  const fetchAddons = async () => {
+    if (!selectedEvent) return;
+    setLoadingAddons(true);
+    try {
+      const response = await api.get(`/events/${selectedEvent.id || selectedEvent._id}/addons`);
+      if (!response.ok) throw new Error('Failed to fetch addons');
+      const data = await response.json();
+      setEventAddons(data);
+    } catch (err) {
+      toast.error('Error fetching addons: ' + err.message);
+    } finally {
+      setLoadingAddons(false);
+    }
+  };
+
+  const handleCreateAddon = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    try {
+      const addonData = {
+        ...newAddon,
+        price: parseFloat(newAddon.price) || 0,
+        stock: newAddon.stock ? parseInt(newAddon.stock) : null,
+        freeQuantityPerTicket: parseInt(newAddon.freeQuantityPerTicket) || 0,
+        displayOrder: parseInt(newAddon.displayOrder) || 0
+      };
+      const response = await api.post(`/events/${selectedEvent.id || selectedEvent._id}/addons`, addonData);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to create addon' }));
+        throw new Error(errorData.details || errorData.error || 'Failed to create addon');
+      }
+      toast.success('Addon created successfully!');
+      setShowAddonForm(false);
+      setNewAddon({
+        name: '',
+        price: 0,
+        description: '',
+        stock: '',
+        isFreeWithTicket: false,
+        freeQuantityPerTicket: 0,
+        displayOrder: 0
+      });
+      await fetchAddons();
+    } catch (err) {
+      toast.error('Error creating addon: ' + err.message);
+    }
+  };
+
+  const handleEditAddon = (addon) => {
+    setEditingAddon(addon);
+    setNewAddon({
+      name: addon.name,
+      price: addon.price,
+      description: addon.description || '',
+      stock: addon.stock !== null ? addon.stock.toString() : '',
+      availableStock: addon.availableStock !== null ? addon.availableStock.toString() : '',
+      isFreeWithTicket: addon.isFreeWithTicket || false,
+      freeQuantityPerTicket: addon.freeQuantityPerTicket || 0,
+      displayOrder: addon.displayOrder || 0
+    });
+    setShowAddonForm(true);
+  };
+
+  const handleUpdateAddon = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent || !editingAddon) return;
+    try {
+      const addonData = {
+        ...newAddon,
+        price: parseFloat(newAddon.price) || 0,
+        stock: newAddon.stock ? parseInt(newAddon.stock) : null,
+        availableStock: newAddon.availableStock ? parseInt(newAddon.availableStock) : null,
+        freeQuantityPerTicket: parseInt(newAddon.freeQuantityPerTicket) || 0,
+        displayOrder: parseInt(newAddon.displayOrder) || 0
+      };
+      const response = await api.put(`/events/${selectedEvent.id || selectedEvent._id}/addons/${editingAddon.id}`, addonData);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update addon' }));
+        throw new Error(errorData.details || errorData.error || 'Failed to update addon');
+      }
+      toast.success('Addon updated successfully!');
+      setShowAddonForm(false);
+      setEditingAddon(null);
+      setNewAddon({
+        name: '',
+        price: 0,
+        description: '',
+        stock: '',
+        isFreeWithTicket: false,
+        freeQuantityPerTicket: 0,
+        displayOrder: 0
+      });
+      await fetchAddons();
+    } catch (err) {
+      toast.error('Error updating addon: ' + err.message);
+    }
+  };
+
+  const handleDeleteAddon = async (addon) => {
+    if (!window.confirm(`Are you sure you want to delete "${addon.name}"?`)) return;
+    if (!selectedEvent) return;
+    try {
+      const response = await api.delete(`/events/${selectedEvent.id || selectedEvent._id}/addons/${addon.id}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to delete addon' }));
+        throw new Error(errorData.details || errorData.error || 'Failed to delete addon');
+      }
+      toast.success('Addon deleted successfully!');
+      await fetchAddons();
+    } catch (err) {
+      toast.error('Error deleting addon: ' + err.message);
     }
   };
 
@@ -968,6 +1126,8 @@ const EventManagement = () => {
                       <button className="text-red-600 hover:text-red-900" onClick={() => handleDelete(event)}><Trash2 className="w-4 h-4" /></button>
                       {/* View Registrations */}
                       <button className="text-green-600 hover:text-green-900" onClick={() => handleViewRegistrations(event)} title="View Registrations"> <Users className="w-4 h-4" /> </button>
+                      {/* Manage Addons */}
+                      <button className="text-purple-600 hover:text-purple-900" onClick={() => handleManageAddons(event)} title="Manage Addons"> <ShoppingCart className="w-4 h-4" /> </button>
                     </div>
                   </td>
                 </tr>
@@ -1092,6 +1252,303 @@ const EventManagement = () => {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      </SimpleModal>
+
+      {/* Event Addons Management Modal */}
+      <SimpleModal open={showAddonsModal} onClose={() => {
+        setShowAddonsModal(false);
+        setShowAddonForm(false);
+        setEditingAddon(null);
+        setEventAddons([]);
+      }}>
+        <div>
+          <h2 style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 12 }}>
+            Manage Addons for {selectedEvent?.title}
+          </h2>
+          
+          {loadingAddons ? (
+            <div>Loading addons...</div>
+          ) : (
+            <>
+              {!showAddonForm ? (
+                <>
+                  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: 14, color: '#6b7280' }}>
+                      {eventAddons.length} addon{eventAddons.length !== 1 ? 's' : ''}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingAddon(null);
+                        setNewAddon({
+                          name: '',
+                          price: 0,
+                          description: '',
+                          stock: '',
+                          isFreeWithTicket: false,
+                          freeQuantityPerTicket: 0,
+                          displayOrder: 0
+                        });
+                        setShowAddonForm(true);
+                      }}
+                      style={{
+                        background: '#8b5cf6',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: 6,
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8
+                      }}
+                    >
+                      <Plus style={{ width: 16, height: 16 }} />
+                      Add New Addon
+                    </button>
+                  </div>
+
+                  <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                    {eventAddons.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                        <ShoppingCart style={{ width: 48, height: 48, margin: '0 auto 16px', opacity: 0.5 }} />
+                        <p>No addons yet. Click "Add New Addon" to create one.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {eventAddons.map((addon) => (
+                          <div
+                            key={addon.id}
+                            style={{
+                              border: '1px solid #e5e7eb',
+                              borderRadius: 8,
+                              padding: 16,
+                              background: '#f9fafb'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                  <h3 style={{ fontWeight: 'bold', fontSize: 16 }}>{addon.name}</h3>
+                                  <span style={{
+                                    background: addon.isFreeWithTicket ? '#dcfce7' : '#dbeafe',
+                                    color: addon.isFreeWithTicket ? '#166534' : '#1e40af',
+                                    padding: '2px 8px',
+                                    borderRadius: 4,
+                                    fontSize: 12,
+                                    fontWeight: 'bold'
+                                  }}>
+                                    {addon.isFreeWithTicket ? 'FREE WITH TICKET' : `$${addon.price.toFixed(2)}`}
+                                  </span>
+                                  {addon.stock !== null && (
+                                    <span style={{
+                                      background: addon.availableStock > 0 ? '#fef3c7' : '#fee2e2',
+                                      color: addon.availableStock > 0 ? '#92400e' : '#991b1b',
+                                      padding: '2px 8px',
+                                      borderRadius: 4,
+                                      fontSize: 12,
+                                      fontWeight: 'bold'
+                                    }}>
+                                      {addon.availableStock > 0 ? `${addon.availableStock} left` : 'SOLD OUT'}
+                                    </span>
+                                  )}
+                                </div>
+                                {addon.description && (
+                                  <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>{addon.description}</p>
+                                )}
+                                <div style={{ fontSize: 12, color: '#9ca3af' }}>
+                                  {addon.isFreeWithTicket && addon.freeQuantityPerTicket > 0 && (
+                                    <span>FREE {addon.freeQuantityPerTicket} per ticket • </span>
+                                  )}
+                                  Display Order: {addon.displayOrder}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button
+                                  onClick={() => handleEditAddon(addon)}
+                                  style={{
+                                    background: '#3b82f6',
+                                    color: 'white',
+                                    padding: '6px 12px',
+                                    borderRadius: 4,
+                                    fontSize: 12,
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  <Edit style={{ width: 14, height: 14 }} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteAddon(addon)}
+                                  style={{
+                                    background: '#dc2626',
+                                    color: 'white',
+                                    padding: '6px 12px',
+                                    borderRadius: 4,
+                                    fontSize: 12,
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  <Trash2 style={{ width: 14, height: 14 }} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <form onSubmit={editingAddon ? handleUpdateAddon : handleCreateAddon} style={{ maxHeight: 500, overflowY: 'auto' }}>
+                  <h3 style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 16 }}>
+                    {editingAddon ? 'Edit Addon' : 'Create New Addon'}
+                  </h3>
+                  
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newAddon.name}
+                      onChange={(e) => setNewAddon({ ...newAddon, name: e.target.value })}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                      placeholder="e.g., Gul-Tilachi Poli"
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={newAddon.price}
+                      onChange={(e) => setNewAddon({ ...newAddon, price: e.target.value })}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>Description</label>
+                    <textarea
+                      value={newAddon.description}
+                      onChange={(e) => setNewAddon({ ...newAddon, description: e.target.value })}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4, minHeight: 80 }}
+                      placeholder="Describe this addon item..."
+                      rows="3"
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>Stock (leave empty for unlimited)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newAddon.stock}
+                      onChange={(e) => setNewAddon({ ...newAddon, stock: e.target.value })}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                      placeholder="e.g., 10"
+                    />
+                    {editingAddon && (
+                      <div style={{ marginTop: 8 }}>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>Available Stock</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={newAddon.availableStock || ''}
+                          onChange={(e) => setNewAddon({ ...newAddon, availableStock: e.target.value })}
+                          style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                          placeholder="Current available stock"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="checkbox"
+                        checked={newAddon.isFreeWithTicket}
+                        onChange={(e) => setNewAddon({ ...newAddon, isFreeWithTicket: e.target.checked })}
+                      />
+                      <span style={{ fontSize: 14, fontWeight: 'bold' }}>Free with ticket purchase</span>
+                    </label>
+                  </div>
+
+                  {newAddon.isFreeWithTicket && (
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>Free Quantity Per Ticket</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={newAddon.freeQuantityPerTicket}
+                        onChange={(e) => setNewAddon({ ...newAddon, freeQuantityPerTicket: e.target.value })}
+                        style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                        placeholder="e.g., 1"
+                      />
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>Display Order (lower numbers appear first)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newAddon.displayOrder}
+                      onChange={(e) => setNewAddon({ ...newAddon, displayOrder: e.target.value })}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 12, marginTop: 24, paddingTop: 16, borderTop: '2px solid #e5e7eb' }}>
+                    <button
+                      type="submit"
+                      style={{
+                        background: '#8b5cf6',
+                        color: 'white',
+                        padding: '10px 20px',
+                        borderRadius: 6,
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        flex: 1
+                      }}
+                    >
+                      {editingAddon ? 'Update Addon' : 'Create Addon'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddonForm(false);
+                        setEditingAddon(null);
+                        setNewAddon({
+                          name: '',
+                          price: 0,
+                          description: '',
+                          stock: '',
+                          isFreeWithTicket: false,
+                          freeQuantityPerTicket: 0,
+                          displayOrder: 0
+                        });
+                      }}
+                      style={{
+                        background: '#e5e7eb',
+                        color: '#111',
+                        padding: '10px 20px',
+                        borderRadius: 6,
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        flex: 1
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </>
           )}
         </div>
       </SimpleModal>
@@ -3188,6 +3645,7 @@ const Analytics = () => {
 
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -3272,14 +3730,26 @@ const AdminPanel = () => {
         <meta name="description" content="Admin panel for managing Beats of Washington events, users, and content." />
       </Helmet>
 
-      <div className="flex min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100">
+      <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100 overflow-x-hidden">
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden bg-white shadow-md p-4 flex items-center justify-between sticky top-0 z-40">
+          <span className="text-xl font-bold text-primary-700">Admin Portal</span>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {sidebarOpen ? <X className="w-6 h-6" /> : <LayoutDashboard className="w-6 h-6" />}
+          </button>
+        </div>
+
         {/* Enhanced Sidebar */}
-        <aside className="w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl">
+        <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl transition-transform duration-300 ease-in-out md:transition-none`}>
           <div className="h-20 flex items-center justify-center border-b">
             <span className="text-2xl font-bold text-primary-700">Admin Portal</span>
           </div>
-          <nav className="flex-1 py-6">
-            <ul className="space-y-2">
+          <nav className="flex-1 py-6 overflow-y-auto">
+            <ul className="space-y-2 px-2">
               {navigation.map((section) => (
                 <li key={section.name}>
                   <button
@@ -3288,7 +3758,10 @@ const AdminPanel = () => {
                         ? 'bg-gradient-to-r from-primary-600 to-orange-500 text-white shadow-lg transform scale-105' 
                         : 'hover:bg-gradient-to-r hover:from-primary-50 hover:to-orange-50 hover:text-primary-700 hover:shadow-md'
                       }`}
-                    onClick={() => setActiveSection(section.name.toLowerCase())}
+                    onClick={() => {
+                      setActiveSection(section.name.toLowerCase());
+                      setSidebarOpen(false); // Close sidebar on mobile after selection
+                    }}
                   >
                     <section.icon className={`w-5 h-5 mr-3 ${activeSection === section.name.toLowerCase() ? 'text-white' : 'text-gray-500 group-hover:text-primary-600'}`} />
                     {section.name}
@@ -3304,9 +3777,18 @@ const AdminPanel = () => {
             </button>
           </div>
         </aside>
+
+        {/* Backdrop for mobile sidebar */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Enhanced Main Content */}
-        <main className="flex-1 p-8">
-          <div className="bg-white/80 rounded-3xl shadow-2xl p-8 min-h-[60vh] animate-fade-in">
+        <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
+          <div className="bg-white/80 rounded-3xl shadow-2xl p-4 md:p-8 min-h-[60vh] animate-fade-in overflow-x-auto">
             {renderSection()}
           </div>
         </main>

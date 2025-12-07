@@ -720,6 +720,61 @@
   animation: sponsor-scroll 13s linear infinite;
 }
 
+/* Mobile-specific faster animation for sponsors */
+/* With 6 copies, we animate -16.66% (1/6) to create seamless loop */
+@keyframes sponsor-scroll-mobile {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-16.666%); }
+}
+
+.animate-sponsor-scroll-mobile {
+  animation: sponsor-scroll-mobile 20s linear infinite;
+  will-change: transform;
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation-play-state: running;
+  -webkit-animation-play-state: running;
+}
+
+/* Ensure smooth scrolling on mobile - much slower animation so users can see images */
+@media (max-width: 768px) {
+  .animate-sponsor-scroll-mobile {
+    animation: sponsor-scroll-mobile 25s linear infinite;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+  }
+  
+  /* Ensure sponsors container doesn't wrap and has proper width */
+  .sponsor-card {
+    flex-shrink: 0 !important;
+    min-width: 96px !important;
+    width: auto !important;
+    display: inline-flex !important;
+  }
+  
+  /* Ensure the flex container doesn't wrap and has smooth scrolling */
+  .animate-sponsor-scroll-mobile {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    overflow: visible !important;
+  }
+  
+  /* Force hardware acceleration for smooth scrolling */
+  .animate-sponsor-scroll-mobile {
+    backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .sponsor-card {
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
 @keyframes scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -1388,6 +1443,191 @@ h2.dhol-enhanced:hover {
 
 h2.dhol-enhanced:active {
   transform: scale(0.98);
+}
+
+/* Dot Sputtering Effect for Events Button */
+@keyframes dot-sputter {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--sputter-x), var(--sputter-y)) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.events-button-sputter {
+  position: relative;
+  overflow: visible;
+  min-width: 200px;
+}
+
+/* Create multiple sputtering dots using pseudo-elements */
+.events-button-sputter::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  --sputter-x: -28px;
+  --sputter-y: -22px;
+  animation: dot-sputter 1.6s ease-out infinite;
+}
+
+.events-button-sputter::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  --sputter-x: 32px;
+  --sputter-y: -26px;
+  animation: dot-sputter 1.6s ease-out infinite 0.4s;
+}
+
+/* Additional dots using box-shadow for multiple particles */
+.events-button-sputter {
+  box-shadow: 
+    0 10px 25px rgba(249, 115, 22, 0.3),
+    0 0 0 0 rgba(249, 115, 22, 0.5);
+}
+
+/* Create sputtering effect with multiple animated dots */
+.events-button-sputter::before {
+  box-shadow: 
+    -28px -22px 0 0 rgba(255, 255, 255, 0.95),
+    32px -26px 0 0 rgba(255, 255, 255, 0.9),
+    -24px 28px 0 0 rgba(255, 255, 255, 0.85),
+    36px 24px 0 0 rgba(255, 255, 255, 0.8),
+    -18px -32px 0 0 rgba(255, 255, 255, 0.75),
+    30px 30px 0 0 rgba(255, 255, 255, 0.7);
+}
+
+.events-button-sputter::after {
+  box-shadow: 
+    28px 22px 0 0 rgba(255, 255, 255, 0.95),
+    -32px 26px 0 0 rgba(255, 255, 255, 0.9),
+    24px -28px 0 0 rgba(255, 255, 255, 0.85),
+    -36px -24px 0 0 rgba(255, 255, 255, 0.8),
+    18px 32px 0 0 rgba(255, 255, 255, 0.75),
+    -30px -30px 0 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Continuous sputtering dots - always active */
+.events-button-sputter::before {
+  animation: dot-sputter 1.6s ease-out infinite,
+             blow-particles 0.8s ease-out infinite;
+  box-shadow: 
+    -35px -28px 0 0 rgba(255, 255, 255, 1),
+    40px -32px 0 0 rgba(255, 255, 255, 0.95),
+    -30px 35px 0 0 rgba(255, 255, 255, 0.9),
+    45px 30px 0 0 rgba(255, 255, 255, 0.85),
+    -25px -40px 0 0 rgba(255, 255, 255, 0.8),
+    38px 38px 0 0 rgba(255, 255, 255, 0.75),
+    -20px 25px 0 0 rgba(255, 255, 255, 0.7),
+    42px -20px 0 0 rgba(255, 255, 255, 0.65);
+  width: 5px;
+  height: 5px;
+}
+
+.events-button-sputter::after {
+  animation: dot-sputter 1.6s ease-out infinite 0.4s,
+             blow-particles 0.8s ease-out infinite 0.2s;
+  box-shadow: 
+    35px 28px 0 0 rgba(255, 255, 255, 1),
+    -40px 32px 0 0 rgba(255, 255, 255, 0.95),
+    30px -35px 0 0 rgba(255, 255, 255, 0.9),
+    -45px -30px 0 0 rgba(255, 255, 255, 0.85),
+    25px 40px 0 0 rgba(255, 255, 255, 0.8),
+    -38px -38px 0 0 rgba(255, 255, 255, 0.75),
+    20px -25px 0 0 rgba(255, 255, 255, 0.7),
+    -42px 20px 0 0 rgba(255, 255, 255, 0.65);
+  width: 5px;
+  height: 5px;
+}
+
+/* Faster and more intense on hover */
+.events-button-sputter:hover::before,
+.events-button-sputter:hover::after {
+  animation-duration: 0.6s, 0.5s;
+}
+
+/* Continuous glow and pulse with blowing effect - always active */
+.events-button-sputter {
+  animation: pulse-glow 1.5s ease-in-out infinite, blow-effect 2s ease-in-out infinite;
+}
+
+.events-button-sputter:hover {
+  animation: pulse-glow 1.2s ease-in-out infinite, blow-effect 1.5s ease-in-out infinite;
+  transform: scale(1.05);
+}
+
+@keyframes blow-effect {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  25% {
+    transform: scale(1.03) translateY(-1px);
+    filter: blur(0.5px);
+  }
+  50% {
+    transform: scale(1.06) translateY(-2px);
+    filter: blur(1px);
+  }
+  75% {
+    transform: scale(1.03) translateY(-1px);
+    filter: blur(0.5px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 10px 25px rgba(249, 115, 22, 0.4),
+      0 0 0 0 rgba(249, 115, 22, 0.7),
+      0 0 20px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 20px 45px rgba(249, 115, 22, 0.7),
+      0 0 0 15px rgba(249, 115, 22, 0),
+      0 0 40px rgba(239, 68, 68, 0.6),
+      0 0 60px rgba(220, 38, 38, 0.4);
+  }
+}
+
+/* Wind/blowing particles effect - always active */
+@keyframes blow-particles {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--blow-x), var(--blow-y)) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.events-button-sputter::before {
+  --blow-x: -45px;
+  --blow-y: -35px;
+}
+
+.events-button-sputter::after {
+  --blow-x: 50px;
+  --blow-y: -40px;
 }
 
 /* Small dhol animation for register button */

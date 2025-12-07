@@ -32,7 +32,7 @@ import api from '../config/api';
 let stripePromise = null;
 
 // Stripe-enabled registration form component
-const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegistrationData, onRegister, isRegistering, onClose }) => {
+const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegistrationData, onRegister, isRegistering, onClose, selectedAddons, eventAddons }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [clientSecret, setClientSecret] = useState('');
@@ -40,22 +40,49 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
-    // Create payment intent for paid events
-    if (event.price && event.price !== 'Free' && event.price !== 0) {
+    // Create payment intent for paid events OR if there are paid addons
+    if (event && (isPaidEvent(event.price) || hasPaidAddons(selectedAddons, eventAddons))) {
       createPaymentIntent();
     }
-  }, [event]);
+  }, [event, selectedAddons, eventAddons]);
 
   const createPaymentIntent = async () => {
     try {
-      const unitPrice = parseFloat(event.price.replace('$', '')) * 100; // Convert to cents
-      const totalAmount = unitPrice * registrationData.quantity; // Multiply by quantity
+      const unitPrice = parseEventPrice(event.price) * 100; // Convert to cents
+      let totalAmount = unitPrice * registrationData.quantity; // Multiply by quantity
+      
+      // Add addon prices (excluding free items)
+      const addonsArray = [];
+      if (selectedAddons && eventAddons) {
+        Object.keys(selectedAddons).forEach(addonId => {
+          const quantity = selectedAddons[addonId];
+          if (quantity > 0) {
+            const addon = eventAddons.find(a => a.id === addonId);
+            if (addon && !addon.isFreeWithTicket) {
+              totalAmount += (addon.price * 100 * quantity); // Convert to cents
+              addonsArray.push({ addonId, quantity });
+            } else if (addon && addon.isFreeWithTicket) {
+              // Include free addons in array for tracking
+              addonsArray.push({ addonId, quantity });
+            }
+          }
+        });
+      }
+      
+      // If total amount is 0, don't create payment intent
+      if (totalAmount === 0) {
+        console.log('[Payment] Total amount is 0, skipping payment intent creation');
+        setClientSecret('');
+        return;
+      }
+      
       const response = await api.post(`/events/${event.id}/create-payment-intent`, {
         amount: totalAmount,
         quantity: registrationData.quantity,
         userEmail: currentUser?.email || registrationData.email,
         userName: currentUser?.displayName || registrationData.name,
-        userId: currentUser?.uid || currentUser?.id || `anon_${Date.now()}`
+        userId: currentUser?.uid || currentUser?.id || `anon_${Date.now()}`,
+        addons: addonsArray
       });
 
       if (response.ok) {
@@ -86,11 +113,14 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
       return;
     }
 
-    if (event.price && event.price !== 'Free' && event.price !== 0) {
-      // Handle paid event registration with Stripe
+    // Check if payment is required (paid event OR paid addons)
+    const requiresPayment = isPaidEvent(event.price) || hasPaidAddons(selectedAddons, eventAddons);
+    
+    if (requiresPayment) {
+      // Handle paid registration with Stripe (for paid events or paid addons)
       await handlePaidRegistration();
     } else {
-      // Handle free event registration
+      // Handle free event registration (no paid items)
       await handleFreeRegistration();
     }
   };
@@ -137,55 +167,62 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
     await onRegister();
   };
 
-  const isPaidEvent = event.price && event.price !== 'Free' && event.price !== 0;
+  const isPaidEventValue = isPaidEvent(event.price);
+  const hasPaidAddonsValue = hasPaidAddons(selectedAddons, eventAddons);
+  const requiresPayment = isPaidEventValue || hasPaidAddonsValue;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100 animate-in">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
-                <Ticket className="w-5 h-5 text-white" />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100 animate-in my-4">
+        <div className="p-4 sm:p-5 md:p-6">
+          <div className="flex justify-between items-start mb-4 sm:mb-5 md:mb-6">
+            <div className="flex items-center min-w-0 flex-1 mr-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">Register for Event</h3>
-                <p className="text-sm text-gray-600">{event.title}</p>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Register for Event</h3>
+                <p className="text-xs sm:text-sm text-gray-600 break-words truncate">{event.title}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 flex-shrink-0"
+              aria-label="Close registration modal"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
 
-           {isPaidEvent && (
-             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-               <div className="flex items-center mb-2">
-                 <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
-                 <span className="font-semibold text-blue-900">Payment Required</span>
+           {requiresPayment && (
+             <div className="mb-4 sm:mb-5 md:mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+               <div className="flex items-center mb-1.5 sm:mb-2">
+                 <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mr-1.5 sm:mr-2 flex-shrink-0" />
+                 <span className="text-sm sm:text-base font-semibold text-blue-900 break-words">Payment Required</span>
                </div>
-               <p className="text-blue-700 text-sm">
-                 This event requires a payment of <span className="font-semibold">${event.price}</span> per person
+               <p className="text-xs sm:text-sm text-blue-700 break-words">
+                 {isPaidEventValue && hasPaidAddonsValue 
+                   ? `Event ticket ($${parseEventPrice(event.price).toFixed(2)} per person) + selected items require payment`
+                   : isPaidEventValue
+                   ? `This event requires a payment of $${parseEventPrice(event.price).toFixed(2)} per person`
+                   : 'Selected items require payment'}
                </p>
              </div>
            )}
 
-           {/* Quantity Selector for Paid Events */}
-           {isPaidEvent && (
-             <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-               <div className="flex items-center mb-3">
-                 <Users className="w-5 h-5 text-green-600 mr-2" />
-                 <span className="font-semibold text-green-900">Number of Attendees</span>
+           {/* Quantity Selector for Paid Events or when addons are selected */}
+           {(isPaidEventValue || hasPaidAddonsValue) && (
+             <div className="mb-4 sm:mb-5 md:mb-6 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+               <div className="flex items-center mb-2 sm:mb-3">
+                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-1.5 sm:mr-2 flex-shrink-0" />
+                 <span className="text-sm sm:text-base font-semibold text-green-900 break-words">Number of Attendees</span>
                </div>
-               <div className="flex items-center space-x-4">
-                 <label className="text-sm text-gray-700">Quantity:</label>
+               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                 <label className="text-xs sm:text-sm text-gray-700 flex-shrink-0">Quantity:</label>
                  <select
                    value={registrationData.quantity}
                    onChange={(e) => setRegistrationData({...registrationData, quantity: parseInt(e.target.value)})}
-                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                   className="px-2.5 sm:px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                  >
                    <option value={1}>1 person</option>
                    <option value={2}>2 people</option>
@@ -199,50 +236,114 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                    <option value={10}>10 people</option>
                  </select>
                </div>
-               <div className="mt-3 p-3 bg-white rounded border">
-                 <div className="flex justify-between items-center">
-                   <span className="text-sm text-gray-600">Total Amount:</span>
-                   <span className="font-semibold text-green-700">
-                     ${(parseFloat(event.price.replace('$', '')) * registrationData.quantity).toFixed(2)}
-                   </span>
+                 <div className="mt-2 sm:mt-3 p-3 sm:p-4 bg-white rounded-lg border-2 border-green-200">
+                   <div className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">Order Summary</div>
+                   
+                   {/* Ticket Price */}
+                   <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-200">
+                     <div>
+                       <span className="text-xs sm:text-sm text-gray-700">Event Ticket</span>
+                       <div className="text-xs text-gray-500">
+                         ${typeof event.price === 'number' ? event.price.toFixed(2) : (parseEventPrice(event.price).toFixed(2))} × {registrationData.quantity} {registrationData.quantity === 1 ? 'person' : 'people'}
+                       </div>
+                     </div>
+                     <span className="text-sm sm:text-base font-semibold text-gray-900">
+                       ${(parseEventPrice(event.price) * registrationData.quantity).toFixed(2)}
+                     </span>
+                   </div>
+
+                   {/* Selected Addons */}
+                   {selectedAddons && eventAddons && Object.keys(selectedAddons).some(id => selectedAddons[id] > 0) && (
+                     <div className="mb-2 pb-2 border-b border-gray-200">
+                       <div className="text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">Additional Items:</div>
+                       {Object.keys(selectedAddons).map(addonId => {
+                         const quantity = selectedAddons[addonId];
+                         if (quantity === 0) return null;
+                         const addon = eventAddons.find(a => a.id === addonId);
+                         if (!addon) return null;
+                         
+                         // Show free items with a note
+                         if (addon.isFreeWithTicket) {
+                           return (
+                             <div key={addonId} className="flex justify-between items-center mb-1 text-xs text-gray-600">
+                               <div>
+                                 <span>{addon.name} × {quantity}</span>
+                                 <span className="ml-2 text-green-600 font-semibold">(FREE)</span>
+                               </div>
+                               <span className="text-green-600 font-semibold">$0.00</span>
+                             </div>
+                           );
+                         }
+                         
+                         // Show paid items
+                         return (
+                           <div key={addonId} className="flex justify-between items-center mb-1 text-xs text-gray-700">
+                             <div>
+                               <span className="font-medium">{addon.name}</span>
+                               <span className="text-gray-500 ml-1">× {quantity}</span>
+                             </div>
+                             <span className="font-semibold">${(addon.price * quantity).toFixed(2)}</span>
+                           </div>
+                         );
+                       })}
+                     </div>
+                   )}
+
+                   {/* Total Amount */}
+                   <div className="flex justify-between items-center pt-2 border-t-2 border-green-300">
+                     <span className="text-sm sm:text-base font-bold text-gray-900">Total Amount:</span>
+                     <span className="text-lg sm:text-xl font-bold text-green-700">
+                       ${(() => {
+                         let total = parseEventPrice(event.price) * registrationData.quantity;
+                         if (selectedAddons && eventAddons) {
+                           Object.keys(selectedAddons).forEach(addonId => {
+                             const quantity = selectedAddons[addonId];
+                             if (quantity > 0) {
+                               const addon = eventAddons.find(a => a.id === addonId);
+                               if (addon && !addon.isFreeWithTicket) {
+                                 total += addon.price * quantity;
+                               }
+                             }
+                           });
+                         }
+                         return total.toFixed(2);
+                       })()}
+                     </span>
+                   </div>
                  </div>
-                 <div className="text-xs text-gray-500 mt-1">
-                   ${event.price} × {registrationData.quantity} {registrationData.quantity === 1 ? 'person' : 'people'}
-                 </div>
-               </div>
              </div>
            )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             {currentUser ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={registrationData.name}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={registrationData.email}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                     Full Name *
                   </label>
                   <input
@@ -250,13 +351,13 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                     required
                     value={registrationData.name}
                     onChange={(e) => setRegistrationData({...registrationData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter your full name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                     Email Address *
                   </label>
                   <input
@@ -264,7 +365,7 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                     required
                     value={registrationData.email}
                     onChange={(e) => setRegistrationData({...registrationData, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter your email address"
                   />
                 </div>
@@ -272,7 +373,7 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Phone Number
               </label>
               <input
@@ -280,53 +381,53 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                 value={registrationData.phone || ''}
                 onChange={currentUser ? undefined : (e) => setRegistrationData({...registrationData, phone: e.target.value})}
                 disabled={!!currentUser}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${currentUser ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${currentUser ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-300'}`}
                 placeholder="Enter your phone number (optional)"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Dietary Restrictions
               </label>
               <textarea
                 value={registrationData.dietaryRestrictions}
                 onChange={(e) => setRegistrationData({...registrationData, dietaryRestrictions: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 placeholder="Any dietary restrictions or allergies?"
                 rows="2"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Special Requests
               </label>
               <textarea
                 value={registrationData.specialRequests}
                 onChange={(e) => setRegistrationData({...registrationData, specialRequests: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 placeholder="Any special requests or accommodations needed?"
                 rows="2"
               />
             </div>
 
-            {isPaidEvent && (
-              <div className="border-t pt-4">
-                 <label className="block text-sm font-medium text-gray-700 mb-3">
+            {requiresPayment && (
+              <div className="border-t pt-3 sm:pt-4">
+                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                    Payment Information
                  </label>
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">Card Number</label>
-                    <div className="px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+                    <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
                        <CardNumberElement
                          options={{
                            showIcon: true,
                            disableLink: true,
                            style: {
                              base: {
-                               fontSize: '16px',
+                               fontSize: '14px',
                                color: '#424770',
                                fontFamily: 'system-ui, -apple-system, sans-serif',
                                '::placeholder': {
@@ -342,15 +443,15 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                        />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                     <div>
                       <label className="block text-xs text-gray-600 mb-1">Expiry Date</label>
-                      <div className="px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+                      <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
                          <CardExpiryElement
                            options={{
                              style: {
                                base: {
-                                 fontSize: '16px',
+                                 fontSize: '14px',
                                  color: '#424770',
                                  fontFamily: 'system-ui, -apple-system, sans-serif',
                                  '::placeholder': {
@@ -367,12 +468,12 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                     </div>
                     <div>
                       <label className="block text-xs text-gray-600 mb-1">CVC</label>
-                      <div className="px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+                      <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
                          <CardCvcElement
                            options={{
                              style: {
                                base: {
-                                 fontSize: '16px',
+                                 fontSize: '14px',
                                  color: '#424770',
                                  fontFamily: 'system-ui, -apple-system, sans-serif',
                                  '::placeholder': {
@@ -393,23 +494,37 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
             )}
 
             {validationErrors.general && (
-              <div className="text-red-600 text-sm">{validationErrors.general}</div>
+              <div className="text-red-600 text-xs sm:text-sm break-words">{validationErrors.general}</div>
             )}
 
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="flex-1 py-2.5 sm:py-2 px-4 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
               >
                 Cancel
               </button>
                <button
                  type="submit"
-                 disabled={isRegistering || paymentLoading || (isPaidEvent && !clientSecret)}
-                 className="flex-1 py-2 px-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                 disabled={isRegistering || paymentLoading || (requiresPayment && !clientSecret)}
+                 className="flex-1 py-2.5 sm:py-2 px-4 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors duration-200 break-words"
                >
-                 {paymentLoading ? 'Processing Payment...' : isRegistering ? 'Registering...' : isPaidEvent ? `Pay $${(parseFloat(event.price.replace('$', '')) * registrationData.quantity).toFixed(2)} & Register ${registrationData.quantity} ${registrationData.quantity === 1 ? 'Person' : 'People'}` : 'Register'}
+                 {paymentLoading ? 'Processing Payment...' : isRegistering ? 'Registering...' : requiresPayment ? (() => {
+                   let total = parseEventPrice(event.price) * registrationData.quantity;
+                   if (selectedAddons && eventAddons) {
+                     Object.keys(selectedAddons).forEach(addonId => {
+                       const quantity = selectedAddons[addonId];
+                       if (quantity > 0) {
+                         const addon = eventAddons.find(a => a.id === addonId);
+                         if (addon && !addon.isFreeWithTicket) {
+                           total += addon.price * quantity;
+                         }
+                       }
+                     });
+                   }
+                   return `Pay $${total.toFixed(2)} & Register ${registrationData.quantity} ${registrationData.quantity === 1 ? 'Person' : 'People'}`;
+                 })() : 'Register'}
                </button>
             </div>
           </form>
@@ -417,6 +532,55 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
       </div>
     </div>
   );
+};
+
+// Helper function to safely parse event price (handles both string "$10" and number 10)
+const parseEventPrice = (price) => {
+  if (price === null || price === undefined) return 0;
+  if (typeof price === 'number') return price;
+  if (typeof price === 'string') {
+    // Handle "Free" string
+    if (price.toLowerCase() === 'free') return 0;
+    // Remove $ and any whitespace, then parse
+    const cleaned = price.replace('$', '').trim();
+    return parseFloat(cleaned) || 0;
+  }
+  return 0;
+};
+
+// Helper function to check if event is paid
+const isPaidEvent = (price) => {
+  const parsedPrice = parseEventPrice(price);
+  return parsedPrice > 0;
+};
+
+// Helper function to check if there are any paid addons selected
+const hasPaidAddons = (selectedAddons, eventAddons) => {
+  if (!selectedAddons || !eventAddons) return false;
+  return Object.keys(selectedAddons).some(addonId => {
+    const quantity = selectedAddons[addonId];
+    if (quantity > 0) {
+      const addon = eventAddons.find(a => a.id === addonId);
+      return addon && !addon.isFreeWithTicket && addon.price > 0;
+    }
+    return false;
+  });
+};
+
+// Helper function to calculate total addon price
+const calculateAddonTotal = (selectedAddons, eventAddons) => {
+  if (!selectedAddons || !eventAddons) return 0;
+  let total = 0;
+  Object.keys(selectedAddons).forEach(addonId => {
+    const quantity = selectedAddons[addonId];
+    if (quantity > 0) {
+      const addon = eventAddons.find(a => a.id === addonId);
+      if (addon && !addon.isFreeWithTicket) {
+        total += addon.price * quantity;
+      }
+    }
+  });
+  return total;
 };
 
 const EventDetailsPage = () => {
@@ -443,6 +607,9 @@ const EventDetailsPage = () => {
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
   const [existingRegistration, setExistingRegistration] = useState(null);
   const [logoUrl, setLogoUrl] = useState('');
+  const [eventAddons, setEventAddons] = useState([]);
+  const [selectedAddons, setSelectedAddons] = useState({}); // { addonId: quantity }
+  const [registrationAddons, setRegistrationAddons] = useState([]); // Store addons for the current registration
 
   // Mock event data - in a real app, this would come from your backend
   const mockEvents = [
@@ -532,6 +699,36 @@ const EventDetailsPage = () => {
       }
     };
     fetchEvent();
+  }, [id]);
+
+  // Fetch event addons
+  useEffect(() => {
+    const fetchAddons = async () => {
+      if (!id) return;
+      try {
+        const response = await api.get(`/events/${id}/addons`);
+        if (response.ok) {
+          const data = await response.json();
+          setEventAddons(data || []);
+        } else {
+          // Log detailed error information
+          const errorText = await response.text();
+          console.error('Error fetching addons - Status:', response.status, 'Response:', errorText);
+          // Set empty array on error to prevent UI issues
+          setEventAddons([]);
+        }
+      } catch (err) {
+        console.error('Error fetching addons:', err);
+        console.error('Error details:', {
+          message: err.message,
+          stack: err.stack,
+          eventId: id
+        });
+        // Set empty array on error to prevent UI issues
+        setEventAddons([]);
+      }
+    };
+    fetchAddons();
   }, [id]);
 
   // Fetch logo from about page content
@@ -677,8 +874,27 @@ const EventDetailsPage = () => {
       
        // Calculate payment amount if it's a paid event
        let paymentAmount = 0;
-       if (event.price && event.price !== 'Free' && event.price !== 0) {
-         paymentAmount = parseFloat(event.price.replace('$', '')) * 100 * registrationData.quantity; // Convert to cents and multiply by quantity
+       const eventPrice = parseEventPrice(event.price);
+       if (eventPrice > 0) {
+         paymentAmount = eventPrice * 100 * registrationData.quantity; // Convert to cents and multiply by quantity
+       }
+       
+       // Add addon prices (excluding free items)
+       const addonsArray = [];
+       if (selectedAddons && eventAddons) {
+         Object.keys(selectedAddons).forEach(addonId => {
+           const quantity = selectedAddons[addonId];
+           if (quantity > 0) {
+             const addon = eventAddons.find(a => a.id === addonId);
+             if (addon && !addon.isFreeWithTicket) {
+               paymentAmount += (addon.price * 100 * quantity); // Convert to cents
+               addonsArray.push({ addonId, quantity });
+             } else if (addon && addon.isFreeWithTicket) {
+               // Include free addons in the array for tracking
+               addonsArray.push({ addonId, quantity });
+             }
+           }
+         });
        }
       
       if (currentUser) {
@@ -695,7 +911,8 @@ const EventDetailsPage = () => {
           quantity: registrationData.quantity,
           paymentAmount: paymentAmount,
           paymentIntentId: paymentIntentId,
-          isPaidEvent: paymentAmount > 0
+          isPaidEvent: paymentAmount > 0,
+          addons: addonsArray
         };
         console.log('Registration data for logged-in user:', requestBody);
         // Add auth token if available
@@ -715,13 +932,57 @@ const EventDetailsPage = () => {
           quantity: registrationData.quantity,
           paymentAmount: paymentAmount,
           paymentIntentId: paymentIntentId,
-          isPaidEvent: paymentAmount > 0
+          isPaidEvent: paymentAmount > 0,
+          addons: addonsArray
         };
         console.log('Registration data for guest user:', requestBody);
       }
       const response = await api.post(`/events/${id}/register`, requestBody, { headers });
       if (response.ok) {
         const result = await response.json();
+        // Store addon details for display in confirmation
+        const addonDetails = [];
+        if (selectedAddons && eventAddons) {
+          Object.keys(selectedAddons).forEach(addonId => {
+            const quantity = selectedAddons[addonId];
+            if (quantity > 0) {
+              const addon = eventAddons.find(a => a.id === addonId);
+              if (addon) {
+                addonDetails.push({
+                  id: addon.id,
+                  name: addon.name,
+                  price: addon.price,
+                  quantity: quantity,
+                  isFreeWithTicket: addon.isFreeWithTicket
+                });
+              }
+            }
+          });
+        }
+        // Also check if registration has addon info stored
+        if (result.registration && result.registration.addons && result.registration.addons.length > 0) {
+          // Fetch addon details from stored addon IDs
+          const storedAddonDetails = [];
+          for (const addonItem of result.registration.addons) {
+            const addon = eventAddons.find(a => a.id === addonItem.addonId);
+            if (addon) {
+              storedAddonDetails.push({
+                id: addon.id,
+                name: addon.name,
+                price: addon.price,
+                quantity: addonItem.quantity || 1,
+                isFreeWithTicket: addon.isFreeWithTicket
+              });
+            }
+          }
+          if (storedAddonDetails.length > 0) {
+            setRegistrationAddons(storedAddonDetails);
+          } else {
+            setRegistrationAddons(addonDetails);
+          }
+        } else {
+          setRegistrationAddons(addonDetails);
+        }
         setTicketInfo(result);
         setShowRegistrationModal(false);
         setIsAlreadyRegistered(true);
@@ -800,6 +1061,11 @@ const EventDetailsPage = () => {
 
   const registrationPercentage = (event.registeredCount / event.capacity) * 100;
   const isRegistrationOpen = event.isLive && event.isActive && event.registeredCount < event.capacity;
+  
+  // Calculate if payment is required (paid event OR paid addons)
+  const isPaidEventValue = event ? isPaidEvent(event.price) : false;
+  const hasPaidAddonsValue = hasPaidAddons(selectedAddons, eventAddons);
+  const requiresPayment = isPaidEventValue || hasPaidAddonsValue;
 
   const copyTicketToClipboard = async () => {
     if (ticketInfo?.ticketNumber) {
@@ -944,7 +1210,7 @@ const EventDetailsPage = () => {
 
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="relative h-96">
+        <div className="relative h-64 sm:h-80 md:h-96">
           <img
             src={event.image}
             alt={event.title}
@@ -952,27 +1218,27 @@ const EventDetailsPage = () => {
           />
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
           <div className="absolute inset-0 flex items-center">
-            <div className="container-custom">
+            <div className="container-custom px-4 sm:px-6">
               <div className="max-w-4xl">
-                <Link to="/events" className="inline-flex items-center text-white hover:text-gray-200 mb-4">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                <Link to="/events" className="inline-flex items-center text-white hover:text-gray-200 mb-3 sm:mb-4 text-sm sm:text-base">
+                  <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   Back to Events
                 </Link>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 break-words px-2">
                   {event.title}
                 </h1>
-                <div className="flex flex-wrap items-center gap-4 text-white">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-white text-xs sm:text-sm md:text-base px-2">
                   <div className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    {event.date}
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="break-words">{event.date}</span>
                   </div>
                   <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
-                    {event.time}
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="break-words">{event.time}</span>
                   </div>
                   <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    {event.location}
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="break-words">{event.location}</span>
                   </div>
                 </div>
               </div>
@@ -980,15 +1246,15 @@ const EventDetailsPage = () => {
           </div>
         </div>
 
-        <div className="container-custom py-12">
-          <div className="grid lg:grid-cols-3 gap-8">
+        <div className="container-custom py-8 sm:py-10 md:py-12 px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
               {/* Event Details Section */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-primary-500 hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border-l-4 border-primary-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center min-w-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-3 sm:mr-4 overflow-hidden flex-shrink-0">
                       {logoUrl ? (
                         <img 
                           src={logoUrl} 
@@ -996,41 +1262,41 @@ const EventDetailsPage = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <Star className="w-5 h-5 text-white" />
+                        <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       )}
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Event Details</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">Event Details</h2>
                   </div>
-                  <div className="flex space-x-2">
-                    <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors hover:bg-primary-50 rounded-lg">
-                      <Share2 className="w-5 h-5" />
+                  <div className="flex space-x-1.5 sm:space-x-2 flex-shrink-0">
+                    <button className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 transition-colors hover:bg-primary-50 rounded-lg" aria-label="Share event">
+                      <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <button className="p-2 text-gray-600 hover:text-red-600 transition-colors hover:bg-red-50 rounded-lg">
-                      <Heart className="w-5 h-5" />
+                    <button className="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 transition-colors hover:bg-red-50 rounded-lg" aria-label="Like event">
+                      <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 </div>
 
                 <div className="prose max-w-none">
-                  <div className="whitespace-pre-line text-gray-700 leading-relaxed bg-gray-50 p-6 rounded-lg border-l-4 border-primary-200">
+                  <div className="whitespace-pre-line text-sm sm:text-base text-gray-700 leading-relaxed bg-gray-50 p-4 sm:p-5 md:p-6 rounded-lg border-l-4 border-primary-200 break-words">
                     {event.longDescription || event.description}
                   </div>
                 </div>
               </div>
 
               {/* Tags Section */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-secondary-500 hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-white text-sm font-bold">#</span>
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border-l-4 border-secondary-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                    <span className="text-white text-xs sm:text-sm font-bold">#</span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">Event Tags</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Event Tags</h3>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {event.tags.map((tag, index) => (
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {event.tags && event.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-4 py-2 bg-secondary-100 text-secondary-800 rounded-full text-sm font-medium hover:bg-secondary-200 transition-colors duration-200 cursor-default"
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 bg-secondary-100 text-secondary-800 rounded-full text-xs sm:text-sm font-medium hover:bg-secondary-200 transition-colors duration-200 cursor-default break-words"
                     >
                       {tag}
                     </span>
@@ -1040,11 +1306,126 @@ const EventDetailsPage = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Event Addons Section */}
+              {eventAddons.length > 0 && (
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Available Items</h3>
+                  </div>
+                  
+                  <div className="space-y-3 sm:space-y-4">
+                    {eventAddons.map((addon) => {
+                      const isOutOfStock = addon.stock !== null && addon.availableStock !== null && addon.availableStock <= 0;
+                      const quantity = selectedAddons[addon.id] || 0;
+                      const isFreeWithTicket = addon.isFreeWithTicket && addon.freeQuantityPerTicket > 0;
+                      
+                      return (
+                        <div
+                          key={addon.id}
+                          className={`p-3 sm:p-4 rounded-lg border ${
+                            isOutOfStock ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                          } transition-colors duration-200`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="text-sm sm:text-base font-semibold text-gray-900 break-words">{addon.name}</h4>
+                                {isFreeWithTicket ? (
+                                  <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold">
+                                    FREE {addon.freeQuantityPerTicket} per ticket
+                                  </span>
+                                ) : (
+                                  <span className="text-sm sm:text-base font-bold text-purple-600">
+                                    ${addon.price.toFixed(2)}
+                                  </span>
+                                )}
+                                {addon.stock !== null && addon.availableStock !== null && (
+                                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                    addon.availableStock > 0 
+                                      ? 'bg-yellow-100 text-yellow-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {addon.availableStock > 0 ? `${addon.availableStock} left!` : 'SOLD OUT'}
+                                  </span>
+                                )}
+                              </div>
+                              {addon.description && (
+                                <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words">{addon.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {!isFreeWithTicket && !isOutOfStock && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                onClick={() => {
+                                  if (quantity > 0) {
+                                    setSelectedAddons({ ...selectedAddons, [addon.id]: quantity - 1 });
+                                  }
+                                }}
+                                disabled={quantity === 0}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                  quantity === 0 
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                                }`}
+                              >
+                                −
+                              </button>
+                              <span className="text-sm sm:text-base font-semibold text-gray-900 min-w-[2rem] text-center">
+                                {quantity}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  const maxQty = addon.stock !== null && addon.availableStock !== null 
+                                    ? addon.availableStock 
+                                    : 999;
+                                  if (quantity < maxQty) {
+                                    setSelectedAddons({ ...selectedAddons, [addon.id]: quantity + 1 });
+                                  }
+                                }}
+                                disabled={addon.stock !== null && addon.availableStock !== null && quantity >= addon.availableStock}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                  (addon.stock !== null && addon.availableStock !== null && quantity >= addon.availableStock)
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                                }`}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Total Addon Price */}
+                    {Object.keys(selectedAddons).some(id => selectedAddons[id] > 0) && (
+                      <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-semibold text-purple-900">Addon Total:</span>
+                          <span className="text-base font-bold text-purple-700">
+                            ${Object.keys(selectedAddons).reduce((total, addonId) => {
+                              const addon = eventAddons.find(a => a.id === addonId);
+                              if (!addon || addon.isFreeWithTicket) return total;
+                              return total + (addon.price * selectedAddons[addonId]);
+                            }, 0).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Registration Section */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mr-2 sm:mr-3 overflow-hidden flex-shrink-0">
                     {event.image ? (
                       <img
                         src={event.image}
@@ -1053,54 +1434,60 @@ const EventDetailsPage = () => {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                        <Ticket className="w-4 h-4 text-white" />
+                        <Ticket className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">Registration</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Registration</h3>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Price:</span>
-                    <span className="font-semibold text-gray-900">{event.price}</span>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex justify-between items-center p-2.5 sm:p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm sm:text-base text-gray-600">Price:</span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900 break-words">
+                      {parseEventPrice(event.price) === 0 
+                        ? 'Free' 
+                        : typeof event.price === 'number' 
+                          ? `$${event.price.toFixed(2)}` 
+                          : event.price}
+                    </span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Capacity:</span>
-                    <span className="font-semibold text-gray-900">{event.capacity}</span>
+                  <div className="flex justify-between items-center p-2.5 sm:p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm sm:text-base text-gray-600">Capacity:</span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900">{event.capacity}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Registered:</span>
-                    <span className="font-semibold text-gray-900">{event.registeredCount}</span>
+                  <div className="flex justify-between items-center p-2.5 sm:p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm sm:text-base text-gray-600">Registered:</span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900">{event.registeredCount}</span>
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-gray-600">Registration Progress</span>
                       <span className="text-gray-900">{Math.round(registrationPercentage)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
                       <div 
-                        className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 ease-out"
+                        className="bg-gradient-to-r from-green-500 to-green-600 h-2 sm:h-3 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${registrationPercentage}%` }}
                       ></div>
                     </div>
                   </div>
                   
                   {isAlreadyRegistered ? (
-                    <div className="text-center py-4">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="text-center py-3 sm:py-4">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
                         <div className="flex items-center justify-center mb-2">
-                          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                          <span className="text-green-800 font-medium">Already Registered</span>
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-1.5 sm:mr-2 flex-shrink-0" />
+                          <span className="text-sm sm:text-base text-green-800 font-medium break-words">Already Registered</span>
                         </div>
-                        <p className="text-green-700 text-sm">You have successfully registered for this event!</p>
+                        <p className="text-xs sm:text-sm text-green-700 break-words">You have successfully registered for this event!</p>
                         {ticketInfo?.ticketNumber && (
-                          <div className="mt-3 p-3 bg-white rounded border">
-                            <p className="text-sm text-gray-600 mb-1">Your Ticket Number:</p>
-                            <p className="font-mono text-sm text-green-700">{ticketInfo.ticketNumber}</p>
+                          <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-white rounded border">
+                            <p className="text-xs sm:text-sm text-gray-600 mb-1">Your Ticket Number:</p>
+                            <p className="font-mono text-xs sm:text-sm text-green-700 break-all">{ticketInfo.ticketNumber}</p>
                           </div>
                         )}
                       </div>
@@ -1108,28 +1495,28 @@ const EventDetailsPage = () => {
                   ) : event.isLive ? (
                     <button 
                       onClick={handleRegistrationClick}
-                      className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 ${
-                        isRegistrationOpen && ((event.price && event.price !== 'Free' && event.price !== 0) ? stripeLoaded : true)
+                      className={`w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 transform hover:scale-105 ${
+                        isRegistrationOpen && (requiresPayment ? stripeLoaded : true)
                           ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                      disabled={!isRegistrationOpen || ((event.price && event.price !== 'Free' && event.price !== 0) && !stripeLoaded)}
+                      disabled={!isRegistrationOpen || (requiresPayment && !stripeLoaded)}
                     >
                       {!isRegistrationOpen 
                         ? 'Registration Full' 
-                        : (event.price && event.price !== 'Free' && event.price !== 0) && !stripeLoaded
+                        : requiresPayment && !stripeLoaded
                         ? 'Loading Payment System...'
                         : 'Register Now'
                       }
                     </button>
                   ) : (
-                    <div className="text-center py-4">
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="text-center py-3 sm:py-4">
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
                         <div className="flex items-center justify-center mb-2">
-                          <Clock className="w-5 h-5 text-yellow-600 mr-2" />
-                          <span className="text-yellow-800 font-medium">Registration Not Open</span>
+                          <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mr-1.5 sm:mr-2 flex-shrink-0" />
+                          <span className="text-sm sm:text-base text-yellow-800 font-medium break-words">Registration Not Open</span>
                         </div>
-                        <p className="text-yellow-700 text-sm">This event is not yet live for registration. Check back later!</p>
+                        <p className="text-xs sm:text-sm text-yellow-700 break-words">This event is not yet live for registration. Check back later!</p>
                       </div>
                     </div>
                   )}
@@ -1137,57 +1524,57 @@ const EventDetailsPage = () => {
               </div>
 
               {/* Event Information Section */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                    <Calendar className="w-4 h-4 text-white" />
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">Event Information</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Event Information</h3>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="flex items-start p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
-                    <Calendar className="w-5 h-5 mr-3 mt-0.5 text-blue-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">{event.date}</p>
-                      <p className="text-sm text-gray-600">{event.time}</p>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-start p-2.5 sm:p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 mt-0.5 text-blue-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-medium text-gray-900 break-words">{event.date}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 break-words">{event.time}</p>
                     </div>
                   </div>
                   
-                                     <div className="flex items-start p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
-                     <MapPin className="w-5 h-5 mr-3 mt-0.5 text-blue-500" />
-                     <div>
-                       <p className="font-medium text-gray-900">{event.location}</p>
-                       <p className="text-sm text-gray-600">{event.address || event.location}</p>
-                     </div>
-                   </div>
+                  <div className="flex items-start p-2.5 sm:p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 mt-0.5 text-blue-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-medium text-gray-900 break-words">{event.location}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 break-words">{event.address || event.location}</p>
+                    </div>
+                  </div>
                   
-                  <div className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
-                    <Users className="w-5 h-5 mr-3 text-blue-500" />
-                    <span className="text-gray-900">{event.organizer}</span>
+                  <div className="flex items-center p-2.5 sm:p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 text-blue-500 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-900 break-words">{event.organizer}</span>
                   </div>
                 </div>
               </div>
 
               {/* Shop Section */}
               {(event.extraUrl1 || event.extraUrl2 || event.extraUrl3) && (
-                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
-                  <div className="flex items-center mb-4">
-                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
-                      <ShoppingCart className="w-4 h-4 text-white" />
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Shop</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Shop</h3>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {event.extraUrl1 && (
-                      <div className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
-                        <Globe className="w-4 h-4 mr-3 text-green-500" />
+                      <div className="flex items-center p-2.5 sm:p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                        <Globe className="w-4 h-4 mr-2 sm:mr-3 text-green-500 flex-shrink-0" />
                         <a 
                           href={event.extraUrl1} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
+                          className="text-xs sm:text-sm text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
                         >
                           {event.extraUrl1}
                         </a>
@@ -1195,13 +1582,13 @@ const EventDetailsPage = () => {
                     )}
                     
                     {event.extraUrl2 && (
-                      <div className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
-                        <Globe className="w-4 h-4 mr-3 text-green-500" />
+                      <div className="flex items-center p-2.5 sm:p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                        <Globe className="w-4 h-4 mr-2 sm:mr-3 text-green-500 flex-shrink-0" />
                         <a 
                           href={event.extraUrl2} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
+                          className="text-xs sm:text-sm text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
                         >
                           {event.extraUrl2}
                         </a>
@@ -1209,13 +1596,13 @@ const EventDetailsPage = () => {
                     )}
                     
                     {event.extraUrl3 && (
-                      <div className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
-                        <Globe className="w-4 h-4 mr-3 text-green-500" />
+                      <div className="flex items-center p-2.5 sm:p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                        <Globe className="w-4 h-4 mr-2 sm:mr-3 text-green-500 flex-shrink-0" />
                         <a 
                           href={event.extraUrl3} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
+                          className="text-xs sm:text-sm text-gray-900 hover:text-green-600 transition-colors duration-200 break-all"
                         >
                           {event.extraUrl3}
                         </a>
@@ -1226,32 +1613,25 @@ const EventDetailsPage = () => {
               )}
 
               {/* Contact Information Section */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                    <Phone className="w-4 h-4 text-white" />
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                    <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">Contact Information</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">Contact Information</h3>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
-                    <Mail className="w-4 h-4 mr-3 text-purple-500" />
-                    <a href="mailto:beatsofredmond@gmail.com" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center p-2.5 sm:p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <Mail className="w-4 h-4 mr-2 sm:mr-3 text-purple-500 flex-shrink-0" />
+                    <a href="mailto:beatsofredmond@gmail.com" className="text-xs sm:text-sm text-gray-900 hover:text-purple-600 transition-colors duration-200 break-all">
                       beatsofredmond@gmail.com
                     </a>
                   </div>
                   
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
-                    <Globe className="w-4 h-4 mr-3 text-purple-500" />
-                    <a href="https://beatsofwashington.com" target="_blank" rel="noopener noreferrer" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
-                      beatsofwashington.com
-                    </a>
-                  </div>
-                  
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
-                    <Phone className="w-4 h-4 mr-3 text-purple-500" />
-                    <a href="tel:+12063699576" className="text-gray-900 hover:text-purple-600 transition-colors duration-200">
+                  <div className="flex items-center p-2.5 sm:p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <Phone className="w-4 h-4 mr-2 sm:mr-3 text-purple-500 flex-shrink-0" />
+                    <a href="tel:+12063699576" className="text-xs sm:text-sm text-gray-900 hover:text-purple-600 transition-colors duration-200">
                       (206) 369-9576
                     </a>
                   </div>
@@ -1264,8 +1644,8 @@ const EventDetailsPage = () => {
 
       {/* Registration Modal */}
       {showRegistrationModal && (
-        (event.price && event.price !== 'Free' && event.price !== 0 && stripeLoaded) || 
-        (!event.price || event.price === 'Free' || event.price === 0)
+        (requiresPayment && stripeLoaded) || 
+        !requiresPayment
       ) && (
         <Elements stripe={stripePromise}>
           <StripeRegistrationForm
@@ -1276,16 +1656,18 @@ const EventDetailsPage = () => {
             onRegister={handleRegistration}
             isRegistering={isRegistering}
             onClose={() => setShowRegistrationModal(false)}
+            selectedAddons={selectedAddons}
+            eventAddons={eventAddons}
           />
         </Elements>
       )}
 
       {/* Ticket Success Modal */}
       {ticketInfo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 animate-in">
-            <div className="p-6 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-6 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 animate-in my-4">
+            <div className="p-4 sm:p-5 md:p-6 text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg overflow-hidden">
                 {logoUrl ? (
                   <img 
                     src={logoUrl} 
@@ -1293,16 +1675,16 @@ const EventDetailsPage = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <CheckCircle className="w-10 h-10 text-white" />
+                  <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 )}
               </div>
-               <h3 className="text-2xl font-bold text-gray-900 mb-2">
+               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 px-2 break-words">
                  {ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'pending' 
                    ? 'Registration Pending!' 
                    : 'Registration Successful!'
                  }
                </h3>
-               <p className="text-gray-600 mb-6">
+               <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 px-2 break-words">
                  {ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'pending'
                    ? `Your registration for ${ticketInfo.registration?.quantity || 1} ${(ticketInfo.registration?.quantity || 1) === 1 ? 'person' : 'people'} is being processed. You will receive a confirmation email once payment is confirmed.`
                    : `Your ticket for ${ticketInfo.registration?.quantity || 1} ${(ticketInfo.registration?.quantity || 1) === 1 ? 'person' : 'people'} has been generated and sent to your email.`
@@ -1311,72 +1693,122 @@ const EventDetailsPage = () => {
               
                {/* Payment Information for Paid Events */}
                {ticketInfo.registration?.paymentAmount > 0 && (
-                 <div className={`rounded-lg p-4 mb-4 border ${
+                 <div className={`rounded-lg p-4 sm:p-5 mb-3 sm:mb-4 border-2 ${
                    ticketInfo.registration.paymentStatus === 'pending' 
-                     ? 'bg-yellow-50 border-yellow-200' 
-                     : 'bg-blue-50 border-blue-200'
+                     ? 'bg-yellow-50 border-yellow-300' 
+                     : 'bg-blue-50 border-blue-300'
                  }`}>
-                   <div className="flex items-center justify-center mb-2">
-                     <CreditCard className={`w-5 h-5 mr-2 ${
+                   <div className="flex items-center justify-center mb-3">
+                     <CreditCard className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 flex-shrink-0 ${
                        ticketInfo.registration.paymentStatus === 'pending' ? 'text-yellow-600' : 'text-blue-600'
                      }`} />
-                     <span className={`font-semibold ${
+                     <span className={`text-base sm:text-lg font-bold break-words ${
                        ticketInfo.registration.paymentStatus === 'pending' ? 'text-yellow-900' : 'text-blue-900'
                      }`}>
                        {ticketInfo.registration.paymentStatus === 'pending' ? 'Payment Processing' : 'Payment Confirmed'}
                      </span>
                    </div>
-                   <p className={`text-sm ${
-                     ticketInfo.registration.paymentStatus === 'pending' ? 'text-yellow-700' : 'text-blue-700'
-                   }`}>
-                     Amount: <span className="font-semibold">${(ticketInfo.registration.paymentAmount / 100).toFixed(2)}</span>
-                     {ticketInfo.registration.quantity > 1 && (
-                       <span className="text-xs ml-2">
-                         ({ticketInfo.registration.quantity} people)
+                   
+                   {/* Itemized Breakdown */}
+                   <div className="bg-white rounded-lg p-3 sm:p-4 mb-3 border border-gray-200">
+                     <div className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-200">
+                       Payment Breakdown
+                     </div>
+                     
+                     {/* Event Ticket */}
+                     <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                       <div>
+                         <div className="text-sm font-medium text-gray-900">Event Ticket</div>
+                         <div className="text-xs text-gray-500">
+                           {ticketInfo.registration.quantity} {ticketInfo.registration.quantity === 1 ? 'person' : 'people'} × ${parseEventPrice(event.price).toFixed(2)}
+                         </div>
+                       </div>
+                       <span className="text-sm font-semibold text-gray-900">
+                         ${(parseEventPrice(event.price) * ticketInfo.registration.quantity).toFixed(2)}
                        </span>
+                     </div>
+                     
+                     {/* Addon Items */}
+                     {registrationAddons && registrationAddons.length > 0 && (
+                       <>
+                         {registrationAddons.map((addon) => (
+                           <div key={addon.id} className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                             <div>
+                               <div className="text-sm font-medium text-gray-900">
+                                 {addon.name}
+                                 {addon.isFreeWithTicket && (
+                                   <span className="ml-2 text-xs text-green-600 font-semibold">(FREE)</span>
+                                 )}
+                               </div>
+                               <div className="text-xs text-gray-500">
+                                 Quantity: {addon.quantity}
+                               </div>
+                             </div>
+                             <span className="text-sm font-semibold text-gray-900">
+                               {addon.isFreeWithTicket ? (
+                                 <span className="text-green-600">$0.00</span>
+                               ) : (
+                                 `$${(addon.price * addon.quantity).toFixed(2)}`
+                               )}
+                             </span>
+                           </div>
+                         ))}
+                       </>
                      )}
-                   </p>
+                     
+                     {/* Total */}
+                     <div className="flex justify-between items-center pt-2 border-t-2 border-gray-300 mt-2">
+                       <span className="text-base font-bold text-gray-900">Total Amount:</span>
+                       <span className="text-lg font-bold text-green-700">
+                         ${(ticketInfo.registration.paymentAmount / 100).toFixed(2)}
+                       </span>
+                     </div>
+                   </div>
+                   
                    {ticketInfo.registration.paymentIntentId && (
-                     <p className={`text-xs mt-1 ${
-                       ticketInfo.registration.paymentStatus === 'pending' ? 'text-yellow-600' : 'text-blue-600'
-                     }`}>
-                       Transaction ID: {ticketInfo.registration.paymentIntentId}
-                     </p>
+                     <div className="text-center">
+                       <p className={`text-xs break-all ${
+                         ticketInfo.registration.paymentStatus === 'pending' ? 'text-yellow-600' : 'text-blue-600'
+                       }`}>
+                         Transaction ID: {ticketInfo.registration.paymentIntentId.slice(-12)}
+                       </p>
+                     </div>
                    )}
                  </div>
                )}
               
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-6 border border-green-200">
-                <div className="flex items-center justify-center space-x-3">
-                  <Ticket className="w-6 h-6 text-green-600" />
-                  <p className="text-xl font-mono text-green-700 font-bold">{ticketInfo.ticketNumber}</p>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6 border border-green-200">
+                <div className="flex items-center justify-center space-x-2 sm:space-x-3 flex-wrap gap-2">
+                  <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0" />
+                  <p className="text-lg sm:text-xl font-mono text-green-700 font-bold break-all">{ticketInfo.ticketNumber}</p>
                   <button
                     onClick={copyTicketToClipboard}
-                    className="p-2 text-gray-500 hover:text-green-600 transition-all duration-200 hover:bg-green-100 rounded-lg"
+                    className="p-1.5 sm:p-2 text-gray-500 hover:text-green-600 transition-all duration-200 hover:bg-green-100 rounded-lg flex-shrink-0"
                     title="Copy ticket number"
+                    aria-label="Copy ticket number"
                   >
                     {copiedTicket ? (
-                      <Check className="w-5 h-5 text-green-600" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                     ) : (
-                      <Copy className="w-5 h-5" />
+                      <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
                     )}
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">Click the copy button to save your ticket number</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-2 break-words">Click the copy button to save your ticket number</p>
               </div>
               
-               <div className="flex space-x-3">
+               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                  {ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'completed' && (
                    <button
                      onClick={() => generateReceipt()}
-                     className="flex-1 py-3 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+                     className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm sm:text-base font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
                    >
                      Download Receipt
                    </button>
                  )}
               <button
                 onClick={() => setTicketInfo(null)}
-                   className={`py-3 px-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 ${ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'completed' ? 'flex-1' : 'w-full'}`}
+                   className={`py-2.5 sm:py-3 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 text-sm sm:text-base font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 ${ticketInfo.registration?.paymentAmount > 0 && ticketInfo.registration?.paymentStatus === 'completed' ? 'flex-1' : 'w-full'}`}
               >
                 Close
               </button>

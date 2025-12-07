@@ -17,7 +17,14 @@ class Event {
     this.image = data.image;
     this.capacity = data.capacity;
     this.registeredCount = data.registeredCount || 0;
-    this.price = data.price || 0;
+    // Ensure price is always a number
+    if (data.price !== undefined && data.price !== null) {
+      this.price = typeof data.price === 'number' 
+        ? data.price 
+        : (typeof data.price === 'string' ? parseFloat(data.price) || 0 : 0);
+    } else {
+      this.price = 0;
+    }
     this.organizer = data.organizer;
     this.contact = data.contact || {};
     this.extraUrl1 = data.extraUrl1 || '';

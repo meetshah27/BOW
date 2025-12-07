@@ -37,7 +37,7 @@ const LeaderManagement = () => {
     position: '',
     roles: '',
     bio: '',
-    isActive: 'true',
+    isActive: true, // Use boolean for checkbox
     order: 0,
     imageUrl: ''
   });
@@ -99,7 +99,8 @@ const LeaderManagement = () => {
     try {
       const leaderData = {
         ...formData,
-        roles: formData.roles.split(',').map(role => role.trim()).filter(role => role)
+        roles: formData.roles.split(',').map(role => role.trim()).filter(role => role),
+        isActive: formData.isActive ? 'true' : 'false' // Convert boolean to string
       };
 
       const response = await api.post('leaders', leaderData);
@@ -135,12 +136,36 @@ const LeaderManagement = () => {
     try {
       const leaderData = {
         ...formData,
-        roles: formData.roles.split(',').map(role => role.trim()).filter(role => role)
+        roles: formData.roles.split(',').map(role => role.trim()).filter(role => role),
+        isActive: formData.isActive ? 'true' : 'false' // Convert boolean to string
       };
+
+      // Remove imageUrl from leaderData if it's a File (we'll upload it separately)
+      let imageFile = null;
+      if (formData.imageUrl instanceof File) {
+        imageFile = formData.imageUrl;
+        delete leaderData.imageUrl; // Don't send File object in JSON
+      }
 
       const response = await api.put(`leaders/${selectedLeader.id}`, leaderData);
       if (response.ok) {
-        const updatedLeader = await response.json();
+        let updatedLeader = await response.json();
+        
+        // If there's a new image file to upload, upload it after updating the leader
+        if (imageFile) {
+          const formDataForUpload = new FormData();
+          formDataForUpload.append('image', imageFile);
+          
+          const uploadResponse = await api.upload(`leaders/${selectedLeader.id}/upload`, formDataForUpload);
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            updatedLeader = uploadResult.leader;
+          } else {
+            console.error('Image upload failed, but leader was updated');
+            toast.error('Leader updated, but image upload failed');
+          }
+        }
+        
         setLeaders(leaders.map(leader => 
           leader.id === updatedLeader.id ? updatedLeader : leader
         ));
@@ -180,19 +205,31 @@ const LeaderManagement = () => {
       const formData = new FormData();
       formData.append('image', file);
 
+      console.log('Uploading image for leader:', leaderId, 'File:', file.name, 'Size:', file.size);
       const response = await api.upload(`leaders/${leaderId}/upload`, formData);
+      
       if (response.ok) {
         const result = await response.json();
+        console.log('Image upload successful:', result);
         setLeaders(leaders.map(leader => 
           leader.id === leaderId ? result.leader : leader
         ));
         toast.success('Image uploaded successfully');
       } else {
-        throw new Error('Failed to upload image');
+        const errorText = await response.text();
+        console.error('Upload failed with status:', response.status, 'Error:', errorText);
+        let errorMessage = 'Failed to upload image';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error(`Failed to upload image: ${error.message || 'Unknown error'}`);
     } finally {
       setUploadingImage(false);
     }
@@ -246,7 +283,7 @@ const LeaderManagement = () => {
       position: leader.position,
       roles: leader.roles.join(', '),
       bio: leader.bio,
-      isActive: leader.isActive,
+      isActive: leader.isActive === 'true' || leader.isActive === true,
       order: leader.order,
       imageUrl: leader.imageUrl || ''
     });
@@ -264,7 +301,7 @@ const LeaderManagement = () => {
       position: '',
       roles: '',
       bio: '',
-      isActive: 'true',
+      isActive: true, // Use boolean for checkbox
       order: 0,
       imageUrl: ''
     });
@@ -688,6 +725,46 @@ const LeaderManagement = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Brief description of the leader's role and contributions..."
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            setFormData({...formData, imageUrl: e.target.files[0]});
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    {(formData.imageUrl && formData.imageUrl instanceof File) ? (
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={URL.createObjectURL(formData.imageUrl)}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : formData.imageUrl ? (
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={formData.imageUrl}
+                          alt="Current"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.imageUrl && formData.imageUrl instanceof File 
+                      ? 'New image selected. Click Update to upload.' 
+                      : 'Upload a new profile image or leave empty to keep current image'}
+                  </p>
                 </div>
 
                 <div>

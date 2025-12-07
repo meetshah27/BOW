@@ -4,15 +4,17 @@ const verifyCognito = require('../middleware/verifyCognito');
 const syncUserToDynamoDB = require('../middleware/syncUserToDynamoDB');
 
 // Try to use DynamoDB models, fallback to sample data if not available
-let Event, Registration;
+let Event, Registration, EventAddon;
 try {
   Event = require('../models-dynamodb/Event');
   Registration = require('../models-dynamodb/Registration');
-  console.log('✅ Using DynamoDB Event and Registration models');
+  EventAddon = require('../models-dynamodb/EventAddon');
+  console.log('✅ Using DynamoDB Event, Registration, and EventAddon models');
 } catch (error) {
   console.log('⚠️  DynamoDB models not available, using fallback mode');
   Event = null;
   Registration = null;
+  EventAddon = null;
 }
 
 // Sample event data for fallback
@@ -384,7 +386,7 @@ router.post('/:id/register', async (req, res) => {
     }
     
     console.log('[Backend] Final parsed body data:', bodyData);
-    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, quantity, paymentAmount, paymentIntentId, isPaidEvent } = bodyData;
+    const { userId, userEmail, userName, phone, dietaryRestrictions, specialRequests, quantity, paymentAmount, paymentIntentId, isPaidEvent, addons } = bodyData;
     
     // Validate required fields
     if (!userId) {
@@ -409,17 +411,40 @@ router.post('/:id/register', async (req, res) => {
         return res.status(404).json({ message: 'Event not found' });
       }
       
-      // Validate payment requirements based on event price
-      if (event.price > 0) {
+      // Validate payment requirements based on event price OR paid addons
+      const eventPrice = parseFloat(event.price) || 0;
+      const hasPaidAddons = addons && Array.isArray(addons) && addons.length > 0;
+      
+      // Check if any addons are paid (not free)
+      let hasPaidAddonItems = false;
+      if (hasPaidAddons && EventAddon) {
+        for (const addonItem of addons) {
+          try {
+            const addon = await EventAddon.findById(addonItem.addonId);
+            if (addon && !addon.isFreeWithTicket && addon.price > 0) {
+              hasPaidAddonItems = true;
+              break;
+            }
+          } catch (err) {
+            // Continue checking other addons
+          }
+        }
+      }
+      
+      if (eventPrice > 0 || hasPaidAddonItems) {
         if (!paymentIntentId) {
-          console.error('[Backend] Payment intent ID required for paid event');
-          return res.status(400).json({ message: 'Payment is required for paid events' });
+          console.error('[Backend] Payment intent ID required for paid event or paid addons');
+          return res.status(400).json({ message: 'Payment is required for paid events or when purchasing items' });
         }
-        if (!paymentAmount || paymentAmount !== (event.price * 100)) {
-          console.error('[Backend] Payment amount mismatch');
-          return res.status(400).json({ message: 'Payment amount does not match event price' });
+        // For paid events without addons, verify base amount matches
+        if (eventPrice > 0 && !hasPaidAddonItems) {
+          if (!paymentAmount || paymentAmount !== (eventPrice * 100 * quantity)) {
+            console.error('[Backend] Payment amount mismatch');
+            return res.status(400).json({ message: 'Payment amount does not match event price' });
+          }
         }
-        console.log('[Backend] Paid event registration - payment verified');
+        // If there are paid addons, paymentAmount should include both ticket and addons
+        console.log('[Backend] Paid registration - payment verified (event price or addons)');
       } else {
         console.log('[Backend] Free event registration - no payment required');
       }
@@ -478,10 +503,32 @@ router.post('/:id/register', async (req, res) => {
         isPaidEvent: isPaidEvent || false,
         paymentIntentId: paymentIntentId || null,
         paymentStatus: isPaidEvent ? 'pending' : 'none', // Pending for paid events
-        paymentDate: null // Will be set by webhook when payment succeeds
+        paymentDate: null, // Will be set by webhook when payment succeeds
+        
+        // Addon information
+        addons: addons || []
       };
 
       const savedRegistration = await Registration.create(registrationData);
+
+      // Process addons if provided
+      if (addons && Array.isArray(addons) && addons.length > 0 && EventAddon) {
+        for (const addonItem of addons) {
+          try {
+            const addon = await EventAddon.findById(addonItem.addonId);
+            if (addon && addon.eventId === req.params.id && addon.isActive) {
+              // Decrement stock if applicable
+              if (addon.stock !== null) {
+                await addon.decrementStock(addonItem.quantity || 1);
+                console.log(`[Backend] Decremented stock for addon ${addon.name} by ${addonItem.quantity || 1}`);
+              }
+            }
+          } catch (addonError) {
+            console.error(`[Backend] Error processing addon ${addonItem.addonId}:`, addonError);
+            // Don't fail registration if addon processing fails
+          }
+        }
+      }
 
       // Get the actual registration count and update the event
       const actualCount = await Registration.getEventRegistrationCount(req.params.id);
@@ -610,7 +657,7 @@ router.post('/:id/update-payment', async (req, res) => {
 // POST create payment intent for event registration
 router.post('/:id/create-payment-intent', async (req, res) => {
   try {
-    const { amount, userEmail, userName, userId } = req.body;
+    const { amount, userEmail, userName, userId, quantity = 1, addons = [] } = req.body;
     
     // Validate required fields
     if (!amount || amount <= 0) {
@@ -621,16 +668,48 @@ router.post('/:id/create-payment-intent', async (req, res) => {
     }
     
     // Check if event exists
+    let event = null;
     if (Event) {
-      const event = await Event.findById(req.params.id);
+      event = await Event.findById(req.params.id);
       if (!event) {
         return res.status(404).json({ error: 'Event not found' });
       }
-      
-      // Verify the amount matches the event price (amount is in cents, event.price is in dollars)
-      if (event.price * 100 !== amount) {
-        return res.status(400).json({ error: 'Payment amount does not match event price' });
+    }
+    
+    // Calculate total amount including addons
+    let totalAmount = amount; // Base amount from frontend (already includes ticket price * quantity)
+    
+    // Validate and calculate addon prices
+    if (addons && addons.length > 0 && EventAddon) {
+      for (const addonItem of addons) {
+        const addon = await EventAddon.findById(addonItem.addonId);
+        if (!addon || addon.eventId !== req.params.id) {
+          return res.status(400).json({ error: `Invalid addon: ${addonItem.addonId}` });
+        }
+        
+        if (!addon.isActive) {
+          return res.status(400).json({ error: `Addon ${addon.name} is not available` });
+        }
+        
+        // Check stock availability
+        if (addon.stock !== null && addon.availableStock !== null) {
+          if (addon.availableStock < addonItem.quantity) {
+            return res.status(400).json({ error: `Insufficient stock for ${addon.name}. Only ${addon.availableStock} available.` });
+          }
+        }
+        
+        // Add addon price (only if not free with ticket)
+        if (!addon.isFreeWithTicket) {
+          totalAmount += (addon.price * 100 * addonItem.quantity); // Convert to cents
+        }
       }
+    }
+    
+    // Verify the base amount matches the event price (amount is in cents, event.price is in dollars)
+    // But allow if there are paid addons (totalAmount will be recalculated below)
+    const baseEventPrice = (event ? parseFloat(event.price) || 0 : 0) * 100 * quantity;
+    if (event && baseEventPrice !== amount && (!addons || addons.length === 0)) {
+      return res.status(400).json({ error: 'Payment amount does not match event price' });
     }
     
     // Initialize Stripe with secure key management
@@ -672,7 +751,7 @@ router.post('/:id/create-payment-intent', async (req, res) => {
     
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount, // Amount is already in cents from frontend
+      amount: totalAmount, // Total amount including addons in cents
       currency: 'usd',
       metadata: {
         type: 'event_registration',
@@ -681,6 +760,8 @@ router.post('/:id/create-payment-intent', async (req, res) => {
         userEmail,
         userName,
         userId,
+        quantity: quantity.toString(),
+        addons: JSON.stringify(addons || []),
         timestamp: new Date().toISOString()
       },
       automatic_payment_methods: {
@@ -950,7 +1031,7 @@ router.post('/', async (req, res) => {
         category,
         image: image || 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         capacity,
-        price: typeof price === 'number' ? price : 0,
+        price: typeof price === 'number' ? price : (typeof price === 'string' ? parseFloat(price) || 0 : 0),
         organizer: organizer || 'Beats of Washington',
         contact: contact || {
           phone: '(206) 555-0123',
@@ -984,7 +1065,7 @@ router.post('/', async (req, res) => {
         category,
         image: image || 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         capacity,
-        price: typeof price === 'number' ? price : 0,
+        price: typeof price === 'number' ? price : (typeof price === 'string' ? parseFloat(price) || 0 : 0),
         organizer: organizer || 'Beats of Washington',
         contact: contact || {
           phone: '(206) 555-0123',
@@ -1039,6 +1120,13 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ message: 'No update data provided' });
     }
     
+    // Ensure price is always a number
+    if (updateData.price !== undefined) {
+      updateData.price = typeof updateData.price === 'number' 
+        ? updateData.price 
+        : (typeof updateData.price === 'string' ? parseFloat(updateData.price) || 0 : 0);
+    }
+    
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
     
@@ -1064,6 +1152,149 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('[Backend] Delete event error:', error);
     res.status(500).json({ message: 'Failed to delete event' });
+  }
+});
+
+// ========== EVENT ADDONS ROUTES ==========
+
+// GET all addons for an event
+router.get('/:eventId/addons', async (req, res) => {
+  try {
+    console.log('[Backend] Fetching addons for event:', req.params.eventId);
+    console.log('[Backend] EventAddon model available:', !!EventAddon);
+    
+    if (EventAddon) {
+      const addons = await EventAddon.findByEventId(req.params.eventId);
+      console.log('[Backend] Found addons:', addons?.length || 0);
+      res.json(addons || []);
+    } else {
+      console.log('[Backend] EventAddon model not available, returning empty array');
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('[Backend] Error fetching event addons:', error);
+    console.error('[Backend] Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to fetch event addons', details: error.message });
+  }
+});
+
+// POST create a new addon for an event
+router.post('/:eventId/addons', async (req, res) => {
+  try {
+    console.log('[Backend] Creating addon for event:', req.params.eventId);
+    console.log('[Backend] Request body:', req.body);
+    console.log('[Backend] EventAddon model available:', !!EventAddon);
+    
+    if (!EventAddon) {
+      console.error('[Backend] EventAddon model is not available');
+      return res.status(500).json({ error: 'Event addon model not available' });
+    }
+
+    const { name, price, description, stock, isFreeWithTicket, freeQuantityPerTicket, displayOrder } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Addon name is required' });
+    }
+
+    // Verify event exists
+    if (Event) {
+      const event = await Event.findById(req.params.eventId);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+    }
+
+    const addonData = {
+      eventId: req.params.eventId,
+      name,
+      price: parseFloat(price) || 0,
+      description: description || '',
+      stock: stock ? parseInt(stock) : null,
+      availableStock: stock ? parseInt(stock) : null,
+      isFreeWithTicket: isFreeWithTicket || false,
+      freeQuantityPerTicket: freeQuantityPerTicket ? parseInt(freeQuantityPerTicket) : 0,
+      displayOrder: displayOrder ? parseInt(displayOrder) : 0,
+      isActive: true
+    };
+
+    const addon = await EventAddon.create(addonData);
+    res.status(201).json(addon);
+  } catch (error) {
+    console.error('[Backend] Error creating event addon:', error);
+    console.error('[Backend] Error details:', error.message);
+    console.error('[Backend] Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to create event addon',
+      details: error.message || 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
+// PUT update an addon
+router.put('/:eventId/addons/:addonId', async (req, res) => {
+  try {
+    if (!EventAddon) {
+      return res.status(500).json({ error: 'Event addon model not available' });
+    }
+
+    const addon = await EventAddon.findById(req.params.addonId);
+    if (!addon) {
+      return res.status(404).json({ error: 'Addon not found' });
+    }
+
+    if (addon.eventId !== req.params.eventId) {
+      return res.status(400).json({ error: 'Addon does not belong to this event' });
+    }
+
+    const updateData = {};
+    if (req.body.name !== undefined) updateData.name = req.body.name;
+    if (req.body.price !== undefined) updateData.price = parseFloat(req.body.price) || 0;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.stock !== undefined) {
+      updateData.stock = req.body.stock ? parseInt(req.body.stock) : null;
+      // If stock is being updated, also update availableStock if it wasn't explicitly set
+      if (req.body.availableStock === undefined) {
+        updateData.availableStock = updateData.stock;
+      }
+    }
+    if (req.body.availableStock !== undefined) {
+      updateData.availableStock = req.body.availableStock ? parseInt(req.body.availableStock) : null;
+    }
+    if (req.body.isFreeWithTicket !== undefined) updateData.isFreeWithTicket = req.body.isFreeWithTicket;
+    if (req.body.freeQuantityPerTicket !== undefined) updateData.freeQuantityPerTicket = parseInt(req.body.freeQuantityPerTicket) || 0;
+    if (req.body.displayOrder !== undefined) updateData.displayOrder = parseInt(req.body.displayOrder) || 0;
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive;
+
+    await addon.update(updateData);
+    res.json(addon);
+  } catch (error) {
+    console.error('[Backend] Error updating event addon:', error);
+    res.status(500).json({ error: 'Failed to update event addon' });
+  }
+});
+
+// DELETE an addon
+router.delete('/:eventId/addons/:addonId', async (req, res) => {
+  try {
+    if (!EventAddon) {
+      return res.status(500).json({ error: 'Event addon model not available' });
+    }
+
+    const addon = await EventAddon.findById(req.params.addonId);
+    if (!addon) {
+      return res.status(404).json({ error: 'Addon not found' });
+    }
+
+    if (addon.eventId !== req.params.eventId) {
+      return res.status(400).json({ error: 'Addon does not belong to this event' });
+    }
+
+    await addon.delete();
+    res.json({ message: 'Addon deleted successfully' });
+  } catch (error) {
+    console.error('[Backend] Error deleting event addon:', error);
+    res.status(500).json({ error: 'Failed to delete event addon' });
   }
 });
 
