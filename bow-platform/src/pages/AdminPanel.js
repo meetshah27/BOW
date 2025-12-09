@@ -513,6 +513,9 @@ const EventManagement = () => {
       setEvents([...events, created]);
       setShowCreateModal(false);
       toast.success('Event created successfully!');
+      
+      // Automatically open addon management for the newly created event
+      await handleManageAddons(created);
       setNewEvent({
         title: '',
         description: '',
@@ -700,7 +703,7 @@ const EventManagement = () => {
         freeQuantityPerTicket: parseInt(newAddon.freeQuantityPerTicket) || 0,
         displayOrder: parseInt(newAddon.displayOrder) || 0
       };
-      const response = await api.put(`/events/${selectedEvent.id || selectedEvent._id}/addons/${editingAddon.id}`, addonData);
+      const response = await api.put(`/events/${selectedEvent.id || selectedEvent._id}/addons/${editingAddon.id || editingAddon._id}`, addonData);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to update addon' }));
         throw new Error(errorData.details || errorData.error || 'Failed to update addon');
@@ -727,7 +730,7 @@ const EventManagement = () => {
     if (!window.confirm(`Are you sure you want to delete "${addon.name}"?`)) return;
     if (!selectedEvent) return;
     try {
-      const response = await api.delete(`/events/${selectedEvent.id || selectedEvent._id}/addons/${addon.id}`);
+      const response = await api.delete(`/events/${selectedEvent.id || selectedEvent._id}/addons/${addon.id || addon._id}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to delete addon' }));
         throw new Error(errorData.details || errorData.error || 'Failed to delete addon');
@@ -984,7 +987,7 @@ const EventManagement = () => {
               
               <div className="flex space-x-3 pt-4 border-t">
                 <button type="button" className="btn-outline flex-1" onClick={() => setShowCreateModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary flex-1">Create Event</button>
+                <button type="submit" className="btn-primary flex-1">Create Event & Manage Addons</button>
               </div>
             </form>
           </div>
@@ -1319,7 +1322,7 @@ const EventManagement = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {eventAddons.map((addon) => (
                           <div
-                            key={addon.id}
+                            key={addon.id || addon._id}
                             style={{
                               border: '1px solid #e5e7eb',
                               borderRadius: 8,

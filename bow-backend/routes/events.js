@@ -3,15 +3,31 @@ const router = express.Router();
 const verifyCognito = require('../middleware/verifyCognito');
 const syncUserToDynamoDB = require('../middleware/syncUserToDynamoDB');
 
+// Debug middleware to log all requests to events router
+router.use((req, res, next) => {
+  console.log(`[Events Router] ${req.method} ${req.path} - Original URL: ${req.originalUrl}`);
+  next();
+});
+
 // Try to use DynamoDB models, fallback to sample data if not available
 let Event, Registration, EventAddon;
 try {
   Event = require('../models-dynamodb/Event');
   Registration = require('../models-dynamodb/Registration');
-  EventAddon = require('../models-dynamodb/EventAddon');
-  console.log('✅ Using DynamoDB Event, Registration, and EventAddon models');
+  console.log('✅ Using DynamoDB Event and Registration models');
+  
+  try {
+    EventAddon = require('../models-dynamodb/EventAddon');
+    console.log('✅ Using DynamoDB Event, Registration, and EventAddon models');
+  } catch (addonError) {
+    console.error('❌ Failed to load EventAddon model:', addonError.message);
+    console.error('❌ EventAddon error stack:', addonError.stack);
+    EventAddon = null;
+    console.log('⚠️  EventAddon model not available, addon features disabled');
+  }
 } catch (error) {
   console.log('⚠️  DynamoDB models not available, using fallback mode');
+  console.error('❌ Model loading error:', error.message);
   Event = null;
   Registration = null;
   EventAddon = null;
@@ -183,6 +199,128 @@ router.get('/test', (req, res) => {
   res.json({ message: 'Events API is working!' });
 });
 
+// ========== EVENT ADDONS ROUTES (must be before ALL /:id routes) ==========
+
+// GET all addons for an event
+// IMPORTANT: This route MUST be defined before any /:id routes to ensure proper matching
+router.get('/:eventId/addons', async (req, res) => {
+  try {
+    console.log('[Backend] ✅ Addons route matched!');
+    console.log('[Backend] Fetching addons for event:', req.params.eventId);
+    console.log('[Backend] Full URL path:', req.path);
+    console.log('[Backend] EventAddon model available:', !!EventAddon);
+    
+    if (EventAddon) {
+      const addons = await EventAddon.findByEventId(req.params.eventId);
+      console.log('[Backend] Found addons:', addons?.length || 0);
+      res.json(addons || []);
+    } else {
+      console.log('[Backend] EventAddon model not available, returning empty array');
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('[Backend] Error fetching event addons:', error);
+    console.error('[Backend] Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to fetch event addons', details: error.message });
+  }
+});
+
+// POST create a new addon for an event
+router.post('/:eventId/addons', async (req, res) => {
+  try {
+    console.log('[Backend] Creating addon for event:', req.params.eventId);
+    console.log('[Backend] Request body:', req.body);
+    console.log('[Backend] EventAddon model available:', !!EventAddon);
+    
+    if (!EventAddon) {
+      return res.status(500).json({ error: 'Event addon model not available' });
+    }
+
+    const addonData = {
+      eventId: req.params.eventId,
+      name: req.body.name,
+      price: parseFloat(req.body.price) || 0,
+      description: req.body.description || '',
+      stock: req.body.stock !== undefined && req.body.stock !== null ? parseInt(req.body.stock) : null,
+      availableStock: req.body.stock !== undefined && req.body.stock !== null ? parseInt(req.body.stock) : null,
+      isFreeWithTicket: req.body.isFreeWithTicket || false,
+      freeQuantityPerTicket: req.body.freeQuantityPerTicket || 0,
+      displayOrder: req.body.displayOrder || 0,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true
+    };
+
+    const addon = await EventAddon.create(addonData);
+    console.log('[Backend] Addon created successfully:', addon.id);
+    res.status(201).json(addon);
+  } catch (error) {
+    console.error('[Backend] Error creating addon:', error);
+    console.error('[Backend] Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to create addon', details: error.message });
+  }
+});
+
+// PUT update an addon
+router.put('/:eventId/addons/:addonId', async (req, res) => {
+  try {
+    if (!EventAddon) {
+      return res.status(500).json({ error: 'Event addon model not available' });
+    }
+
+    const addon = await EventAddon.findById(req.params.addonId);
+    if (!addon) {
+      return res.status(404).json({ error: 'Addon not found' });
+    }
+
+    if (addon.eventId !== req.params.eventId) {
+      return res.status(400).json({ error: 'Addon does not belong to this event' });
+    }
+
+    const updateData = {
+      name: req.body.name,
+      price: parseFloat(req.body.price) || 0,
+      description: req.body.description || '',
+      stock: req.body.stock !== undefined && req.body.stock !== null ? parseInt(req.body.stock) : null,
+      availableStock: req.body.availableStock !== undefined && req.body.availableStock !== null ? parseInt(req.body.availableStock) : null,
+      isFreeWithTicket: req.body.isFreeWithTicket || false,
+      freeQuantityPerTicket: req.body.freeQuantityPerTicket || 0,
+      displayOrder: req.body.displayOrder || 0,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true
+    };
+
+    const updatedAddon = await addon.update(updateData);
+    res.json(updatedAddon);
+  } catch (error) {
+    console.error('[Backend] Error updating addon:', error);
+    res.status(500).json({ error: 'Failed to update addon', details: error.message });
+  }
+});
+
+// DELETE an addon
+router.delete('/:eventId/addons/:addonId', async (req, res) => {
+  try {
+    if (!EventAddon) {
+      return res.status(500).json({ error: 'Event addon model not available' });
+    }
+
+    const addon = await EventAddon.findById(req.params.addonId);
+    if (!addon) {
+      return res.status(404).json({ error: 'Addon not found' });
+    }
+
+    if (addon.eventId !== req.params.eventId) {
+      return res.status(400).json({ error: 'Addon does not belong to this event' });
+    }
+
+    await EventAddon.delete(req.params.addonId);
+    res.json({ message: 'Addon deleted successfully' });
+  } catch (error) {
+    console.error('[Backend] Error deleting addon:', error);
+    res.status(500).json({ error: 'Failed to delete addon', details: error.message });
+  }
+});
+
+// ========== END EVENT ADDONS ROUTES ==========
+
 // Test endpoint to check registration count
 router.get('/:id/registration-count', async (req, res) => {
   try {
@@ -313,6 +451,18 @@ router.get('/', async (req, res) => {
 
 // GET single event by ID
 router.get('/:id', async (req, res) => {
+  // IMPORTANT: Skip if this is an addons request - it should be handled by the addons route above
+  if (req.path && req.path.endsWith('/addons')) {
+    console.log('[Backend] ⚠️  /:id route received addons request, this should not happen - route order issue!');
+    return res.status(404).json({ 
+      error: 'Not Found', 
+      status: 404, 
+      timestamp: new Date().toISOString(), 
+      path: req.path,
+      message: 'Addons route should have matched first. Check route order.'
+    });
+  }
+  
   try {
     if (Event && Registration) {
       const event = await Event.findById(req.params.id);
@@ -1155,147 +1305,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// ========== EVENT ADDONS ROUTES ==========
-
-// GET all addons for an event
-router.get('/:eventId/addons', async (req, res) => {
-  try {
-    console.log('[Backend] Fetching addons for event:', req.params.eventId);
-    console.log('[Backend] EventAddon model available:', !!EventAddon);
-    
-    if (EventAddon) {
-      const addons = await EventAddon.findByEventId(req.params.eventId);
-      console.log('[Backend] Found addons:', addons?.length || 0);
-      res.json(addons || []);
-    } else {
-      console.log('[Backend] EventAddon model not available, returning empty array');
-      res.json([]);
-    }
-  } catch (error) {
-    console.error('[Backend] Error fetching event addons:', error);
-    console.error('[Backend] Error stack:', error.stack);
-    res.status(500).json({ error: 'Failed to fetch event addons', details: error.message });
-  }
-});
-
-// POST create a new addon for an event
-router.post('/:eventId/addons', async (req, res) => {
-  try {
-    console.log('[Backend] Creating addon for event:', req.params.eventId);
-    console.log('[Backend] Request body:', req.body);
-    console.log('[Backend] EventAddon model available:', !!EventAddon);
-    
-    if (!EventAddon) {
-      console.error('[Backend] EventAddon model is not available');
-      return res.status(500).json({ error: 'Event addon model not available' });
-    }
-
-    const { name, price, description, stock, isFreeWithTicket, freeQuantityPerTicket, displayOrder } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'Addon name is required' });
-    }
-
-    // Verify event exists
-    if (Event) {
-      const event = await Event.findById(req.params.eventId);
-      if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-      }
-    }
-
-    const addonData = {
-      eventId: req.params.eventId,
-      name,
-      price: parseFloat(price) || 0,
-      description: description || '',
-      stock: stock ? parseInt(stock) : null,
-      availableStock: stock ? parseInt(stock) : null,
-      isFreeWithTicket: isFreeWithTicket || false,
-      freeQuantityPerTicket: freeQuantityPerTicket ? parseInt(freeQuantityPerTicket) : 0,
-      displayOrder: displayOrder ? parseInt(displayOrder) : 0,
-      isActive: true
-    };
-
-    const addon = await EventAddon.create(addonData);
-    res.status(201).json(addon);
-  } catch (error) {
-    console.error('[Backend] Error creating event addon:', error);
-    console.error('[Backend] Error details:', error.message);
-    console.error('[Backend] Error stack:', error.stack);
-    res.status(500).json({ 
-      error: 'Failed to create event addon',
-      details: error.message || 'Unknown error',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-});
-
-// PUT update an addon
-router.put('/:eventId/addons/:addonId', async (req, res) => {
-  try {
-    if (!EventAddon) {
-      return res.status(500).json({ error: 'Event addon model not available' });
-    }
-
-    const addon = await EventAddon.findById(req.params.addonId);
-    if (!addon) {
-      return res.status(404).json({ error: 'Addon not found' });
-    }
-
-    if (addon.eventId !== req.params.eventId) {
-      return res.status(400).json({ error: 'Addon does not belong to this event' });
-    }
-
-    const updateData = {};
-    if (req.body.name !== undefined) updateData.name = req.body.name;
-    if (req.body.price !== undefined) updateData.price = parseFloat(req.body.price) || 0;
-    if (req.body.description !== undefined) updateData.description = req.body.description;
-    if (req.body.stock !== undefined) {
-      updateData.stock = req.body.stock ? parseInt(req.body.stock) : null;
-      // If stock is being updated, also update availableStock if it wasn't explicitly set
-      if (req.body.availableStock === undefined) {
-        updateData.availableStock = updateData.stock;
-      }
-    }
-    if (req.body.availableStock !== undefined) {
-      updateData.availableStock = req.body.availableStock ? parseInt(req.body.availableStock) : null;
-    }
-    if (req.body.isFreeWithTicket !== undefined) updateData.isFreeWithTicket = req.body.isFreeWithTicket;
-    if (req.body.freeQuantityPerTicket !== undefined) updateData.freeQuantityPerTicket = parseInt(req.body.freeQuantityPerTicket) || 0;
-    if (req.body.displayOrder !== undefined) updateData.displayOrder = parseInt(req.body.displayOrder) || 0;
-    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive;
-
-    await addon.update(updateData);
-    res.json(addon);
-  } catch (error) {
-    console.error('[Backend] Error updating event addon:', error);
-    res.status(500).json({ error: 'Failed to update event addon' });
-  }
-});
-
-// DELETE an addon
-router.delete('/:eventId/addons/:addonId', async (req, res) => {
-  try {
-    if (!EventAddon) {
-      return res.status(500).json({ error: 'Event addon model not available' });
-    }
-
-    const addon = await EventAddon.findById(req.params.addonId);
-    if (!addon) {
-      return res.status(404).json({ error: 'Addon not found' });
-    }
-
-    if (addon.eventId !== req.params.eventId) {
-      return res.status(400).json({ error: 'Addon does not belong to this event' });
-    }
-
-    await addon.delete();
-    res.json({ message: 'Addon deleted successfully' });
-  } catch (error) {
-    console.error('[Backend] Error deleting event addon:', error);
-    res.status(500).json({ error: 'Failed to delete event addon' });
-  }
-});
+// Addon routes are defined above (line 314) before /:id route
+// Duplicate broken routes removed
 
 module.exports = router; 

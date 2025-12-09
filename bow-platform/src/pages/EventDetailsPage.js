@@ -24,7 +24,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, PaymentRequestButtonElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 import api from '../config/api';
 
@@ -38,6 +38,9 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
   const [clientSecret, setClientSecret] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [paymentRequest, setPaymentRequest] = useState(null);
+  const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
+  const [totalAmountCents, setTotalAmountCents] = useState(0);
 
   useEffect(() => {
     // Create payment intent for paid events OR if there are paid addons
@@ -76,6 +79,9 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
         return;
       }
       
+      // Track total for Payment Request button
+      setTotalAmountCents(Math.round(totalAmount));
+      
       const response = await api.post(`/events/${event.id}/create-payment-intent`, {
         amount: totalAmount,
         quantity: registrationData.quantity,
@@ -96,6 +102,72 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
       toast.error('Failed to initialize payment. Please try again.');
     }
   };
+
+  // Initialize Payment Request (Apple Pay / Google Pay) when Stripe and client secret are ready
+  useEffect(() => {
+    const initPaymentRequest = async () => {
+      if (!stripe || !clientSecret || totalAmountCents <= 0) return;
+
+      const pr = stripe.paymentRequest({
+        country: 'US',
+        currency: 'usd',
+        total: {
+          label: event?.title || 'Event Registration',
+          amount: totalAmountCents
+        },
+        requestPayerName: true,
+        requestPayerEmail: true
+      });
+
+      const result = await pr.canMakePayment();
+      if (result) {
+        setPaymentRequest(pr);
+        setCanUsePaymentRequest(true);
+
+        pr.on('paymentmethod', async (ev) => {
+          try {
+            setPaymentLoading(true);
+
+            // Use the payment method from the wallet to confirm the intent
+            const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+              payment_method: ev.paymentMethod.id,
+              payment_method_options: {
+                card: {
+                  request_three_d_secure: 'automatic'
+                }
+              },
+              receipt_email: currentUser?.email || registrationData.email
+            });
+
+            if (error) {
+              ev.complete('fail');
+              toast.error(error.message || 'Payment failed. Please try again.');
+              setPaymentLoading(false);
+              return;
+            }
+
+            ev.complete('success');
+
+            if (paymentIntent.status === 'succeeded') {
+              await onRegister(paymentIntent.id);
+              toast.success('Payment successful! Registration confirmation will be sent via email.');
+            }
+          } catch (err) {
+            console.error('Payment Request error:', err);
+            ev.complete('fail');
+            toast.error('Payment failed. Please try again.');
+          } finally {
+            setPaymentLoading(false);
+          }
+        });
+      } else {
+        setCanUsePaymentRequest(false);
+        setPaymentRequest(null);
+      }
+    };
+
+    initPaymentRequest();
+  }, [stripe, clientSecret, totalAmountCents, event, currentUser, registrationData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -417,6 +489,22 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                    Payment Information
                  </label>
+                {canUsePaymentRequest && paymentRequest && (
+                  <div className="mb-3">
+                    <PaymentRequestButtonElement
+                      options={{
+                        paymentRequest,
+                        style: {
+                          paymentRequestButton: {
+                            theme: 'dark',
+                            height: '44px'
+                          }
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Pay with Apple Pay / Google Pay</p>
+                  </div>
+                )}
                 <div className="space-y-2.5 sm:space-y-3">
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">Card Number</label>
@@ -718,12 +806,17 @@ const EventDetailsPage = () => {
           setEventAddons([]);
         }
       } catch (err) {
-        console.error('Error fetching addons:', err);
+        console.error('❌ Error fetching addons:', err);
         console.error('Error details:', {
           message: err.message,
           stack: err.stack,
-          eventId: id
+          eventId: id,
+          url: `/events/${id}/addons`
         });
+        // Show user-friendly error
+        if (err.message && !err.message.includes('Failed to fetch')) {
+          console.error('API Error:', err.message);
+        }
         // Set empty array on error to prevent UI issues
         setEventAddons([]);
       }
