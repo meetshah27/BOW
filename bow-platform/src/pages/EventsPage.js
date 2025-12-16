@@ -683,7 +683,16 @@ const EventsPage = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-                {Array.isArray(filteredEvents) && filteredEvents.map((event) => {
+                {Array.isArray(filteredEvents) && filteredEvents
+                  .sort((a, b) => {
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
+                    if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                    if (isNaN(dateA.getTime())) return 1;
+                    if (isNaN(dateB.getTime())) return -1;
+                    return dateB - dateA; // Most recent first
+                  })
+                  .map((event) => {
                   const eventId = `event-${event.id}`;
                   const registrationStatus = getRegistrationStatus(event);
                   const registrationPercentage = (event.registeredCount / event.capacity) * 100;

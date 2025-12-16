@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 
@@ -39,12 +39,14 @@ import StoryDetailsPage from './pages/StoryDetailsPage';
 // Protected Route Component
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
-function AppContent() {
+function AppRoutes() {
   const { confettiTrigger } = useCelebration();
   const { logoUrl } = useLogo();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
-    <Router>
+    <>
       <ScrollToTop />
       <DynamicFavicon logoUrl={logoUrl} />
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -88,7 +90,7 @@ function AppContent() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
-        <Footer />
+        {!isAdminRoute && <Footer />}
       </div>
       
       {/* Confetti Animation */}
@@ -119,6 +121,14 @@ function AppContent() {
           },
         }}
       />
+    </>
+  );
+}
+
+function AppContent() {
+  return (
+    <Router>
+      <AppRoutes />
     </Router>
   );
 }

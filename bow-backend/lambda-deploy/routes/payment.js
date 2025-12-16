@@ -290,6 +290,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                 const emailData = {
                   userName: registration.userName,
                   userEmail: registration.userEmail,
+                  phone: registration.phone || 'N/A',
                   ticketNumber: registration.ticketNumber,
                   eventTitle: event.title,
                   eventDate: event.date,
@@ -297,7 +298,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                   eventLocation: event.location,
                   quantity: registration.quantity || 1,
                   paymentAmount: registration.paymentAmount,
-                  paymentIntentId: registration.paymentIntentId
+                  paymentIntentId: registration.paymentIntentId,
+                  paymentStatus: registration.paymentStatus || 'succeeded',
+                  paymentDate: registration.paymentDate || new Date().toISOString(),
+                  registrationDate: registration.registrationDate || registration.createdAt,
+                  status: registration.status || 'confirmed',
+                  checkInStatus: registration.checkInStatus || 'Not Checked In'
                 };
                 
                 const emailResult = await EmailService.sendEventRegistrationConfirmation(emailData);

@@ -11,7 +11,7 @@ import {
   Star
 } from 'lucide-react';
 import {loadStripe} from '@stripe/stripe-js';
-import {Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements} from '@stripe/react-stripe-js';
+import {Elements, CardNumberElement, CardExpiryElement, CardCvcElement, PaymentRequestButtonElement, useStripe, useElements} from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
 
@@ -26,7 +26,153 @@ function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [clientSecret, setClientSecret] = useState('');
+  const [paymentRequest, setPaymentRequest] = useState(null);
+  const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
+  const [totalAmountCents, setTotalAmountCents] = useState(0);
   const { triggerConfetti } = useCelebration();
+
+  // Create payment intent when amount and donor info are available
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      if (!amount || amount <= 0) {
+        setClientSecret('');
+        setTotalAmountCents(0);
+        return;
+      }
+
+      // Only create payment intent if we have donor info (required for Apple Pay)
+      if (!donorEmail || !donorName) {
+        setClientSecret('');
+        setTotalAmountCents(Math.round(amount * 100));
+        return;
+      }
+
+      const amountCents = Math.round(amount * 100);
+      setTotalAmountCents(amountCents);
+
+      try {
+        const res = await api.post('/payment/create-payment-intent', {
+          amount: amountCents,
+          currency: 'usd',
+          donorEmail: donorEmail,
+          donorName: donorName,
+          isRecurring: false,
+          frequency: 'one-time'
+        });
+
+        if (!res.ok) {
+          throw new Error('Payment intent creation failed');
+        }
+
+        const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        setClientSecret(data.clientSecret);
+      } catch (error) {
+        console.error('Error creating payment intent:', error);
+        setClientSecret('');
+      }
+    };
+
+    createPaymentIntent();
+  }, [amount, donorEmail, donorName]);
+
+  // Initialize Payment Request (Apple Pay / Google Pay) when Stripe and client secret are ready
+  useEffect(() => {
+    const initPaymentRequest = async () => {
+      if (!stripe || !clientSecret || totalAmountCents <= 0) return;
+
+      const pr = stripe.paymentRequest({
+        country: 'US',
+        currency: 'usd',
+        total: {
+          label: 'Donation to Beats of Washington',
+          amount: totalAmountCents
+        },
+        requestPayerName: true,
+        requestPayerEmail: true
+      });
+
+      const result = await pr.canMakePayment();
+      if (result) {
+        setPaymentRequest(pr);
+        setCanUsePaymentRequest(true);
+
+        pr.on('paymentmethod', async (ev) => {
+          try {
+            setLoading(true);
+
+            // Use the payment method from the wallet to confirm the intent
+            const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+              payment_method: ev.paymentMethod.id,
+              payment_method_options: {
+                card: {
+                  request_three_d_secure: 'automatic'
+                }
+              },
+              receipt_email: donorEmail || ev.payerEmail
+            });
+
+            if (error) {
+              ev.complete('fail');
+              toast.error(error.message || 'Payment failed. Please try again.');
+              setLoading(false);
+              return;
+            }
+
+            ev.complete('success');
+
+            if (paymentIntent.status === 'succeeded') {
+              // Custom success toast with logo
+              toast.success(
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {logoUrl ? (
+                      <img 
+                        src={logoUrl} 
+                        alt="BOW Logo" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-bold text-sm">B</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-green-800">Thank you for your donation!</div>
+                    <div className="text-sm text-green-600">Your contribution makes a difference</div>
+                  </div>
+                </div>,
+                {
+                  duration: 5000,
+                  style: {
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '12px',
+                    padding: '16px',
+                  },
+                }
+              );
+              triggerConfetti();
+            }
+          } catch (err) {
+            console.error('Payment Request error:', err);
+            ev.complete('fail');
+            toast.error('Payment failed. Please try again.');
+          } finally {
+            setLoading(false);
+          }
+        });
+      } else {
+        setCanUsePaymentRequest(false);
+        setPaymentRequest(null);
+      }
+    };
+
+    initPaymentRequest();
+  }, [stripe, clientSecret, totalAmountCents, donorEmail, logoUrl, triggerConfetti]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -171,6 +317,36 @@ function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
+      {/* Apple Pay / Google Pay Button */}
+      {canUsePaymentRequest && paymentRequest && (
+        <div className="mb-3 sm:mb-4">
+          <PaymentRequestButtonElement
+            options={{
+              paymentRequest,
+              style: {
+                paymentRequestButton: {
+                  theme: 'dark',
+                  height: '44px'
+                }
+              }
+            }}
+          />
+          <p className="text-xs text-gray-500 mt-1">Pay with Apple Pay / Google Pay</p>
+        </div>
+      )}
+
+      {/* Divider */}
+      {canUsePaymentRequest && paymentRequest && (
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">Or pay with card</span>
+          </div>
+        </div>
+      )}
+
       {/* Card Number */}
       <div>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">

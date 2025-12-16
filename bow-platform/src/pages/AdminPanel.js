@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/common/FileUpload';
 import ImagePlaceholder from '../components/common/ImagePlaceholder';
-import api from '../config/api';
+import api, { buildApiUrl } from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
 import { useCelebration } from '../contexts/CelebrationContext';
 
@@ -1061,7 +1061,16 @@ const EventManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEvents.map((event) => (
+              {filteredEvents
+                .sort((a, b) => {
+                  const dateA = new Date(a.date);
+                  const dateB = new Date(b.date);
+                  if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                  if (isNaN(dateA.getTime())) return 1;
+                  if (isNaN(dateB.getTime())) return -1;
+                  return dateB - dateA; // Most recent first
+                })
+                .map((event) => (
                 <tr key={event.id}>
                   <td className="px-6 py-4 whitespace-nowrap max-w-xs">
                     <div className="text-sm font-medium text-gray-900">{event.title}</div>
@@ -3073,56 +3082,30 @@ const RegistrationManagement = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const downloadPaymentReceipt = (registration) => {
-    if (!registration.paymentAmount || registration.paymentAmount === 0) {
-      return; // No receipt for free events
+  const downloadPaymentReceipt = async (registration) => {
+    try {
+      const receiptUrl = buildApiUrl(`/events/registrations/${registration.eventId}/${registration.userId}/receipt`);
+      const response = await fetch(receiptUrl);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download receipt');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `receipt-${registration.ticketNumber}-${Date.now()}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Receipt downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error('Failed to download receipt');
     }
-
-    // Create a professional receipt content
-    const receiptContent = `
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                              PAYMENT RECEIPT                                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Event Details:
-═══════════════
-Event Name:     ${registration.eventTitle || 'N/A'}
-Event Date:     ${registration.registrationDate ? new Date(registration.registrationDate).toLocaleDateString() : 'N/A'}
-
-Attendee Information:
-══════════════════════
-Name:           ${registration.userName}
-Email:          ${registration.userEmail}
-Phone:          ${registration.phone || 'N/A'}
-Ticket Number:  ${registration.ticketNumber}
-
-Payment Information:
-════════════════════
-Amount:         $${registration.paymentAmount}
-Status:         ${registration.paymentStatus || 'N/A'}
-Payment Method: ${registration.paymentMethod || 'Card'}
-Receipt ID:     ${registration.paymentIntentId || 'N/A'}
-Payment Date:   ${registration.paymentDate ? new Date(registration.paymentDate).toLocaleDateString() : 'N/A'}
-
-Registration Details:
-════════════════════
-Registration Date: ${new Date(registration.registrationDate).toLocaleDateString()}
-Status:            ${registration.status}
-Check-in Status:   ${registration.checkedIn ? 'Checked In' : 'Not Checked In'}
-
-══════════════════════════════════════════════════════════════════════════════
-Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
-This receipt serves as proof of payment for the above event registration.
-    `.trim();
-
-    // Create and download the receipt
-    const blob = new Blob([receiptContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `receipt-${registration.ticketNumber}-${new Date().toISOString().split('T')[0]}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -3437,11 +3420,19 @@ This receipt serves as proof of payment for the above event registration.
                         )}
                       </div>
                     ) : (
-                      <div className="text-center">
+                      <div className="text-center space-y-2">
                         <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Free Event
                         </span>
+                        <button
+                          onClick={() => downloadPaymentReceipt(registration)}
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:text-blue-800 transition-colors duration-200 w-full justify-center"
+                          title="Download Receipt"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Receipt
+                        </button>
                       </div>
                     )}
                   </td>
@@ -3733,7 +3724,7 @@ const AdminPanel = () => {
         <meta name="description" content="Admin panel for managing Beats of Washington events, users, and content." />
       </Helmet>
 
-      <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100 overflow-x-hidden">
+      <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100 overflow-x-hidden md:pt-8">
         {/* Mobile Menu Toggle */}
         <div className="md:hidden bg-white shadow-md p-4 flex items-center justify-between sticky top-0 z-40">
           <span className="text-xl font-bold text-primary-700">Admin Portal</span>
@@ -3747,7 +3738,10 @@ const AdminPanel = () => {
         </div>
 
         {/* Enhanced Sidebar */}
-        <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl transition-transform duration-300 ease-in-out md:transition-none`}>
+        <aside
+          className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl transition-transform duration-300 ease-in-out md:transition-none md:pt-2 md:mt-10`}
+          style={{ height: '100vh' }} /* ensure clickable on mobile; desktop still offset via margin */
+        >
           <div className="h-20 flex items-center justify-center border-b">
             <span className="text-2xl font-bold text-primary-700">Admin Portal</span>
           </div>
@@ -3790,7 +3784,7 @@ const AdminPanel = () => {
         )}
 
         {/* Enhanced Main Content */}
-        <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden md:ml-64 md:pt-1">
           <div className="bg-white/80 rounded-3xl shadow-2xl p-4 md:p-8 min-h-[60vh] animate-fade-in overflow-x-auto">
             {renderSection()}
           </div>

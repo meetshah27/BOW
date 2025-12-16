@@ -267,8 +267,39 @@ class EmailService {
   // Send event registration confirmation email
   static async sendEventRegistrationConfirmation(registrationData) {
     const subject = `Event Registration Confirmed - Beats of Washington`;
-    const htmlContent = this.getEventRegistrationTemplate(registrationData);
-    const textContent = this.getEventRegistrationTextTemplate(registrationData);
+    
+    // Fetch logo from about page settings if not provided
+    let logoUrl = registrationData.logoUrl;
+    if (!logoUrl) {
+      try {
+        const AboutPage = require('../models-dynamodb/AboutPage');
+        const aboutPage = await AboutPage.getSettings();
+        if (aboutPage && aboutPage.logo && aboutPage.logo.trim()) {
+          // Ensure the logo URL is a full URL (starts with http:// or https://)
+          const logo = aboutPage.logo.trim();
+          if (logo.startsWith('http://') || logo.startsWith('https://')) {
+            logoUrl = logo;
+            console.log('[EmailService] Using logo from AboutPage:', logoUrl);
+          } else {
+            console.log('[EmailService] Logo URL is not a full URL, using default:', logo);
+            logoUrl = 'https://bow-platform.s3.amazonaws.com/bow-logo.png';
+          }
+        } else {
+          console.log('[EmailService] No logo found in AboutPage settings, using default');
+          logoUrl = 'https://bow-platform.s3.amazonaws.com/bow-logo.png';
+        }
+      } catch (error) {
+        console.error('[EmailService] Error fetching logo:', error.message);
+        // Use default logo if fetch fails
+        logoUrl = 'https://bow-platform.s3.amazonaws.com/bow-logo.png';
+      }
+    }
+    
+    // Add logo to registration data for template
+    const templateData = { ...registrationData, logoUrl };
+    
+    const htmlContent = this.getEventRegistrationTemplate(templateData);
+    const textContent = this.getEventRegistrationTextTemplate(templateData);
     
     return await this.sendEmail({
       to: registrationData.userEmail,
@@ -537,9 +568,51 @@ The Beats of Washington Team
 
   // Get event registration confirmation email template
   static getEventRegistrationTemplate(registrationData) {
-    const { userName, userEmail, ticketNumber, eventTitle, eventDate, eventTime, eventLocation, quantity, paymentAmount, paymentIntentId } = registrationData;
+    const { 
+      userName, 
+      userEmail, 
+      phone = 'N/A',
+      ticketNumber, 
+      eventTitle, 
+      eventDate, 
+      eventTime, 
+      eventLocation, 
+      quantity, 
+      paymentAmount, 
+      paymentIntentId,
+      paymentStatus = 'pending',
+      paymentDate = null,
+      registrationDate = null,
+      status = 'pending_payment',
+      checkInStatus = 'Not Checked In',
+      logoUrl = 'https://bow-platform.s3.amazonaws.com/bow-logo.png'
+    } = registrationData;
+    
     const isPaidEvent = paymentAmount > 0;
     const formattedAmount = isPaidEvent ? `$${(paymentAmount / 100).toFixed(2)}` : 'Free';
+    const formattedPaymentDate = paymentDate ? new Date(paymentDate).toLocaleString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }) : 'N/A';
+    const formattedRegistrationDate = registrationDate ? new Date(registrationDate).toLocaleString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }) : new Date().toLocaleString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
     
     return `
 <!DOCTYPE html>
@@ -547,89 +620,153 @@ The Beats of Washington Team
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Registration Confirmed - Beats of Washington</title>
+    <title>Payment Receipt - Beats of Washington</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa; }
         .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; }
         .content { padding: 30px; }
-        .ticket-details { background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
-        .ticket-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; }
+        .receipt-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+        .receipt-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; border-bottom: 1px solid #e9ecef; }
+        .receipt-row:last-child { border-bottom: none; }
+        .receipt-label { font-weight: bold; color: #666; }
+        .receipt-value { color: #333; }
         .ticket-number { background: #dcfce7; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #166534; }
         .payment-info { background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6; }
         .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px; }
-        .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
         .thank-you { text-align: center; margin: 30px 0; }
-        .event-details { background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+        .logo-container { text-align: center; margin-bottom: 20px; width: 100%; }
+        .logo-container img { max-width: 200px; width: 100%; height: auto; background: white; padding: 10px; border-radius: 8px; display: block; margin: 0 auto; }
+        @media only screen and (max-width: 600px) {
+            .container { margin: 10px; border-radius: 5px; }
+            .header { padding: 20px 15px; }
+            .content { padding: 20px 15px; }
+            .logo-container img { max-width: 150px; padding: 8px; }
+            .receipt-section { padding: 15px; margin: 15px 0; }
+            .receipt-row { flex-direction: column; }
+            .receipt-label { margin-bottom: 5px; }
+            .payment-info { padding: 15px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://bow-platform.s3.amazonaws.com/bow-logo.png" alt="Beats of Washington Logo" style="max-width: 200px; height: auto; background: white; padding: 10px; border-radius: 8px;">
+            <div class="logo-container">
+                <img src="${logoUrl}" alt="Beats of Washington Logo" onerror="this.style.display='none';">
             </div>
-            <h1>🎉 Registration Confirmed!</h1>
-            <p>You're all set for ${eventTitle}</p>
+            <h1 style="margin: 10px 0;">PAYMENT RECEIPT</h1>
+            <p style="margin: 0;">Beats of Washington</p>
         </div>
         <div class="content">
-            <div class="thank-you">
-                <h2>Thank you, ${userName}!</h2>
-                <p>Your registration has been confirmed. We're excited to see you at the event!</p>
-            </div>
-
-            <div class="ticket-details">
-                <h3>🎫 Your Ticket Information</h3>
-                <div class="ticket-number">${ticketNumber}</div>
-                <div class="ticket-row">
-                    <span><strong>Event:</strong></span>
-                    <span>${eventTitle}</span>
+            <div class="receipt-section">
+                <h3 style="margin-top: 0; color: #10b981;">Event Details:</h3>
+                <div class="receipt-row">
+                    <span class="receipt-label">Event Name:</span>
+                    <span class="receipt-value">${eventTitle}</span>
                 </div>
-                <div class="ticket-row">
-                    <span><strong>Date:</strong></span>
-                    <span>${eventDate}</span>
+                <div class="receipt-row">
+                    <span class="receipt-label">Event Date:</span>
+                    <span class="receipt-value">${eventDate}</span>
                 </div>
-                <div class="ticket-row">
-                    <span><strong>Time:</strong></span>
-                    <span>${eventTime}</span>
-                </div>
-                <div class="ticket-row">
-                    <span><strong>Location:</strong></span>
-                    <span>${eventLocation}</span>
-                </div>
-                <div class="ticket-row">
-                    <span><strong>Number of Attendees:</strong></span>
-                    <span>${quantity} ${quantity === 1 ? 'person' : 'people'}</span>
-                </div>
-            </div>
-
-            ${isPaidEvent ? `
-            <div class="payment-info">
-                <h3>💳 Payment Information</h3>
-                <div class="ticket-row">
-                    <span><strong>Amount Paid:</strong></span>
-                    <span>${formattedAmount}</span>
-                </div>
-                ${paymentIntentId ? `
-                <div class="ticket-row">
-                    <span><strong>Transaction ID:</strong></span>
-                    <span>${paymentIntentId}</span>
+                ${eventTime ? `
+                <div class="receipt-row">
+                    <span class="receipt-label">Event Time:</span>
+                    <span class="receipt-value">${eventTime}</span>
                 </div>
                 ` : ''}
-                <p style="margin-top: 15px; font-size: 14px; color: #666;">
-                    Payment has been processed successfully. Keep this email as your receipt.
+                ${eventLocation ? `
+                <div class="receipt-row">
+                    <span class="receipt-label">Event Location:</span>
+                    <span class="receipt-value">${eventLocation}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <div class="receipt-section">
+                <h3 style="margin-top: 0; color: #10b981;">Attendee Information:</h3>
+                <div class="receipt-row">
+                    <span class="receipt-label">Name:</span>
+                    <span class="receipt-value">${userName}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Email:</span>
+                    <span class="receipt-value">${userEmail}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Phone:</span>
+                    <span class="receipt-value">${phone}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Ticket Number:</span>
+                    <span class="receipt-value">${ticketNumber}</span>
+                </div>
+                ${quantity > 1 ? `
+                <div class="receipt-row">
+                    <span class="receipt-label">Quantity:</span>
+                    <span class="receipt-value">${quantity} tickets</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <div class="payment-info">
+                <h3 style="margin-top: 0; color: #3b82f6;">Payment Information:</h3>
+                <div class="receipt-row">
+                    <span class="receipt-label">Amount:</span>
+                    <span class="receipt-value">${formattedAmount}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Status:</span>
+                    <span class="receipt-value">${paymentStatus}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Payment Method:</span>
+                    <span class="receipt-value">${isPaidEvent ? 'Card' : 'N/A'}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Receipt ID:</span>
+                    <span class="receipt-value">${paymentIntentId || 'N/A'}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Payment Date:</span>
+                    <span class="receipt-value">${formattedPaymentDate}</span>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h3 style="margin-top: 0; color: #10b981;">Registration Details:</h3>
+                <div class="receipt-row">
+                    <span class="receipt-label">Registration Date:</span>
+                    <span class="receipt-value">${formattedRegistrationDate}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Status:</span>
+                    <span class="receipt-value">${status}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Check-in Status:</span>
+                    <span class="receipt-value">${checkInStatus}</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f0fdf4; border-radius: 8px;">
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                    <strong>Generated on:</strong> ${new Date().toLocaleString('en-US', { 
+                      month: '2-digit', 
+                      day: '2-digit', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                </p>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
+                    This receipt serves as proof of payment for the above event registration.
                 </p>
             </div>
-            ` : ''}
 
-            <div class="event-details">
-                <h3>📋 Important Information</h3>
-                <ul>
-                    <li>Please arrive 15 minutes before the event starts</li>
-                    <li>Bring a valid ID for check-in</li>
-                    <li>Save this email or take a screenshot of your ticket number</li>
-                    <li>Contact us if you have any questions or need to make changes</li>
-                </ul>
+            <div class="thank-you">
+                <h2>Thank you for your registration!</h2>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
@@ -656,43 +793,106 @@ The Beats of Washington Team
 
   // Get event registration confirmation text template
   static getEventRegistrationTextTemplate(registrationData) {
-    const { userName, userEmail, ticketNumber, eventTitle, eventDate, eventTime, eventLocation, quantity, paymentAmount, paymentIntentId } = registrationData;
+    const { 
+      userName, 
+      userEmail, 
+      phone = 'N/A',
+      ticketNumber, 
+      eventTitle, 
+      eventDate, 
+      eventTime, 
+      eventLocation, 
+      quantity, 
+      paymentAmount, 
+      paymentIntentId,
+      paymentStatus = 'pending',
+      paymentDate = null,
+      registrationDate = null,
+      status = 'pending_payment',
+      checkInStatus = 'Not Checked In'
+    } = registrationData;
+    
     const isPaidEvent = paymentAmount > 0;
     const formattedAmount = isPaidEvent ? `$${(paymentAmount / 100).toFixed(2)}` : 'Free';
+    const formattedPaymentDate = paymentDate ? new Date(paymentDate).toLocaleString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }) : 'N/A';
+    const formattedRegistrationDate = registrationDate ? new Date(registrationDate).toLocaleString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }) : new Date().toLocaleString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    const receiptId = paymentIntentId ? paymentIntentId : 'N/A';
+    const paymentMethod = isPaidEvent ? 'Card' : 'N/A';
     
     return `
-EVENT REGISTRATION CONFIRMED - BEATS OF WASHINGTON
-[LOGO: Beats of Washington Logo]
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                              PAYMENT RECEIPT                                ║
+║                                                                              ║
+║                          Beats of Washington                               ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-Thank you, ${userName}!
+Event Details:
+═══════════════
+Event Name:      ${eventTitle}
+Event Date:      ${eventDate}
+${eventTime ? `Event Time:      ${eventTime}` : ''}
+${eventLocation ? `Event Location:  ${eventLocation}` : ''}
 
-Your registration has been confirmed. We're excited to see you at the event!
+Attendee Information:
+══════════════════════
+Name:           ${userName}
+Email:          ${userEmail}
+Phone:          ${phone}
+Ticket Number:  ${ticketNumber}
+${quantity > 1 ? `Quantity:        ${quantity} tickets` : ''}
 
-TICKET INFORMATION:
-Ticket Number: ${ticketNumber}
-Event: ${eventTitle}
-Date: ${eventDate}
-Time: ${eventTime}
-Location: ${eventLocation}
-Number of Attendees: ${quantity} ${quantity === 1 ? 'person' : 'people'}
+Payment Information:
+════════════════════
+Amount:         ${formattedAmount}
+Status:         ${paymentStatus}
+Payment Method: ${paymentMethod}
+Receipt ID:     ${receiptId}
+Payment Date:   ${formattedPaymentDate}
 
-${isPaidEvent ? `
-PAYMENT INFORMATION:
-Amount Paid: ${formattedAmount}
-${paymentIntentId ? `Transaction ID: ${paymentIntentId}` : ''}
+Registration Details:
+════════════════════
+Registration Date: ${formattedRegistrationDate}
+Status:            ${status}
+Check-in Status:   ${checkInStatus}
 
-Payment has been processed successfully. Keep this email as your receipt.
-` : ''}
+══════════════════════════════════════════════════════════════════════════════
 
-IMPORTANT INFORMATION:
-- Please arrive 15 minutes before the event starts
-- Bring a valid ID for check-in
-- Save this email or take a screenshot of your ticket number
-- Contact us if you have any questions or need to make changes
+Generated on: ${new Date().toLocaleString('en-US', { 
+  month: '2-digit', 
+  day: '2-digit', 
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true
+})}
 
-CONTACT INFORMATION:
-Email: beatsofredmond@gmail.com
-Phone: (206) 369-9576
+This receipt serves as proof of payment for the above event registration.
+
+Thank you for your registration!
 
 Beats of Washington
 9256 225th Way NE, WA 98053

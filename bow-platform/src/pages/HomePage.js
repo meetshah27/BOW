@@ -860,7 +860,17 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            {events.slice(0, 6).map((event) => (
+            {events
+              .sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                if (isNaN(dateA.getTime())) return 1;
+                if (isNaN(dateB.getTime())) return -1;
+                return dateB - dateA; // Most recent first
+              })
+              .slice(0, 6)
+              .map((event) => (
               <div key={event.id} className="card group">
                 <div className="relative overflow-hidden rounded-t-lg sm:rounded-t-xl">
                   <img

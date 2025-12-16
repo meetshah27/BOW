@@ -306,7 +306,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="mt-5 sm:mt-4 md:mt-5 text-center">
-            <span className="text-gray-500 text-xs sm:text-sm break-words px-2 block">Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-300 hover:underline transition-colors break-words">Gaurav Khandekar</a> and <a href="https://www.linkedin.com/in/meet-deepak-shah-06164437a/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-300 hover:underline transition-colors break-words">Meet Shah</a></span>
+            <span className="text-gray-500 text-xs sm:text-sm break-words px-2 block">Website developed by <a href="https://www.linkedin.com/in/gaurav-khandekar-943743169" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-300 hover:underline transition-colors break-words">Gaurav Khandekar</a></span>
           </div>
         </div>
       </div>

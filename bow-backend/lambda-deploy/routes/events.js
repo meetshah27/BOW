@@ -311,7 +311,7 @@ router.delete('/:eventId/addons/:addonId', async (req, res) => {
       return res.status(400).json({ error: 'Addon does not belong to this event' });
     }
 
-    await EventAddon.delete(req.params.addonId);
+    await addon.delete();
     res.json({ message: 'Addon deleted successfully' });
   } catch (error) {
     console.error('[Backend] Error deleting addon:', error);
@@ -406,6 +406,33 @@ router.get('/', async (req, res) => {
       // Fetch events again after sync
       const updatedEvents = await Event.findAll();
       console.log('[GET /api/events] Returning', updatedEvents.length, 'events from DynamoDB');
+      
+      // Log all events before sorting
+      console.log('[GET /api/events] Events before sorting:');
+      updatedEvents.forEach((event, index) => {
+        const eventDate = new Date(event.date);
+        console.log(`  ${index + 1}. ${event.title} - Date: ${event.date} -> Parsed: ${eventDate.toISOString()} (Valid: ${!isNaN(eventDate.getTime())})`);
+      });
+      
+      // Sort events by date (most recent/future dates first)
+      updatedEvents.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        // Handle invalid dates - put them at the end
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        // Descending order (most recent/future dates first)
+        return dateB - dateA;
+      });
+      
+      // Log all events after sorting
+      console.log('[GET /api/events] Events after sorting (most recent first):');
+      updatedEvents.forEach((event, index) => {
+        const eventDate = new Date(event.date);
+        console.log(`  ${index + 1}. ${event.title} - Date: ${event.date} -> Parsed: ${eventDate.toISOString()}`);
+      });
+      
       res.json(updatedEvents);
     } else if (Event) {
       console.log('[GET /api/events] Fetching events from DynamoDB (no Registration model)...');
@@ -417,11 +444,33 @@ router.get('/', async (req, res) => {
         return res.json([]);
       }
       
+      // Sort events by date (most recent/future dates first)
+      events.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        // Handle invalid dates - put them at the end
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        // Descending order (most recent/future dates first)
+        return dateB - dateA;
+      });
+      
       res.json(events);
     } else {
       console.log('[GET /api/events] Event model not available - using fallback sample data');
-      // Fallback to sample data
-      res.json(sampleEvents);
+      // Fallback to sample data - sort by date (most recent/future dates first)
+      const sortedSampleEvents = [...sampleEvents].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        // Handle invalid dates - put them at the end
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        // Descending order (most recent/future dates first)
+        return dateB - dateA;
+      });
+      res.json(sortedSampleEvents);
     }
   } catch (error) {
     console.error('[GET /api/events] Error fetching events:', error);
@@ -698,6 +747,7 @@ router.post('/:id/register', async (req, res) => {
             const emailData = {
               userName: savedRegistration.userName,
               userEmail: savedRegistration.userEmail,
+              phone: savedRegistration.phone || 'N/A',
               ticketNumber: savedRegistration.ticketNumber,
               eventTitle: event.title,
               eventDate: event.date,
@@ -705,7 +755,12 @@ router.post('/:id/register', async (req, res) => {
               eventLocation: event.location,
               quantity: savedRegistration.quantity || 1,
               paymentAmount: 0,
-              paymentIntentId: null
+              paymentIntentId: null,
+              paymentStatus: 'none',
+              paymentDate: null,
+              registrationDate: savedRegistration.registrationDate || savedRegistration.createdAt,
+              status: savedRegistration.status || 'confirmed',
+              checkInStatus: 'Not Checked In'
             };
             
             await EmailService.sendEventRegistrationConfirmation(emailData);
@@ -983,6 +1038,101 @@ router.get('/user/:userId/registrations', async (req, res) => {
       };
     });
     res.json(result);
+  }
+});
+
+// GET download receipt for a registration
+router.get('/registrations/:eventId/:userId/receipt', async (req, res) => {
+  try {
+    const { eventId, userId } = req.params;
+    
+    // Fetch registration
+    let registration = null;
+    if (Registration) {
+      registration = await Registration.findByEventAndUser(eventId, userId);
+      if (!registration) {
+        return res.status(404).json({ error: 'Registration not found' });
+      }
+    } else {
+      // Fallback to sample data
+      registration = sampleRegistrations.find(r => r.eventId === eventId && r.userId === userId);
+      if (!registration) {
+        return res.status(404).json({ error: 'Registration not found' });
+      }
+    }
+    
+    // Fetch event
+    let event = null;
+    if (Event) {
+      event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+    } else {
+      // Fallback to sample data
+      event = sampleEvents.find(e => e.id === eventId);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+    }
+    
+    // Get logo URL
+    let logoUrl = 'https://bow-platform.s3.amazonaws.com/bow-logo.png'; // Default logo
+    try {
+      const AboutPage = require('../models-dynamodb/AboutPage');
+      const aboutPageSettings = await AboutPage.getSettings();
+      if (aboutPageSettings && aboutPageSettings.logo && aboutPageSettings.logo.trim()) {
+        // Ensure the logo URL is a full URL (starts with http:// or https://)
+        const logo = aboutPageSettings.logo.trim();
+        if (logo.startsWith('http://') || logo.startsWith('https://')) {
+          logoUrl = logo;
+          console.log('[Receipt] Using logo from AboutPage:', logoUrl);
+        } else {
+          console.log('[Receipt] Logo URL is not a full URL, using default:', logo);
+        }
+      } else {
+        console.log('[Receipt] No logo found in AboutPage settings, using default');
+      }
+    } catch (error) {
+      console.error('[Receipt] Error fetching logo for receipt:', error);
+      console.log('[Receipt] Using default logo due to error');
+    }
+    
+    // Prepare email data
+    const emailData = {
+      userName: registration.userName,
+      userEmail: registration.userEmail,
+      phone: registration.phone || 'N/A',
+      ticketNumber: registration.ticketNumber,
+      eventTitle: event.title,
+      eventDate: event.date,
+      eventTime: event.time,
+      eventLocation: event.location,
+      quantity: registration.quantity || 1,
+      paymentAmount: registration.paymentAmount || 0,
+      paymentIntentId: registration.paymentIntentId || null,
+      paymentStatus: registration.paymentStatus || (registration.paymentAmount > 0 ? 'completed' : 'none'),
+      paymentDate: registration.paymentDate || null,
+      registrationDate: registration.registrationDate || null,
+      status: registration.status || 'confirmed',
+      checkInStatus: registration.checkInStatus || 'Not Checked In',
+      logoUrl: logoUrl
+    };
+    
+    // Generate HTML receipt
+    const { EmailService } = require('../config/ses');
+    const htmlContent = EmailService.getEventRegistrationTemplate(emailData);
+    
+    // Set headers for download
+    const filename = `receipt-${registration.ticketNumber}-${Date.now()}.html`;
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Send HTML content
+    res.send(htmlContent);
+  } catch (error) {
+    console.error('Error generating receipt:', error);
+    res.status(500).json({ error: 'Failed to generate receipt' });
   }
 });
 

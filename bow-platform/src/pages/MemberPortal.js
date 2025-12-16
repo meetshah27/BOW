@@ -25,7 +25,7 @@ import {
   X,
   LayoutDashboard
 } from 'lucide-react';
-import api from '../config/api';
+import api, { buildApiUrl } from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
 import Avatar from '../components/common/Avatar';
 
@@ -464,6 +464,30 @@ const MyEvents = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const downloadReceipt = async (event) => {
+    try {
+      const receiptUrl = buildApiUrl(`/events/registrations/${event.eventId || event.id}/${currentUser?.uid || currentUser?.id}/receipt`);
+      const response = await fetch(receiptUrl);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download receipt');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `receipt-${event.ticketNumber || 'event'}-${Date.now()}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      alert('Failed to download receipt. Please try again.');
+    }
+  };
+
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
@@ -498,12 +522,13 @@ const MyEvents = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {events.length === 0 ? (
-                  <tr><td colSpan={4} className="text-center py-4">No events found.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-4">No events found.</td></tr>
                 ) : events.map((event) => (
                   <tr key={event.eventId || event.id}>
                     <td className="px-6 py-4 whitespace-nowrap">{event.eventTitle || event.title}</td>
@@ -523,6 +548,16 @@ const MyEvents = () => {
                         isPaidEvent={event.paymentAmount > 0}
                         showDetails={true}
                       />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => downloadReceipt(event)}
+                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:text-blue-800 transition-colors duration-200"
+                        title="Download Receipt"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        Download
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{event.status || 'registered'}</span>
