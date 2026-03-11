@@ -1,437 +1,186 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { 
-  Heart, 
-  Shield, 
-  Users, 
-  Music, 
-  Award,
-  CheckCircle,
-  ArrowRight,
-  Star
-} from 'lucide-react';
-import {loadStripe} from '@stripe/stripe-js';
-import {Elements, CardNumberElement, CardExpiryElement, CardCvcElement, PaymentRequestButtonElement, useStripe, useElements} from '@stripe/react-stripe-js';
+import { Heart, Shield, Users, Music, Award, CheckCircle, ArrowRight, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
 
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
-// Stripe will be initialized dynamically with secure key
-let stripePromise = null;
+const SQUARE_SCRIPTS = {
+  sandbox: 'https://sandbox.web.squarecdn.com/v1/square.js',
+  production: 'https://web.squarecdn.com/v1/square.js',
+};
 
-function StripeDonationForm({amount, donorEmail, donorName, logoUrl}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [loading, setLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
-  const [clientSecret, setClientSecret] = useState('');
-  const [paymentRequest, setPaymentRequest] = useState(null);
-  const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
-  const [totalAmountCents, setTotalAmountCents] = useState(0);
+function loadSquareScript(environment) {
+  const env = environment === 'production' ? 'production' : 'sandbox';
+  const src = SQUARE_SCRIPTS[env];
+
+  return new Promise((resolve, reject) => {
+    if (window.Square) return resolve();
+
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Failed to load Square script')));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.addEventListener('load', () => resolve());
+    script.addEventListener('error', () => reject(new Error('Failed to load Square script')));
+    document.head.appendChild(script);
+  });
+}
+
+function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
   const { triggerConfetti } = useCelebration();
+  const [loading, setLoading] = useState(false);
+  const [initError, setInitError] = useState(null);
+  const [ready, setReady] = useState(false);
 
-  // Create payment intent when amount and donor info are available
+  const cardRef = useRef(null);
+  const containerId = useMemo(() => `square-card-container-${Math.random().toString(36).slice(2)}`, []);
+
   useEffect(() => {
-    const createPaymentIntent = async () => {
-      if (!amount || amount <= 0) {
-        setClientSecret('');
-        setTotalAmountCents(0);
-        return;
-      }
+    let cancelled = false;
 
-      // Only create payment intent if we have donor info (required for Apple Pay)
-      if (!donorEmail || !donorName) {
-        setClientSecret('');
-        setTotalAmountCents(Math.round(amount * 100));
-        return;
-      }
-
-      const amountCents = Math.round(amount * 100);
-      setTotalAmountCents(amountCents);
-
+    async function init() {
       try {
-        const res = await api.post('/payment/create-payment-intent', {
-          amount: amountCents,
-          currency: 'usd',
-          donorEmail: donorEmail,
-          donorName: donorName,
-          isRecurring: false,
-          frequency: 'one-time'
-        });
+        setInitError(null);
+        setReady(false);
 
-        if (!res.ok) {
-          throw new Error('Payment intent creation failed');
+        const cfgRes = await api.get('/square-config');
+        const cfg = cfgRes.ok ? await cfgRes.json() : null;
+        if (!cfgRes.ok || !cfg?.applicationId || !cfg?.locationId) {
+          throw new Error(cfg?.error || 'Square configuration not available');
         }
 
-        const data = await res.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
+        await loadSquareScript(cfg.environment);
+        if (cancelled) return;
 
-        setClientSecret(data.clientSecret);
-      } catch (error) {
-        console.error('Error creating payment intent:', error);
-        setClientSecret('');
+        const payments = window.Square.payments(cfg.applicationId, cfg.locationId);
+        const card = await payments.card();
+        cardRef.current = card;
+        await card.attach(`#${containerId}`);
+        if (cancelled) return;
+
+        setReady(true);
+      } catch (e) {
+        console.error('Square init error:', e);
+        setInitError(e.message || 'Failed to initialize Square');
       }
-    };
+    }
 
-    createPaymentIntent();
-  }, [amount, donorEmail, donorName]);
+    init();
 
-  // Initialize Payment Request (Apple Pay / Google Pay) when Stripe and client secret are ready
-  useEffect(() => {
-    const initPaymentRequest = async () => {
-      if (!stripe || !clientSecret || totalAmountCents <= 0) return;
-
-      const pr = stripe.paymentRequest({
-        country: 'US',
-        currency: 'usd',
-        total: {
-          label: 'Donation to Beats of Washington',
-          amount: totalAmountCents
-        },
-        requestPayerName: true,
-        requestPayerEmail: true
-      });
-
-      const result = await pr.canMakePayment();
-      if (result) {
-        setPaymentRequest(pr);
-        setCanUsePaymentRequest(true);
-
-        pr.on('paymentmethod', async (ev) => {
-          try {
-            setLoading(true);
-
-            // Use the payment method from the wallet to confirm the intent
-            const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-              payment_method: ev.paymentMethod.id,
-              payment_method_options: {
-                card: {
-                  request_three_d_secure: 'automatic'
-                }
-              },
-              receipt_email: donorEmail || ev.payerEmail
-            });
-
-            if (error) {
-              ev.complete('fail');
-              toast.error(error.message || 'Payment failed. Please try again.');
-              setLoading(false);
-              return;
-            }
-
-            ev.complete('success');
-
-            if (paymentIntent.status === 'succeeded') {
-              // Custom success toast with logo
-              toast.success(
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
-                    {logoUrl ? (
-                      <img 
-                        src={logoUrl} 
-                        alt="BOW Logo" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white font-bold text-sm">B</span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-green-800">Thank you for your donation!</div>
-                    <div className="text-sm text-green-600">Your contribution makes a difference</div>
-                  </div>
-                </div>,
-                {
-                  duration: 5000,
-                  style: {
-                    background: '#f0fdf4',
-                    border: '1px solid #bbf7d0',
-                    borderRadius: '12px',
-                    padding: '16px',
-                  },
-                }
-              );
-              triggerConfetti();
-            }
-          } catch (err) {
-            console.error('Payment Request error:', err);
-            ev.complete('fail');
-            toast.error('Payment failed. Please try again.');
-          } finally {
-            setLoading(false);
-          }
-        });
-      } else {
-        setCanUsePaymentRequest(false);
-        setPaymentRequest(null);
+    return () => {
+      cancelled = true;
+      try {
+        cardRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
       }
+      cardRef.current = null;
     };
-
-    initPaymentRequest();
-  }, [stripe, clientSecret, totalAmountCents, donorEmail, logoUrl, triggerConfetti]);
+  }, [containerId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Clear previous validation errors
-    setValidationErrors({});
-    
-    // Validate form fields before proceeding
-    const errors = {};
-    
-    if (!donorName || donorName.trim() === '') {
-      errors.donorName = 'Please enter your full name';
-    }
-    
-    if (!donorEmail || donorEmail.trim() === '') {
-      errors.donorEmail = 'Please enter your email address';
-    } else {
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(donorEmail)) {
-        errors.donorEmail = 'Please enter a valid email address';
-      }
-    }
-    
-    if (!amount || amount <= 0) {
-      errors.amount = 'Please select a donation amount';
-    }
-    
-    // Check if Stripe is loaded
-    if (!stripe || !elements) {
-      toast.error('Payment system is loading. Please wait a moment and try again.');
+
+    const amountNumber = Number(amount);
+    const amountCents = Math.round(amountNumber * 100);
+
+    if (!donorName || !donorEmail) {
+      toast.error('Please enter your name and email.');
       return;
     }
-    
-    // If there are validation errors, show them and return
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      
-      // Show the first error as a toast
-      const firstError = Object.values(errors)[0];
-      toast.error(firstError);
-      
+    if (!amountNumber || amountNumber <= 0 || amountCents < 50) {
+      toast.error('Please select a valid amount (min $0.50).');
       return;
     }
-    
+    if (!ready || !cardRef.current) {
+      toast.error('Payment system is still loading. Please wait and try again.');
+      return;
+    }
+
     setLoading(true);
-    
     try {
-      // Create payment intent
-      const res = await api.post('/payment/create-payment-intent', {
-        amount: Math.round(amount * 100), 
-        currency: 'usd',
-        donorEmail: donorEmail,
-        donorName: donorName,
-        isRecurring: false,
-        frequency: 'one-time'
-      });
-      
-      if (!res.ok) {
-        throw new Error('Payment intent creation failed');
-      }
-      
-      const {clientSecret, error} = await res.json();
-      if (error) throw new Error(error);
-           
-      // Create payment method first
-      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: elements.getElement(CardNumberElement),
-      });
-
-      if (paymentMethodError) {
-        throw new Error(paymentMethodError.message);
+      const tokenizeResult = await cardRef.current.tokenize();
+      if (tokenizeResult.status !== 'OK') {
+        const message =
+          tokenizeResult.errors?.[0]?.message ||
+          'Card information is invalid. Please check and try again.';
+        throw new Error(message);
       }
 
-      // Confirm payment with the payment method
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethod.id,
+      const sourceId = tokenizeResult.token;
+      const payRes = await api.post('/payment/create-payment', {
+        sourceId,
+        amount: amountCents,
+        currency: 'USD',
+        donorEmail,
+        donorName,
       });
-      
-      if (result.error) {
-        toast.error(result.error.message);
-      } else if (result.paymentIntent.status === 'succeeded') {
-        // Custom success toast with logo
-        toast.success(
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
-              {logoUrl ? (
-                <img 
-                  src={logoUrl} 
-                  alt="BOW Logo" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white font-bold text-sm">B</span>
-              )}
-            </div>
-            <div>
-              <div className="font-semibold text-green-800">Thank you for your donation!</div>
-              <div className="text-sm text-green-600">Your contribution makes a difference</div>
-            </div>
-          </div>,
-          {
-            duration: 5000,
-            style: {
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: '12px',
-              padding: '16px',
-            },
-          }
-        );
-        triggerConfetti(); // Trigger confetti animation
-        // Clear the form
-        elements.getElement(CardNumberElement).clear();
-        elements.getElement(CardExpiryElement).clear();
-        elements.getElement(CardCvcElement).clear();
+
+      const payData = await payRes.json().catch(() => ({}));
+      if (!payRes.ok) {
+        throw new Error(payData.error || 'Payment failed. Please try again.');
       }
+
+      toast.success(
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+            {logoUrl ? (
+              <img src={logoUrl} alt="BOW Logo" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-sm">B</span>
+            )}
+          </div>
+          <div>
+            <div className="font-semibold text-green-800">Thank you for your donation!</div>
+            <div className="text-sm text-green-600">Your contribution makes a difference</div>
+          </div>
+        </div>,
+        {
+          duration: 5000,
+          style: {
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '12px',
+            padding: '16px',
+          },
+        }
+      );
+      triggerConfetti();
     } catch (err) {
-      console.error('Payment error:', err);
-      
-      // Provide more specific error messages
-      if (err.message.includes('email')) {
-        toast.error('Please enter a valid email address');
-      } else if (err.message.includes('name')) {
-        toast.error('Please enter your full name');
-      } else if (err.message.includes('amount')) {
-        toast.error('Please select a donation amount');
-      } else if (err.message.includes('card')) {
-        toast.error('Please check your card details and try again');
-      } else if (err.message.includes('network') || err.message.includes('fetch')) {
-        toast.error('Connection error. Please check your internet and try again');
-      } else if (err.message.includes('intent')) {
-        toast.error('Payment system error. Please try again in a moment');
-      } else {
-        toast.error(err.message || 'Payment failed. Please check your details and try again');
-      }
+      console.error(err);
+      toast.error(err.message || 'Payment failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
-      {/* Apple Pay / Google Pay Button */}
-      {canUsePaymentRequest && paymentRequest && (
-        <div className="mb-3 sm:mb-4">
-          <PaymentRequestButtonElement
-            options={{
-              paymentRequest,
-              style: {
-                paymentRequestButton: {
-                  theme: 'dark',
-                  height: '44px'
-                }
-              }
-            }}
-          />
-          <p className="text-xs text-gray-500 mt-1">Pay with Apple Pay / Google Pay</p>
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mt-4 sm:mt-6">
+      {initError ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-800">{initError}</p>
         </div>
-      )}
+      ) : null}
 
-      {/* Divider */}
-      {canUsePaymentRequest && paymentRequest && (
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or pay with card</span>
-          </div>
-        </div>
-      )}
-
-      {/* Card Number */}
       <div>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-          Card Number *
+          Card details *
         </label>
         <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
-          <CardNumberElement 
-            options={{
-              showIcon: true,
-              disableLink: true, // Disabled autofill link
-              style: {
-                base: {
-                  fontSize: '14px',
-                  color: '#424770',
-                  '::placeholder': {
-                    color: '#aab7c4',
-                  },
-                },
-                invalid: {
-                  color: '#9e2146',
-                },
-              },
-            }}
-          />
+          <div id={containerId} />
         </div>
       </div>
 
-      {/* Card Details Row */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        {/* Expiration Date */}
-        <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-            Expiration Date (MM/YY) *
-          </label>
-          <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
-            <CardExpiryElement 
-              options={{
-                style: {
-                  base: {
-                    fontSize: '14px',
-                    color: '#424770',
-                    '::placeholder': {
-                      color: '#aab7c4',
-                    },
-                  },
-                  invalid: {
-                    color: '#9e2146',
-                  },
-                },
-              }}
-            />
-          </div>
-        </div>
-
-        {/* CVC */}
-        <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-            CVC *
-          </label>
-          <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
-            <CardCvcElement 
-              options={{
-                style: {
-                  base: {
-                    fontSize: '14px',
-                    color: '#424770',
-                    '::placeholder': {
-                      color: '#aab7c4',
-                    },
-                  },
-                  invalid: {
-                    color: '#9e2146',
-                  },
-                },
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <button 
-        type="submit" 
-        className="btn-primary w-full text-sm sm:text-base py-2.5 sm:py-3" 
-        disabled={!stripe || loading}
-      >
+      <button type="submit" className="btn-primary w-full text-sm sm:text-base py-2.5 sm:py-3" disabled={loading}>
         {loading ? 'Processing Payment...' : `Donate $${amount}`}
       </button>
     </form>
@@ -444,10 +193,8 @@ const DonationPage = () => {
   const [donorEmail, setDonorEmail] = useState('');
   const [donorName, setDonorName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
-  const [stripeLoaded, setStripeLoaded] = useState(false);
-  const [stripeError, setStripeError] = useState(null);
 
-  // Fetch logo and Stripe configuration
+  // Fetch logo
   useEffect(() => {
     const fetchLogo = async () => {
       try {
@@ -462,35 +209,8 @@ const DonationPage = () => {
         console.error('Error fetching logo:', error);
       }
     };
-
-    const fetchStripeConfig = async () => {
-      try {
-        console.log('🔐 Fetching Stripe configuration...');
-        const response = await api.get('/stripe-config');
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.publishableKey) {
-            // Initialize Stripe with the secure publishable key
-            stripePromise = loadStripe(data.publishableKey);
-            setStripeLoaded(true);
-            console.log('✅ Stripe loaded successfully');
-          } else {
-            throw new Error('No publishable key received');
-          }
-        } else {
-          throw new Error('Failed to fetch Stripe configuration');
-        }
-      } catch (error) {
-        console.error('❌ Error fetching Stripe configuration:', error);
-        setStripeError('Payment processing is currently unavailable. Please try again later.');
-        toast.error('Payment system is temporarily unavailable');
-      }
-    };
     
     fetchLogo();
-    fetchStripeConfig();
   }, []);
 
   const presetAmounts = [25, 50, 100, 250, 500];
@@ -542,7 +262,7 @@ const DonationPage = () => {
 
 
   const getAmount = () => {
-    return customAmount || selectedAmount;
+    return Number(customAmount || selectedAmount || 0);
   };
 
   return (
@@ -697,42 +417,18 @@ const DonationPage = () => {
                 </div>
               </div>
 
-                             {/* Donate Button */}
-               {stripeLoaded && stripePromise ? (
-                 <Elements stripe={stripePromise}>
-                   <StripeDonationForm 
-                     amount={getAmount()} 
-                     donorEmail={donorEmail}
-                     donorName={donorName}
-                     logoUrl={logoUrl}
-                   />
-                 </Elements>
-               ) : stripeError ? (
-                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                   <div className="flex items-center">
-                     <div className="flex-shrink-0">
-                       <div className="w-5 h-5 bg-red-400 rounded-full flex items-center justify-center">
-                         <span className="text-white text-xs font-bold">!</span>
-                       </div>
-                     </div>
-                     <div className="ml-3">
-                       <p className="text-sm text-red-800">{stripeError}</p>
-                     </div>
-                   </div>
-                 </div>
-               ) : (
-                 <div className="flex items-center justify-center py-8">
-                   <div className="text-center">
-                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                     <p className="text-gray-600">Loading payment system...</p>
-                   </div>
-                 </div>
-               )}
+              {/* Donate Button */}
+              <SquareDonationForm 
+                amount={getAmount()} 
+                donorEmail={donorEmail}
+                donorName={donorName}
+                logoUrl={logoUrl}
+              />
 
               {/* Security Notice */}
               <div className="mt-3 sm:mt-4 flex items-center justify-center text-xs sm:text-sm text-gray-500">
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                <span className="break-words">Secure payment processed by Stripe</span>
+                <span className="break-words">Secure payment processed by Square</span>
               </div>
             </div>
 

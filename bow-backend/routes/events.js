@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const verifyCognito = require('../middleware/verifyCognito');
 const syncUserToDynamoDB = require('../middleware/syncUserToDynamoDB');
+const { getSquareClient } = require('../config/square-client');
 
 // Debug middleware to log all requests to events router
 router.use((req, res, next) => {
@@ -642,8 +644,35 @@ router.post('/:id/register', async (req, res) => {
             return res.status(400).json({ message: 'Payment amount does not match event price' });
           }
         }
-        // If there are paid addons, paymentAmount should include both ticket and addons
-        console.log('[Backend] Paid registration - payment verified (event price or addons)');
+        // Verify payment with Square before confirming registration
+        try {
+          const client = getSquareClient();
+          const paymentRes = await client.payments.get({ paymentId: paymentIntentId });
+          const payment = paymentRes.payment;
+
+          if (!payment) {
+            return res.status(400).json({ message: 'Payment not found' });
+          }
+
+          const expectedAmount = Number(paymentAmount || 0);
+          const paidAmount = Number(payment.amountMoney?.amount || 0n);
+          const paidCurrency = String(payment.amountMoney?.currency || 'USD').toUpperCase();
+
+          if (payment.status !== 'COMPLETED') {
+            return res.status(400).json({ message: `Payment not completed (status: ${payment.status})` });
+          }
+          if (paidAmount !== expectedAmount) {
+            return res.status(400).json({ message: 'Payment amount does not match expected total' });
+          }
+          if (paidCurrency !== 'USD') {
+            return res.status(400).json({ message: 'Payment currency mismatch' });
+          }
+
+          console.log('[Backend] Paid registration - Square payment verified:', paymentIntentId);
+        } catch (verifyError) {
+          console.error('[Backend] Square payment verification failed:', verifyError.message);
+          return res.status(400).json({ message: 'Payment verification failed' });
+        }
       } else {
         console.log('[Backend] Free event registration - no payment required');
       }
@@ -695,14 +724,15 @@ router.post('/:id/register', async (req, res) => {
         quantity: quantity || 1, // Default to 1 if not provided
         ticketNumber: ticketNumber,
         registrationDate: new Date().toISOString(),
-        status: isPaidEvent ? 'pending_payment' : 'confirmed', // Pending for paid events until webhook confirms
+        status: isPaidEvent ? 'confirmed' : 'confirmed',
         
         // Payment information
         paymentAmount: paymentAmount || 0,
         isPaidEvent: isPaidEvent || false,
         paymentIntentId: paymentIntentId || null,
-        paymentStatus: isPaidEvent ? 'pending' : 'none', // Pending for paid events
-        paymentDate: null, // Will be set by webhook when payment succeeds
+        paymentMethod: isPaidEvent ? 'Square' : undefined,
+        paymentStatus: isPaidEvent ? 'completed' : 'none',
+        paymentDate: isPaidEvent ? new Date().toISOString() : null,
         
         // Addon information
         addons: addons || []
@@ -737,8 +767,8 @@ router.post('/:id/register', async (req, res) => {
       await event.update({ registeredCount: actualCount });
       console.log('[Backend] Updated event registeredCount to:', actualCount);
 
-      // Send confirmation email for free events
-      if (!isPaidEvent) {
+      // Send confirmation email (free and paid)
+      if (true) {
         try {
           const { EmailService } = require('../config/ses');
           const event = await Event.findById(req.params.id);
@@ -754,20 +784,20 @@ router.post('/:id/register', async (req, res) => {
               eventTime: event.time,
               eventLocation: event.location,
               quantity: savedRegistration.quantity || 1,
-              paymentAmount: 0,
-              paymentIntentId: null,
-              paymentStatus: 'none',
-              paymentDate: null,
+              paymentAmount: savedRegistration.paymentAmount || 0,
+              paymentIntentId: savedRegistration.paymentIntentId || null,
+              paymentStatus: savedRegistration.paymentStatus || (savedRegistration.paymentAmount > 0 ? 'completed' : 'none'),
+              paymentDate: savedRegistration.paymentDate || null,
               registrationDate: savedRegistration.registrationDate || savedRegistration.createdAt,
               status: savedRegistration.status || 'confirmed',
               checkInStatus: 'Not Checked In'
             };
             
             await EmailService.sendEventRegistrationConfirmation(emailData);
-            console.log('[Backend] Free event registration confirmation email sent to:', savedRegistration.userEmail);
+            console.log('[Backend] Event registration confirmation email sent to:', savedRegistration.userEmail);
           }
         } catch (emailError) {
-          console.error('[Backend] Failed to send free event registration email:', emailError.message);
+          console.error('[Backend] Failed to send event registration email:', emailError.message);
           // Don't fail registration if email fails
         }
       }
@@ -859,12 +889,15 @@ router.post('/:id/update-payment', async (req, res) => {
   }
 });
 
-// POST create payment intent for event registration
-router.post('/:id/create-payment-intent', async (req, res) => {
+// POST create payment for event registration (Square)
+router.post('/:id/create-payment', async (req, res) => {
   try {
-    const { amount, userEmail, userName, userId, quantity = 1, addons = [] } = req.body;
+    const { sourceId, amount, userEmail, userName, userId, quantity = 1, addons = [] } = req.body;
     
     // Validate required fields
+    if (!sourceId) {
+      return res.status(400).json({ error: 'Missing sourceId (Square token).' });
+    }
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'Invalid amount. Amount must be greater than 0.' });
     }
@@ -917,73 +950,38 @@ router.post('/:id/create-payment-intent', async (req, res) => {
       return res.status(400).json({ error: 'Payment amount does not match event price' });
     }
     
-    // Initialize Stripe with secure key management
-    const Stripe = require('stripe');
-    let stripe;
-    try {
-      // Try to import key manager, fallback to env vars if not available
-      let keyManager;
-      try {
-        keyManager = require('../config/key-management-simple').keyManager;
-    } catch (error) {
-        console.log('⚠️ Key management not available for events, using environment variables');
-        keyManager = null;
-      }
+    const client = getSquareClient();
+    const idempotencyKey = crypto.randomUUID();
 
-      let stripeSecretKey;
-      
-      // Try key manager first, with proper fallback to environment variables
-      if (keyManager) {
-        try {
-          console.log('🔐 Initializing Stripe with secure key management for event registration...');
-          stripeSecretKey = await keyManager.getStripeSecretKey();
-          console.log('✅ Retrieved secret key from secure key manager for event registration');
-        } catch (keyError) {
-          console.log('⚠️ Key manager failed for event registration, falling back to environment variables:', keyError.message);
-          stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-          console.log('✅ Retrieved secret key from environment variables for event registration');
-        }
-      } else {
-        stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-        console.log('✅ Retrieved secret key from environment variables for event registration');
-      }
-
-      stripe = Stripe(stripeSecretKey);
-    } catch (error) {
-      console.error('Stripe initialization error for event registration:', error);
-      return res.status(500).json({ error: 'Payment processing is not configured.' });
-    }
-    
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount, // Total amount including addons in cents
-      currency: 'usd',
-      metadata: {
-        type: 'event_registration',
-        source: 'bow_event_registration',
-        eventId: req.params.id,
-        userEmail,
-        userName,
-        userId,
-        quantity: quantity.toString(),
-        addons: JSON.stringify(addons || []),
-        timestamp: new Date().toISOString()
+    const createRes = await client.payments.create({
+      sourceId,
+      idempotencyKey,
+      amountMoney: {
+        amount: BigInt(Math.trunc(totalAmount)),
+        currency: 'USD',
       },
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      autocomplete: true,
+      buyerEmailAddress: userEmail,
+      note: `BOW event registration: ${req.params.id} (${userName})`,
+      referenceId: `bow_event_${req.params.id}_${Date.now()}`,
     });
-    
-    console.log('[Backend] Payment intent created for event registration:', paymentIntent.id);
-    
-    res.json({ 
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id
+
+    const payment = createRes.payment;
+    if (!payment) {
+      return res.status(500).json({ error: 'Payment was not created.' });
+    }
+
+    console.log('[Backend] Square payment created for event registration:', payment.id);
+
+    res.json({
+      success: payment.status === 'COMPLETED',
+      paymentId: payment.id,
+      status: payment.status,
     });
     
   } catch (error) {
-    console.error('[Backend] Error creating payment intent for event:', error);
-    res.status(500).json({ error: error.message || 'Failed to create payment intent' });
+    console.error('[Backend] Error creating payment for event:', error);
+    res.status(500).json({ error: error.message || 'Failed to create payment' });
   }
 });
 

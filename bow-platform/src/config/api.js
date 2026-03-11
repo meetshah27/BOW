@@ -1,8 +1,10 @@
 // API Configuration
+// In development we use relative URLs so the React dev server proxy (see package.json "proxy")
+// forwards requests to the backend - no CORS issues and no env var required.
 const API_CONFIG = {
-  // Development environment
+  // Development: use '' so requests go to same origin and get proxied to backend (localhost:3000)
   development: {
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000',
+    baseURL: process.env.REACT_APP_API_URL || '',
     apiPath: '/api'
   },
   // Production environment

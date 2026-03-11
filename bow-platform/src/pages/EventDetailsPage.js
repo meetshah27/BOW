@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -23,25 +23,52 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, PaymentRequestButtonElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 import api from '../config/api';
 
-// Stripe will be initialized dynamically with secure key
-let stripePromise = null;
+const SQUARE_SCRIPTS = {
+  sandbox: 'https://sandbox.web.squarecdn.com/v1/square.js',
+  production: 'https://web.squarecdn.com/v1/square.js',
+};
 
-// Stripe-enabled registration form component
-const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegistrationData, onRegister, isRegistering, onClose, selectedAddons, eventAddons }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [clientSecret, setClientSecret] = useState('');
+function loadSquareScript(environment) {
+  const env = environment === 'production' ? 'production' : 'sandbox';
+  const src = SQUARE_SCRIPTS[env];
+
+  return new Promise((resolve, reject) => {
+    if (window.Square) return resolve();
+
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Failed to load Square script')));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.addEventListener('load', () => resolve());
+    script.addEventListener('error', () => reject(new Error('Failed to load Square script')));
+    document.head.appendChild(script);
+  });
+}
+
+// Square-enabled registration form component
+const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegistrationData, onRegister, isRegistering, onClose, selectedAddons, eventAddons }) => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [paymentRequest, setPaymentRequest] = useState(null);
-  const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
+  const [squareReady, setSquareReady] = useState(false);
+  const [squareInitError, setSquareInitError] = useState(null);
   const [totalAmountCents, setTotalAmountCents] = useState(0);
 
+  const cardRef = useRef(null);
+  const containerId = useMemo(
+    () => `square-card-container-${Math.random().toString(36).slice(2)}`,
+    []
+  );
+
+  /* Stripe payment intent + wallet flow removed (migrated to Square)
   useEffect(() => {
     // Create payment intent for paid events OR if there are paid addons
     if (event && (isPaidEvent(event.price) || hasPaidAddons(selectedAddons, eventAddons))) {
@@ -168,6 +195,93 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
 
     initPaymentRequest();
   }, [stripe, clientSecret, totalAmountCents, event, currentUser, registrationData]);
+  */
+
+  const isPaidEventValue = isPaidEvent(event.price);
+  const hasPaidAddonsValue = hasPaidAddons(selectedAddons, eventAddons);
+  const requiresPayment = isPaidEventValue || hasPaidAddonsValue;
+
+  const calculateTotals = () => {
+    const unitPriceCents = parseEventPrice(event.price) * 100;
+    let totalAmount = unitPriceCents * (registrationData.quantity || 1);
+
+    const addonsArray = [];
+    if (selectedAddons && eventAddons) {
+      Object.keys(selectedAddons).forEach((addonId) => {
+        const quantity = selectedAddons[addonId];
+        if (quantity > 0) {
+          const addon = eventAddons.find((a) => a.id === addonId);
+          if (addon && !addon.isFreeWithTicket) {
+            totalAmount += addon.price * 100 * quantity;
+            addonsArray.push({ addonId, quantity });
+          } else if (addon && addon.isFreeWithTicket) {
+            addonsArray.push({ addonId, quantity });
+          }
+        }
+      });
+    }
+
+    return { totalAmountCents: Math.round(totalAmount), addonsArray };
+  };
+
+  useEffect(() => {
+    if (!event) return;
+    if (!requiresPayment) {
+      setTotalAmountCents(0);
+      return;
+    }
+    const { totalAmountCents: total } = calculateTotals();
+    setTotalAmountCents(total);
+  }, [event, requiresPayment, registrationData.quantity, selectedAddons, eventAddons]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function initSquare() {
+      if (!requiresPayment) {
+        setSquareReady(false);
+        setSquareInitError(null);
+        return;
+      }
+
+      try {
+        setSquareInitError(null);
+        setSquareReady(false);
+
+        const cfgRes = await api.get('/square-config');
+        const cfg = cfgRes.ok ? await cfgRes.json() : null;
+        if (!cfgRes.ok || !cfg?.applicationId || !cfg?.locationId) {
+          throw new Error(cfg?.error || 'Square configuration not available');
+        }
+
+        await loadSquareScript(cfg.environment);
+        if (cancelled) return;
+
+        const payments = window.Square.payments(cfg.applicationId, cfg.locationId);
+        const card = await payments.card();
+        cardRef.current = card;
+        await card.attach(`#${containerId}`);
+        if (cancelled) return;
+
+        setSquareReady(true);
+      } catch (e) {
+        console.error('Square init error:', e);
+        setSquareInitError(e.message || 'Failed to initialize Square');
+      }
+    }
+
+    initSquare();
+
+    return () => {
+      cancelled = true;
+      try {
+        cardRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      cardRef.current = null;
+    };
+  }, [requiresPayment, containerId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -198,7 +312,7 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
   };
 
   const handlePaidRegistration = async () => {
-    if (!stripe || !elements || !clientSecret) {
+    if (!squareReady || !cardRef.current) {
       toast.error('Payment system is loading. Please wait a moment and try again.');
       return;
     }
@@ -206,31 +320,45 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
     setPaymentLoading(true);
 
     try {
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardNumberElement),
-          billing_details: {
-            name: currentUser?.displayName || registrationData.name,
-            email: currentUser?.email || registrationData.email,
-          },
-        }
-      });
-
-      if (stripeError) {
-        console.error('Stripe error:', stripeError);
-        toast.error(stripeError.message || 'Payment failed. Please try again.');
-        setPaymentLoading(false);
+      const { totalAmountCents: totalAmount, addonsArray } = calculateTotals();
+      if (!totalAmount || totalAmount <= 0) {
+        toast.error('Invalid payment amount. Please try again.');
         return;
       }
 
-      if (paymentIntent.status === 'succeeded') {
-        // Registration with successful payment - webhook will handle confirmation
-        await onRegister(paymentIntent.id);
+      const tokenizeResult = await cardRef.current.tokenize();
+      if (tokenizeResult.status !== 'OK') {
+        const message =
+          tokenizeResult.errors?.[0]?.message ||
+          'Card information is invalid. Please check and try again.';
+        throw new Error(message);
+      }
+
+      const response = await api.post(`/events/${event.id}/create-payment`, {
+        sourceId: tokenizeResult.token,
+        amount: totalAmount,
+        quantity: registrationData.quantity,
+        userEmail: currentUser?.email || registrationData.email,
+        userName: currentUser?.displayName || registrationData.name,
+        userId: currentUser?.uid || currentUser?.id || `anon_${Date.now()}`,
+        addons: addonsArray,
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Payment failed. Please try again.');
+      }
+
+      if (data.paymentId) {
+        await onRegister(data.paymentId);
         toast.success('Payment successful! Registration confirmation will be sent via email.');
+      } else {
+        throw new Error('Payment succeeded but no paymentId was returned.');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      toast.error('Payment failed. Please try again.');
+      toast.error(error.message || 'Payment failed. Please try again.');
+    } finally {
       setPaymentLoading(false);
     }
   };
@@ -238,10 +366,6 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
   const handleFreeRegistration = async () => {
     await onRegister();
   };
-
-  const isPaidEventValue = isPaidEvent(event.price);
-  const hasPaidAddonsValue = hasPaidAddons(selectedAddons, eventAddons);
-  const requiresPayment = isPaidEventValue || hasPaidAddonsValue;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
@@ -489,93 +613,21 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                    Payment Information
                  </label>
-                {canUsePaymentRequest && paymentRequest && (
-                  <div className="mb-3">
-                    <PaymentRequestButtonElement
-                      options={{
-                        paymentRequest,
-                        style: {
-                          paymentRequestButton: {
-                            theme: 'dark',
-                            height: '44px'
-                          }
-                        }
-                      }}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Pay with Apple Pay / Google Pay</p>
+                {squareInitError ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-xs sm:text-sm text-red-800 break-words">{squareInitError}</p>
                   </div>
-                )}
+                ) : null}
+
                 <div className="space-y-2.5 sm:space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Card Number</label>
-                    <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
-                       <CardNumberElement
-                         options={{
-                           showIcon: true,
-                           disableLink: true,
-                           style: {
-                             base: {
-                               fontSize: '14px',
-                               color: '#424770',
-                               fontFamily: 'system-ui, -apple-system, sans-serif',
-                               '::placeholder': {
-                                 color: '#aab7c4',
-                               },
-                             },
-                             invalid: {
-                               color: '#e25950',
-                             },
-                           },
-                           hidePostalCode: true,
-                         }}
-                       />
+                    <label className="block text-xs text-gray-600 mb-1">Card details</label>
+                    <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                      <div id={containerId} />
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Expiry Date</label>
-                      <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
-                         <CardExpiryElement
-                           options={{
-                             style: {
-                               base: {
-                                 fontSize: '14px',
-                                 color: '#424770',
-                                 fontFamily: 'system-ui, -apple-system, sans-serif',
-                                 '::placeholder': {
-                                   color: '#aab7c4',
-                                 },
-                               },
-                               invalid: {
-                                 color: '#e25950',
-                               },
-                             },
-                           }}
-                         />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">CVC</label>
-                      <div className="px-2.5 sm:px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
-                         <CardCvcElement
-                           options={{
-                             style: {
-                               base: {
-                                 fontSize: '14px',
-                                 color: '#424770',
-                                 fontFamily: 'system-ui, -apple-system, sans-serif',
-                                 '::placeholder': {
-                                   color: '#aab7c4',
-                                 },
-                               },
-                               invalid: {
-                                 color: '#e25950',
-                               },
-                             },
-                           }}
-                         />
-                      </div>
-                    </div>
+                    {!squareReady && !squareInitError ? (
+                      <p className="text-xs text-gray-500 mt-1">Loading payment form…</p>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -595,7 +647,7 @@ const StripeRegistrationForm = ({ event, currentUser, registrationData, setRegis
               </button>
                <button
                  type="submit"
-                 disabled={isRegistering || paymentLoading || (requiresPayment && !clientSecret)}
+                 disabled={isRegistering || paymentLoading || (requiresPayment && !squareReady)}
                  className="flex-1 py-2.5 sm:py-2 px-4 text-sm sm:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors duration-200 break-words"
                >
                  {paymentLoading ? 'Processing Payment...' : isRegistering ? 'Registering...' : requiresPayment ? (() => {
@@ -678,7 +730,6 @@ const EventDetailsPage = () => {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [stripeLoaded, setStripeLoaded] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [registrationData, setRegistrationData] = useState({
     name: currentUser ? (currentUser.displayName || '') : '',
@@ -905,36 +956,6 @@ const EventDetailsPage = () => {
     
     checkExistingRegistration();
   }, [currentUser, event]);
-
-  // Initialize Stripe dynamically
-  useEffect(() => {
-    const initializeStripe = async () => {
-      try {
-        console.log('🔐 Initializing Stripe...');
-        const response = await api.get('/stripe-config');
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.publishableKey) {
-            // Initialize Stripe with the secure publishable key
-            stripePromise = loadStripe(data.publishableKey);
-            setStripeLoaded(true);
-            console.log('✅ Stripe loaded successfully');
-          } else {
-            throw new Error('No publishable key received');
-          }
-        } else {
-          throw new Error('Failed to fetch Stripe configuration');
-        }
-      } catch (error) {
-        console.error('❌ Failed to initialize Stripe:', error.message);
-        toast.error('Payment system is not available. Please try again later.');
-      }
-    };
-
-    initializeStripe();
-  }, []);
 
   // Add function to handle registration button click with auth check
   const handleRegistrationClick = () => {
@@ -1589,16 +1610,14 @@ const EventDetailsPage = () => {
                     <button 
                       onClick={handleRegistrationClick}
                       className={`w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg text-sm sm:text-base font-semibold transition-all duration-200 transform hover:scale-105 ${
-                        isRegistrationOpen && (requiresPayment ? stripeLoaded : true)
+                        isRegistrationOpen
                           ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                      disabled={!isRegistrationOpen || (requiresPayment && !stripeLoaded)}
+                      disabled={!isRegistrationOpen}
                     >
                       {!isRegistrationOpen 
                         ? 'Registration Full' 
-                        : requiresPayment && !stripeLoaded
-                        ? 'Loading Payment System...'
                         : 'Register Now'
                       }
                     </button>
@@ -1737,22 +1756,17 @@ const EventDetailsPage = () => {
 
       {/* Registration Modal */}
       {showRegistrationModal && (
-        (requiresPayment && stripeLoaded) || 
-        !requiresPayment
-      ) && (
-        <Elements stripe={stripePromise}>
-          <StripeRegistrationForm
-            event={event}
-            currentUser={currentUser}
-            registrationData={registrationData}
-            setRegistrationData={setRegistrationData}
-            onRegister={handleRegistration}
-            isRegistering={isRegistering}
-            onClose={() => setShowRegistrationModal(false)}
-            selectedAddons={selectedAddons}
-            eventAddons={eventAddons}
-          />
-        </Elements>
+        <SquareRegistrationForm
+          event={event}
+          currentUser={currentUser}
+          registrationData={registrationData}
+          setRegistrationData={setRegistrationData}
+          onRegister={handleRegistration}
+          isRegistering={isRegistering}
+          onClose={() => setShowRegistrationModal(false)}
+          selectedAddons={selectedAddons}
+          eventAddons={eventAddons}
+        />
       )}
 
       {/* Ticket Success Modal */}

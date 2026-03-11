@@ -22,9 +22,11 @@ const environment = {
   S3_BUCKET_NAME: process.env.S3_BUCKET_NAME || 'bow-media-storages',
   S3_REGION: process.env.S3_REGION || 'us-west-2',
   
-  // Stripe Configuration
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  // Square Configuration
+  SQUARE_ACCESS_TOKEN: process.env.SQUARE_ACCESS_TOKEN,
+  SQUARE_APPLICATION_ID: process.env.SQUARE_APPLICATION_ID,
+  SQUARE_LOCATION_ID: process.env.SQUARE_LOCATION_ID,
+  SQUARE_ENVIRONMENT: process.env.SQUARE_ENVIRONMENT || process.env.SQUARE_ENV,
   
   // Security Configuration
   JWT_SECRET: process.env.JWT_SECRET,
@@ -70,7 +72,7 @@ const environment = {
   // Feature Flags
   ENABLE_REGISTRATION: process.env.ENABLE_REGISTRATION !== 'false',
   ENABLE_EMAIL_VERIFICATION: process.env.ENABLE_EMAIL_VERIFICATION !== 'false',
-  ENABLE_STRIPE_PAYMENTS: process.env.ENABLE_STRIPE_PAYMENTS !== 'false',
+  ENABLE_SQUARE_PAYMENTS: process.env.ENABLE_SQUARE_PAYMENTS !== 'false',
   
   // Development/Testing
   ENABLE_MOCK_DATA: process.env.ENABLE_MOCK_DATA === 'true',
@@ -81,8 +83,7 @@ const environment = {
 const validateEnvironment = () => {
   const required = [
     'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY',
-    'STRIPE_SECRET_KEY'
+    'AWS_SECRET_ACCESS_KEY'
   ];
   
   const missing = required.filter(key => !environment[key]);
@@ -97,9 +98,9 @@ const validateEnvironment = () => {
     console.warn('⚠️  AWS credentials not configured - DynamoDB and S3 features will be disabled');
   }
   
-  // Validate Stripe configuration
-  if (!environment.STRIPE_SECRET_KEY) {
-    console.warn('⚠️  Stripe secret key not configured - payment features will be disabled');
+  // Validate Square configuration
+  if (!environment.SQUARE_ACCESS_TOKEN) {
+    console.warn('⚠️  Square access token not configured - payment features will be disabled');
   }
   
   // Validate JWT secret

@@ -1,391 +1,168 @@
 const express = require('express');
 const router = express.Router();
-const Stripe = require('stripe');
+const crypto = require('crypto');
 const Donation = require('../models-dynamodb/Donation');
 const { EmailService } = require('../config/ses');
+const { getSquareClient } = require('../config/square-client');
 
-// Try to import key manager, fallback to env vars if not available
-let keyManager;
-try {
-  keyManager = require('../config/key-management-simple').keyManager;
-} catch (error) {
-  console.log('⚠️ Key management not available, using environment variables');
-  keyManager = null;
+function toBigIntAmount(amount) {
+  if (typeof amount === 'bigint') return amount;
+  if (typeof amount === 'number') return BigInt(Math.trunc(amount));
+  if (typeof amount === 'string' && amount.trim() !== '') return BigInt(amount);
+  throw new Error('Invalid amount');
 }
 
-// Initialize Stripe with secure key management
-let stripe;
-let stripeInitialized = false;
+// POST /api/payment/create-payment - Square payment (replaces Stripe PaymentIntent flow)
+router.post('/create-payment', async (req, res) => {
+  const { sourceId, amount, currency = 'USD', donorEmail, donorName, donorId } = req.body;
 
-// Initialize Stripe with secure key retrieval or environment variables
-async function initializeStripe() {
-  if (stripeInitialized) return stripe;
-  
   try {
-    let stripeSecretKey;
-    
-    // Try key manager first, with proper fallback to environment variables
-    if (keyManager) {
-      try {
-        console.log('🔐 Initializing Stripe with secure key management...');
-        stripeSecretKey = await keyManager.getStripeSecretKey();
-        console.log('✅ Retrieved secret key from secure key manager');
-      } catch (keyError) {
-        console.log('⚠️ Key manager failed, falling back to environment variables:', keyError.message);
-        stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-        console.log('✅ Retrieved secret key from environment variables');
-      }
-    } else {
-      console.log('🔐 Initializing Stripe with environment variables...');
-      stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-      console.log('✅ Retrieved secret key from environment variables');
+    if (!sourceId) {
+      return res.status(400).json({ error: 'Missing sourceId (Square token).' });
     }
-    
-    if (!stripeSecretKey) {
-      throw new Error('Stripe secret key not found. Please check your .env file or configure keys in KMS.');
-    }
-    
-    // Initialize Stripe with the key
-    stripe = Stripe(stripeSecretKey);
-    stripeInitialized = true;
-    
-    console.log('✅ Stripe initialized successfully');
-    return stripe;
-    
-  } catch (error) {
-    console.error('❌ Stripe initialization error:', error.message);
-    stripeInitialized = false;
-    throw error;
-  }
-}
 
-// Initialize on module load
-initializeStripe().catch(error => {
-  console.error('❌ Failed to initialize Stripe on startup:', error.message);
-});
-
-// POST /api/payment/create-payment-intent
-router.post('/create-payment-intent', async (req, res) => {
-  const { amount, currency = 'usd', metadata = {}, donorEmail, donorName, donorId } = req.body;
-  
-  try {
-    // Validate amount
-    if (!amount || amount < 50) { // Minimum $0.50
+    // Validate amount (cents)
+    if (!amount || Number(amount) < 50) {
       return res.status(400).json({ error: 'Invalid amount. Minimum donation is $0.50.' });
     }
 
-    // Validate donor information
     if (!donorEmail || !donorName) {
       return res.status(400).json({ error: 'Donor email and name are required.' });
     }
 
-    // Ensure Stripe is initialized with secure keys
-    const stripeClient = await initializeStripe();
-    if (!stripeClient) {
-      return res.status(500).json({ error: 'Payment processing is not configured.' });
+    const client = getSquareClient();
+    const idempotencyKey = crypto.randomUUID();
+
+    const createRes = await client.payments.create({
+      sourceId,
+      idempotencyKey,
+      amountMoney: {
+        amount: toBigIntAmount(amount),
+        currency: String(currency || 'USD').toUpperCase(),
+      },
+      autocomplete: true,
+      buyerEmailAddress: donorEmail,
+      note: `BOW donation from ${donorName}`,
+      referenceId: `bow_donation_${Date.now()}`,
+    });
+
+    const payment = createRes.payment;
+    if (!payment) {
+      return res.status(500).json({ error: 'Payment was not created.' });
     }
 
-    console.log('[Payment] Creating payment intent for amount:', amount, 'currency:', currency);
-
-    const paymentIntent = await stripeClient.paymentIntents.create({
-      amount, // in cents
-      currency,
-      metadata: {
-        ...metadata,
-        source: 'bow_donation',
+    // Create donation record immediately (Square createPayment is synchronous)
+    try {
+      await Donation.create({
+        paymentIntentId: payment.id, // keep field name for backward compatibility
+        amount: Number(amount),
+        currency: String(currency || 'USD').toLowerCase(),
         donorEmail,
         donorName,
-        donorId: donorId || '',
-        isRecurring: 'false',
+        donorId: donorId || null,
+        status: (payment.status || 'UNKNOWN').toLowerCase(),
+        isRecurring: false,
         frequency: 'one-time',
-        timestamp: new Date().toISOString()
-      },
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
+        metadata: {
+          source: 'bow_donation',
+          provider: 'square',
+          squarePaymentId: payment.id,
+        },
+        receiptUrl: payment.receiptUrl || null,
+      });
+    } catch (dbErr) {
+      // Don't fail the payment response if DB write fails
+      console.error('[Payment] Failed to persist donation record:', dbErr.message);
+    }
 
-    console.log('[Payment] Payment intent created:', paymentIntent.id);
+    // Send receipt email (best-effort)
+    try {
+      const receiptData = {
+        donorName,
+        donorEmail,
+        amount: Number(amount),
+        frequency: 'one-time',
+        paymentIntentId: payment.id,
+        donationDate: new Date().toISOString(),
+      };
+      await EmailService.sendDonationReceipt(receiptData);
+    } catch (emailErr) {
+      console.error('[Payment] Failed to send donation receipt email:', emailErr.message);
+    }
 
-    // Don't create donation record here - wait for webhook to confirm payment success
-
-    res.json({ 
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id
+    return res.json({
+      success: payment.status === 'COMPLETED',
+      paymentId: payment.id,
+      status: payment.status,
+      receiptUrl: payment.receiptUrl || null,
     });
   } catch (err) {
-    console.error('[Payment] Error creating payment intent:', err);
-    res.status(500).json({ error: err.message });
+    console.error('[Payment] Error creating Square payment:', err);
+    return res.status(500).json({ error: err.message || 'Payment failed' });
   }
 });
 
-// POST /api/payment/confirm-payment
+// POST /api/payment/confirm-payment (Square) - verify by paymentId
 router.post('/confirm-payment', async (req, res) => {
-  const { paymentIntentId } = req.body;
+  const { paymentIntentId, paymentId } = req.body;
+  const id = paymentId || paymentIntentId;
   
   try {
-    if (!stripe) {
-      return res.status(500).json({ error: 'Payment processing is not configured.' });
+    if (!id) {
+      return res.status(400).json({ error: 'paymentId is required.' });
     }
 
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    
-    if (paymentIntent.status === 'succeeded') {
-      // Check if donation record exists (created by webhook)
-      let donation = await Donation.findByPaymentIntentId(paymentIntentId);
-      
-      if (!donation) {
-        // Webhook hasn't processed yet, create donation record here
-        donation = await Donation.create({
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          donorEmail: paymentIntent.metadata.donorEmail,
-          donorName: paymentIntent.metadata.donorName,
-          donorId: paymentIntent.metadata.donorId || null,
-          status: 'succeeded',
-          isRecurring: false,
-          frequency: 'one-time',
-          metadata: paymentIntent.metadata,
-          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
-        });
-        console.log('[Payment] Donation record created (webhook fallback):', paymentIntentId);
-        
-        // Send email receipt for fallback case (webhook might not have sent it yet)
-        try {
-          console.log('[Payment] Sending donation receipt email (fallback):', paymentIntent.metadata.donorEmail);
-          
-          const receiptData = {
-            donorName: paymentIntent.metadata.donorName,
-            donorEmail: paymentIntent.metadata.donorEmail,
-            amount: paymentIntent.amount,
-            frequency: paymentIntent.metadata.frequency,
-            paymentIntentId: paymentIntent.id,
-            donationDate: new Date().toISOString()
-          };
-          
-          const emailResult = await EmailService.sendDonationReceipt(receiptData);
-          console.log('[Payment] Donation receipt email sent successfully (fallback):', emailResult.messageId);
-          
-        } catch (emailError) {
-          console.error('[Payment] Failed to send donation receipt email (fallback):', emailError.message);
-          // Don't fail the payment confirmation if email fails
-        }
-        
-      } else {
-        // Update existing donation record
-        donation = await Donation.updateByPaymentIntentId(
-          paymentIntentId,
-          { 
-            status: 'succeeded',
-            receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
-          }
-        );
-        console.log('[Payment] Payment confirmed and donation updated:', paymentIntentId);
-      }
-      
-      res.json({ 
-        success: true, 
-        amount: paymentIntent.amount,
-        status: paymentIntent.status,
-        donation: donation
-      });
-    } else {
-      // Payment failed - don't create or update donation record
-      // Let the webhook handle failed payments
-      console.log('[Payment] Payment failed, no donation record created:', paymentIntentId);
-      
-      res.json({ 
-        success: false, 
-        status: paymentIntent.status 
+    const client = getSquareClient();
+    const getRes = await client.payments.get({ paymentId: id });
+    const payment = getRes.payment;
+
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    const succeeded = payment.status === 'COMPLETED';
+
+    // Ensure a donation record exists for completed payments
+    let donation = await Donation.findByPaymentIntentId(id);
+    if (succeeded && !donation) {
+      donation = await Donation.create({
+        paymentIntentId: id,
+        amount: Number(payment.amountMoney?.amount || 0n),
+        currency: String(payment.amountMoney?.currency || 'USD').toLowerCase(),
+        donorEmail: payment.buyerEmailAddress || '',
+        donorName: '',
+        donorId: null,
+        status: 'completed',
+        isRecurring: false,
+        frequency: 'one-time',
+        metadata: { provider: 'square', squarePaymentId: id },
+        receiptUrl: payment.receiptUrl || null,
       });
     }
+
+    return res.json({
+      success: succeeded,
+      status: payment.status,
+      donation,
+    });
   } catch (err) {
     console.error('[Payment] Error confirming payment:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/payment/webhook - Stripe webhook handler
+// POST /api/payment/webhook - (Square webhook not implemented here)
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  
-  // Get webhook secret from KMS or environment variables
-  let endpointSecret;
-  if (keyManager) {
-    try {
-      endpointSecret = await keyManager.getStripeWebhookSecret();
-      console.log('✅ Retrieved webhook secret from secure key manager');
-    } catch (keyError) {
-      console.log('⚠️ Key manager failed for webhook secret, falling back to environment variables:', keyError.message);
-      endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    }
-  } else {
-    endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  }
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-  } catch (err) {
-    console.error('[Webhook] Signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  console.log('[Webhook] Received event:', event.type);
-
-  try {
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        const paymentIntent = event.data.object;
-        console.log('[Webhook] Payment succeeded:', paymentIntent.id);
-        
-        // Check if this is an event registration or donation based on metadata
-        if (paymentIntent.metadata.type === 'event_registration') {
-          // Handle event registration
-          const Registration = require('../models-dynamodb/Registration');
-          
-          try {
-            // Find the existing registration with pending payment
-            let registration = await Registration.findByPaymentIntentId(paymentIntent.id);
-            
-            if (registration) {
-              // Update existing registration with payment confirmation
-              await registration.update({
-                paymentStatus: 'completed',
-                paymentDate: new Date().toISOString(),
-                status: 'confirmed'
-              });
-              console.log('[Webhook] Event registration updated with payment confirmation:', registration.ticketNumber);
-            } else {
-              // Create new registration if not found (fallback)
-              registration = await Registration.create({
-                eventId: paymentIntent.metadata.eventId,
-                userId: paymentIntent.metadata.userId,
-                userEmail: paymentIntent.metadata.userEmail,
-                userName: paymentIntent.metadata.userName,
-                phone: paymentIntent.metadata.phone || '',
-                dietaryRestrictions: paymentIntent.metadata.dietaryRestrictions || '',
-                specialRequests: paymentIntent.metadata.specialRequests || '',
-                paymentAmount: paymentIntent.amount,
-                paymentIntentId: paymentIntent.id,
-                paymentDate: new Date().toISOString(),
-                paymentStatus: 'completed',
-                isPaidEvent: true,
-                status: 'confirmed'
-              });
-              console.log('[Webhook] Event registration created (fallback):', registration.ticketNumber);
-            }
-            
-            // Send event registration confirmation email
-            try {
-              console.log('[Webhook] Sending event registration email to:', paymentIntent.metadata.userEmail);
-              
-              // Get event details for email
-              const Event = require('../models-dynamodb/Event');
-              const event = await Event.findById(paymentIntent.metadata.eventId);
-              
-              if (event) {
-                const emailData = {
-                  userName: registration.userName,
-                  userEmail: registration.userEmail,
-                  phone: registration.phone || 'N/A',
-                  ticketNumber: registration.ticketNumber,
-                  eventTitle: event.title,
-                  eventDate: event.date,
-                  eventTime: event.time,
-                  eventLocation: event.location,
-                  quantity: registration.quantity || 1,
-                  paymentAmount: registration.paymentAmount,
-                  paymentIntentId: registration.paymentIntentId,
-                  paymentStatus: registration.paymentStatus || 'succeeded',
-                  paymentDate: registration.paymentDate || new Date().toISOString(),
-                  registrationDate: registration.registrationDate || registration.createdAt,
-                  status: registration.status || 'confirmed',
-                  checkInStatus: registration.checkInStatus || 'Not Checked In'
-                };
-                
-                const emailResult = await EmailService.sendEventRegistrationConfirmation(emailData);
-                console.log('[Webhook] Event registration confirmation email sent successfully:', emailResult.messageId);
-              } else {
-                console.log('[Webhook] Event not found for email, skipping email send');
-              }
-              
-            } catch (emailError) {
-              console.error('[Webhook] Failed to send event registration email:', emailError.message);
-              // Don't fail the webhook if email fails - payment was successful
-            }
-            
-          } catch (registrationError) {
-            console.error('[Webhook] Error processing event registration:', registrationError.message);
-            // Don't fail the webhook - payment was successful
-          }
-          
-        } else {
-          // Handle donation (existing logic)
-        const donation = await Donation.create({
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          donorEmail: paymentIntent.metadata.donorEmail,
-          donorName: paymentIntent.metadata.donorName,
-          donorId: paymentIntent.metadata.donorId || null,
-          status: 'succeeded',
-          isRecurring: false,
-          frequency: 'one-time',
-          metadata: paymentIntent.metadata,
-          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
-        });
-        
-        console.log('[Webhook] Donation record created:', donation.paymentIntentId);
-        
-        // Send email receipt to donor
-        try {
-          console.log('[Webhook] Sending donation receipt email to:', paymentIntent.metadata.donorEmail);
-          
-          const receiptData = {
-            donorName: paymentIntent.metadata.donorName,
-            donorEmail: paymentIntent.metadata.donorEmail,
-            amount: paymentIntent.amount,
-            frequency: paymentIntent.metadata.frequency,
-            paymentIntentId: paymentIntent.id,
-            donationDate: new Date().toISOString()
-          };
-          
-          const emailResult = await EmailService.sendDonationReceipt(receiptData);
-          console.log('[Webhook] Donation receipt email sent successfully:', emailResult.messageId);
-          
-        } catch (emailError) {
-          console.error('[Webhook] Failed to send donation receipt email:', emailError.message);
-          // Don't fail the webhook if email fails - payment was successful
-          }
-        }
-        
-        break;
-
-      case 'payment_intent.payment_failed':
-        const failedPaymentIntent = event.data.object;
-        console.log('[Webhook] Payment failed:', failedPaymentIntent.id);
-        
-        // Don't create a donation record for failed payments
-        // This prevents "pending" entries from appearing in admin panel
-        break;
-
-      default:
-        console.log(`[Webhook] Unhandled event type: ${event.type}`);
-    }
-
-    res.json({ received: true });
-  } catch (err) {
-    console.error('[Webhook] Error processing event:', err);
-    res.status(500).json({ error: err.message });
-  }
+  res.status(501).json({
+    success: false,
+    message:
+      'Webhook endpoint is not configured for Square in this deployment. Payments are processed synchronously via /api/payment/create-payment.',
+  });
 });
 
 // GET /api/payment/status
 router.get('/status', (req, res) => {
-  const isConfigured = !!process.env.STRIPE_SECRET_KEY;
+  const isConfigured = !!process.env.SQUARE_ACCESS_TOKEN;
   res.json({ 
     configured: isConfigured,
     message: isConfigured ? 'Payment processing is ready' : 'Payment processing is not configured'

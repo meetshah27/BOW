@@ -5,8 +5,6 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.11.2",
     "@headlessui/react": "^2.2.4",
-    "@stripe/react-stripe-js": "^2.4.0",
-    "@stripe/stripe-js": "^2.4.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -29,12 +27,12 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "npx react-scripts start",
+    "build": "npx react-scripts build",
+    "test": "npx react-scripts test",
     "lint": "eslint . --ext .js,.jsx --ignore-path .gitignore",
     "format": "prettier --write .",
-    "eject": "react-scripts eject"
+    "eject": "npx react-scripts eject"
   },
   "eslintConfig": {
     "extends": [

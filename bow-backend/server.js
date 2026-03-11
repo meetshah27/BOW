@@ -12,7 +12,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const paymentRouter = require('./routes/payment');
-const stripeConfigRouter = require('./routes/stripe-config');
+const squareConfigRouter = require('./routes/square-config');
 const eventsRouter = require('./routes/events');
 const volunteersRouter = require('./routes/volunteers');
 const storiesRouter = require('./routes/stories');
@@ -98,7 +98,7 @@ try {
 
 app.use(logger('dev'));
 
-// Special handling for Stripe webhooks - must be raw body
+// Special handling for payment webhooks - must be raw body
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
 // Safe JSON parsing for all other routes with Lambda fallback
@@ -154,7 +154,7 @@ app.use(healthCheckMiddleware);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/payment', paymentRouter);
-app.use('/api', stripeConfigRouter);
+app.use('/api', squareConfigRouter);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
