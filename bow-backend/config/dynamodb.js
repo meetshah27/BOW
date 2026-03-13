@@ -15,6 +15,8 @@ const TABLES = {
   REGISTRATIONS: 'bow-registrations',
   VOLUNTEERS: 'bow-volunteers',
   MEMBERSHIPS: 'bow-memberships',
+  VENDOR_APPLICATIONS: 'bow-vendor-applications',
+  PERFORMER_APPLICATIONS: 'bow-performer-applications',
   GALLERY: 'bow-gallery',
   HERO: 'bow-hero',
   HERO_MEDIA: 'bow-hero-media',
@@ -260,6 +262,36 @@ const TABLE_SCHEMAS = {
           WriteCapacityUnits: 5
         }
       }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.VENDOR_APPLICATIONS]: {
+    TableName: TABLES.VENDOR_APPLICATIONS,
+    KeySchema: [
+      { AttributeName: 'applicantEmail', KeyType: 'HASH' },
+      { AttributeName: 'id', KeyType: 'RANGE' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'applicantEmail', AttributeType: 'S' },
+      { AttributeName: 'id', AttributeType: 'S' }
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 5,
+      WriteCapacityUnits: 5
+    }
+  },
+  [TABLES.PERFORMER_APPLICATIONS]: {
+    TableName: TABLES.PERFORMER_APPLICATIONS,
+    KeySchema: [
+      { AttributeName: 'applicantEmail', KeyType: 'HASH' },
+      { AttributeName: 'id', KeyType: 'RANGE' }
+    ],
+    AttributeDefinitions: [
+      { AttributeName: 'applicantEmail', AttributeType: 'S' },
+      { AttributeName: 'id', AttributeType: 'S' }
     ],
     ProvisionedThroughput: {
       ReadCapacityUnits: 5,

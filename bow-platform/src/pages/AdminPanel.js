@@ -39,7 +39,8 @@ import {
   Mail,
   Star,
   Quote,
-  ShoppingCart
+  ShoppingCart,
+  Music
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
 import VolunteerOpportunityManager from '../components/admin/VolunteerOpportunityManager';
@@ -55,6 +56,8 @@ import CulturalQuotesManagement from '../components/admin/CulturalQuotesManageme
 import NewMembersManagement from '../components/admin/NewMembersManagement';
 import SettingsManagement from '../components/admin/SettingsManagement';
 import SponsorManagementFixed from '../components/admin/SponsorManagementFixed';
+import VendorApplicationsManagement from '../components/admin/VendorApplicationsManagement';
+import PerformerApplicationsManagement from '../components/admin/PerformerApplicationsManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // Helper function to fix timezone issues with dates
@@ -3654,6 +3657,8 @@ const AdminPanel = () => {
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'New Members', href: '/admin/new-members', icon: UserPlus },
+    { name: 'Vendor Applications', href: '/admin/vendor-applications', icon: ShoppingCart },
+    { name: 'Performer Applications', href: '/admin/performer-applications', icon: Music },
     { name: 'Volunteers', href: '/admin/volunteers', icon: Users },
     { name: 'Volunteer Opportunities', href: '/admin/volunteer-opportunities', icon: Users },
     { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
@@ -3688,6 +3693,10 @@ const AdminPanel = () => {
         return <UserManagement />;
       case 'new members':
         return <NewMembersManagement />;
+      case 'vendor applications':
+        return <VendorApplicationsManagement />;
+      case 'performer applications':
+        return <PerformerApplicationsManagement />;
       case 'volunteers':
         return <VolunteerManagement />;
       case 'volunteer opportunities':

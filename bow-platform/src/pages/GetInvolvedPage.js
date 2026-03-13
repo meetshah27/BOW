@@ -19,6 +19,8 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import VolunteerApplicationForm from '../components/volunteer/VolunteerApplicationForm';
 import MembershipApplicationForm from '../components/membership/MembershipApplicationForm';
+import VendorApplicationForm from '../components/applications/VendorApplicationForm';
+import PerformerApplicationForm from '../components/applications/PerformerApplicationForm';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
@@ -30,6 +32,8 @@ const GetInvolvedPage = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [membershipApplicationEnabled, setMembershipApplicationEnabled] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
+  const [showVendorModal, setShowVendorModal] = useState(false);
+  const [showPerformerModal, setShowPerformerModal] = useState(false);
   
   // Debug logging for modal state
   useEffect(() => {
@@ -257,7 +261,8 @@ const GetInvolvedPage = () => {
         interactiveElements={[
           { icon: Users, label: 'Volunteer', color: 'text-green-300' },
           { icon: Heart, label: 'Member', color: 'text-red-300' },
-          { icon: Calendar, label: 'Events', color: 'text-blue-300' }
+          { icon: Award, label: 'Vendor', color: 'text-yellow-300' },
+          { icon: Music, label: 'Performer', color: 'text-purple-300' }
         ]}
       />
 
@@ -317,6 +322,54 @@ const GetInvolvedPage = () => {
                 <Heart className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                 <span className="hidden sm:inline">Become a Member</span>
                 <span className="sm:hidden">Member</span>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('vendor');
+                  setTimeout(() => {
+                    const element = document.getElementById('vendor-section');
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      });
+                    }
+                  }, 100);
+                }}
+                className={`px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:ring-offset-2 text-sm sm:text-base md:text-lg shadow-lg border-2 flex items-center justify-center gap-2 sm:gap-3 ${
+                  activeTab === 'vendor'
+                    ? 'text-white border-primary-600 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-primary-500/50'
+                    : 'text-primary-600 border-primary-600 bg-white hover:bg-primary-50 hover:border-primary-700 hover:text-primary-700'
+                }`}
+                type="button"
+                aria-pressed={activeTab === 'vendor'}
+              >
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                <span>Vendor</span>
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('performer');
+                  setTimeout(() => {
+                    const element = document.getElementById('performer-section');
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      });
+                    }
+                  }, 100);
+                }}
+                className={`px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:ring-offset-2 text-sm sm:text-base md:text-lg shadow-lg border-2 flex items-center justify-center gap-2 sm:gap-3 ${
+                  activeTab === 'performer'
+                    ? 'text-white border-primary-600 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-primary-500/50'
+                    : 'text-primary-600 border-primary-600 bg-white hover:bg-primary-50 hover:border-primary-700 hover:text-primary-700'
+                }`}
+                type="button"
+                aria-pressed={activeTab === 'performer'}
+              >
+                <Music className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                <span>Performer</span>
               </button>
             </div>
           </div>
@@ -533,9 +586,93 @@ const GetInvolvedPage = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === 'vendor' && (
+              <div id="vendor-section" className="space-y-6 sm:space-y-8">
+                <div className="text-center mb-8 sm:mb-12 md:mb-16">
+                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full mb-4 sm:mb-6 shadow-lg animate-pulse overflow-hidden">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="BOW Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Award className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                    )}
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
+                    Vendor Applications
+                  </h2>
+                  <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto px-4">
+                    Want to be a vendor at BOW events? Apply here and we’ll reach out with upcoming opportunities.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Apply as a Vendor</h3>
+                      <p className="text-sm sm:text-base text-gray-600 mt-2">
+                        Food, crafts, services, and community partners are welcome.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-primary w-full sm:w-auto justify-center"
+                      onClick={() => setShowVendorModal(true)}
+                    >
+                      Apply Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'performer' && (
+              <div id="performer-section" className="space-y-6 sm:space-y-8">
+                <div className="text-center mb-8 sm:mb-12 md:mb-16">
+                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full mb-4 sm:mb-6 shadow-lg animate-pulse overflow-hidden">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="BOW Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Music className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                    )}
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
+                    Performer Applications
+                  </h2>
+                  <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto px-4">
+                    Interested in performing at BOW events? Apply here with your act details.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Apply as a Performer</h3>
+                      <p className="text-sm sm:text-base text-gray-600 mt-2">
+                        Bands, solo artists, dancers, DJs, and cultural performances are welcome.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-primary w-full sm:w-auto justify-center"
+                      onClick={() => setShowPerformerModal(true)}
+                    >
+                      Apply Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      {showVendorModal && (
+        <VendorApplicationForm logoUrl={logoUrl} onClose={() => setShowVendorModal(false)} />
+      )}
+
+      {showPerformerModal && (
+        <PerformerApplicationForm logoUrl={logoUrl} onClose={() => setShowPerformerModal(false)} />
+      )}
 
       {/* Membership Application Form Modal */}
       {showCommunityModal && (
