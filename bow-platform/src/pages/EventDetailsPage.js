@@ -25,6 +25,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCelebration } from '../contexts/CelebrationContext';
 import toast from 'react-hot-toast';
 import api from '../config/api';
+import { isEventDatePast } from '../utils/dateUtils';
 
 const SQUARE_SCRIPTS = {
   sandbox: 'https://sandbox.web.squarecdn.com/v1/square.js',
@@ -959,6 +960,10 @@ const EventDetailsPage = () => {
 
   // Add function to handle registration button click with auth check
   const handleRegistrationClick = () => {
+    if (event && isEventDatePast(event.date)) {
+      toast.error('Registration is closed — this event has already taken place.');
+      return;
+    }
     if (!currentUser) {
       // Store the current page location to redirect back after login
       const currentPath = window.location.pathname;
@@ -1174,7 +1179,9 @@ const EventDetailsPage = () => {
   }
 
   const registrationPercentage = (event.registeredCount / event.capacity) * 100;
-  const isRegistrationOpen = event.isLive && event.isActive && event.registeredCount < event.capacity;
+  const isEventPast = isEventDatePast(event.date);
+  const isRegistrationOpen =
+    event.isLive && event.isActive && event.registeredCount < event.capacity && !isEventPast;
   
   // Calculate if payment is required (paid event OR paid addons)
   const isPaidEventValue = event ? isPaidEvent(event.price) : false;
@@ -1604,6 +1611,18 @@ const EventDetailsPage = () => {
                             <p className="font-mono text-xs sm:text-sm text-green-700 break-all">{ticketInfo.ticketNumber}</p>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  ) : isEventPast ? (
+                    <div className="text-center py-3 sm:py-4">
+                      <div className="bg-slate-100 border border-slate-200 rounded-lg p-3 sm:p-4">
+                        <div className="flex items-center justify-center mb-2">
+                          <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 mr-1.5 sm:mr-2 flex-shrink-0" />
+                          <span className="text-sm sm:text-base text-slate-800 font-medium break-words">Registration Closed</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-600 break-words">
+                          This event has already taken place. Registration is no longer available.
+                        </p>
                       </div>
                     </div>
                   ) : event.isLive ? (

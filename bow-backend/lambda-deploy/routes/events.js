@@ -611,6 +611,23 @@ router.post('/:id/register', async (req, res) => {
         console.error('[Backend] Event not found:', req.params.id);
         return res.status(404).json({ message: 'Event not found' });
       }
+
+      const eventDateStr = event.date ? String(event.date).split('T')[0] : '';
+      const dateMatch = eventDateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateMatch) {
+        const eventDay = new Date(
+          Number(dateMatch[1]),
+          Number(dateMatch[2]) - 1,
+          Number(dateMatch[3])
+        );
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (today > eventDay) {
+          return res.status(400).json({
+            message: 'Registration is closed — this event has already taken place.',
+          });
+        }
+      }
       
       // Validate payment requirements based on event price OR paid addons
       const eventPrice = parseFloat(event.price) || 0;
@@ -911,6 +928,22 @@ router.post('/:id/create-payment', async (req, res) => {
       event = await Event.findById(req.params.id);
       if (!event) {
         return res.status(404).json({ error: 'Event not found' });
+      }
+      const eventDateStr = event.date ? String(event.date).split('T')[0] : '';
+      const dateMatch = eventDateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateMatch) {
+        const eventDay = new Date(
+          Number(dateMatch[1]),
+          Number(dateMatch[2]) - 1,
+          Number(dateMatch[3])
+        );
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (today > eventDay) {
+          return res.status(400).json({
+            error: 'Registration is closed — this event has already taken place.',
+          });
+        }
       }
     }
     

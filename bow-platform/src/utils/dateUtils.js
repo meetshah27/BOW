@@ -116,6 +116,19 @@ export const isFuture = (date) => {
 };
 
 /**
+ * True if the event's calendar day is before today (local time). Used to close registration after the event date.
+ */
+export const isEventDatePast = (dateString) => {
+  if (!dateString) return false;
+  const dateObj = parseDateString(dateString);
+  if (!dateObj || Number.isNaN(dateObj.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const eventDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  return today > eventDay;
+};
+
+/**
  * Get the current date in YYYY-MM-DD format
  * @returns {string} - Current date string
  */

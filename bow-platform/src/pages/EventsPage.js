@@ -22,7 +22,7 @@ import {
   Mail,
   ExternalLink
 } from 'lucide-react';
-import { formatDate, parseDateString, isFuture } from '../utils/dateUtils';
+import { formatDate, parseDateString, isFuture, isEventDatePast } from '../utils/dateUtils';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
 
@@ -1053,7 +1053,9 @@ const EventsPage = () => {
                   View Full Details
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
-                {selectedEventModal.capacity && getRegistrationStatus(selectedEventModal).status !== 'full' && (
+                {selectedEventModal.capacity &&
+                  getRegistrationStatus(selectedEventModal).status !== 'full' &&
+                  !isEventDatePast(selectedEventModal.date) && (
                   <Link
                     to={`/events/${selectedEventModal.id}?register=true`}
                     className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl"
