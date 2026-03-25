@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Heart, Shield, Users, Music, Award, CheckCircle, ArrowRight, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -40,9 +40,57 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
   const [loading, setLoading] = useState(false);
   const [initError, setInitError] = useState(null);
   const [ready, setReady] = useState(false);
+  const [applePayAvailable, setApplePayAvailable] = useState(false);
 
   const cardRef = useRef(null);
+  const paymentsRef = useRef(null);
+  const applePayRef = useRef(null);
+  const applePayBtnRef = useRef(null);
   const containerId = useMemo(() => `square-card-container-${Math.random().toString(36).slice(2)}`, []);
+
+  const runDonationPayment = useCallback(
+    async (sourceId) => {
+      const amountNumber = Number(amount);
+      const amountCents = Math.round(amountNumber * 100);
+      const payRes = await api.post('/payment/create-payment', {
+        sourceId,
+        amount: amountCents,
+        currency: 'USD',
+        donorEmail,
+        donorName,
+      });
+      const payData = await payRes.json().catch(() => ({}));
+      if (!payRes.ok) {
+        throw new Error(payData.error || 'Payment failed. Please try again.');
+      }
+      toast.success(
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
+            {logoUrl ? (
+              <img src={logoUrl} alt="BOW Logo" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-sm">B</span>
+            )}
+          </div>
+          <div>
+            <div className="font-semibold text-green-800">Thank you for your donation!</div>
+            <div className="text-sm text-green-600">Your contribution makes a difference</div>
+          </div>
+        </div>,
+        {
+          duration: 5000,
+          style: {
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '12px',
+            padding: '16px',
+          },
+        }
+      );
+      triggerConfetti();
+    },
+    [amount, donorEmail, donorName, logoUrl, triggerConfetti]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +99,7 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
       try {
         setInitError(null);
         setReady(false);
+        paymentsRef.current = null;
 
         const cfgRes = await api.get('/square-config');
         const cfg = cfgRes.ok ? await cfgRes.json() : null;
@@ -62,6 +111,7 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
         if (cancelled) return;
 
         const payments = window.Square.payments(cfg.applicationId, cfg.locationId);
+        paymentsRef.current = payments;
         const card = await payments.card();
         cardRef.current = card;
         await card.attach(`#${containerId}`);
@@ -79,13 +129,101 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
     return () => {
       cancelled = true;
       try {
+        applePayRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      applePayRef.current = null;
+      try {
         cardRef.current?.destroy?.();
       } catch (e) {
         // ignore
       }
       cardRef.current = null;
+      paymentsRef.current = null;
     };
   }, [containerId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function setupApplePay() {
+      try {
+        applePayRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      applePayRef.current = null;
+      setApplePayAvailable(false);
+      if (!ready || !paymentsRef.current) return;
+      const n = Number(amount);
+      if (!n || n < 0.5) return;
+      try {
+        const paymentRequest = paymentsRef.current.paymentRequest({
+          countryCode: 'US',
+          currencyCode: 'USD',
+          total: { amount: n.toFixed(2), label: 'Donation' },
+        });
+        const ap = await paymentsRef.current.applePay(paymentRequest);
+        if (cancelled) {
+          ap.destroy?.();
+          return;
+        }
+        applePayRef.current = ap;
+        setApplePayAvailable(true);
+      } catch (e) {
+        console.debug('Apple Pay unavailable:', e?.message || e);
+      }
+    }
+    setupApplePay();
+    return () => {
+      cancelled = true;
+      try {
+        applePayRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      applePayRef.current = null;
+    };
+  }, [ready, amount]);
+
+  useEffect(() => {
+    const btn = applePayBtnRef.current;
+    if (!btn || !applePayAvailable) return;
+
+    const onApplePayClick = async (e) => {
+      e.preventDefault();
+      const ap = applePayRef.current;
+      if (!ap) return;
+      if (!donorName?.trim() || !donorEmail?.trim()) {
+        toast.error('Please enter your name and email.');
+        return;
+      }
+      const amountNumber = Number(amount);
+      const amountCents = Math.round(amountNumber * 100);
+      if (!amountNumber || amountNumber <= 0 || amountCents < 50) {
+        toast.error('Please select a valid amount (min $0.50).');
+        return;
+      }
+      setLoading(true);
+      try {
+        const tokenizeResult = await ap.tokenize();
+        if (tokenizeResult.status !== 'OK') {
+          const message =
+            tokenizeResult.errors?.[0]?.message || 'Apple Pay could not complete. Try again or use a card.';
+          throw new Error(message);
+        }
+        await runDonationPayment(tokenizeResult.token);
+      } catch (err) {
+        console.error(err);
+        toast.error(err.message || 'Payment failed.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    btn.addEventListener('click', onApplePayClick);
+    return () => btn.removeEventListener('click', onApplePayClick);
+  }, [applePayAvailable, amount, donorName, donorEmail, runDonationPayment]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -116,45 +254,7 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
         throw new Error(message);
       }
 
-      const sourceId = tokenizeResult.token;
-      const payRes = await api.post('/payment/create-payment', {
-        sourceId,
-        amount: amountCents,
-        currency: 'USD',
-        donorEmail,
-        donorName,
-      });
-
-      const payData = await payRes.json().catch(() => ({}));
-      if (!payRes.ok) {
-        throw new Error(payData.error || 'Payment failed. Please try again.');
-      }
-
-      toast.success(
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden">
-            {logoUrl ? (
-              <img src={logoUrl} alt="BOW Logo" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-white font-bold text-sm">B</span>
-            )}
-          </div>
-          <div>
-            <div className="font-semibold text-green-800">Thank you for your donation!</div>
-            <div className="text-sm text-green-600">Your contribution makes a difference</div>
-          </div>
-        </div>,
-        {
-          duration: 5000,
-          style: {
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '12px',
-            padding: '16px',
-          },
-        }
-      );
-      triggerConfetti();
+      await runDonationPayment(tokenizeResult.token);
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Payment failed.');
@@ -179,6 +279,29 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
           <div id={containerId} />
         </div>
       </div>
+
+      {applePayAvailable ? (
+        <>
+          <div className="relative flex items-center gap-3">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-500 shrink-0">or</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+          <div>
+            <button
+              type="button"
+              ref={applePayBtnRef}
+              className="bow-apple-pay-button"
+              disabled={loading}
+              aria-label="Pay with Apple Pay"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Apple Pay works in Safari on iPhone, iPad, and Mac with a card in Wallet. Register your domain in Square
+              Developer → Apple Pay for production HTTPS sites.
+            </p>
+          </div>
+        </>
+      ) : null}
 
       <button type="submit" className="btn-primary w-full text-sm sm:text-base py-2.5 sm:py-3" disabled={loading}>
         {loading ? 'Processing Payment...' : `Donate $${amount}`}

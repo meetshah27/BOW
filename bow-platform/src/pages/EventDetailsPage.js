@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -62,8 +62,13 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
   const [squareReady, setSquareReady] = useState(false);
   const [squareInitError, setSquareInitError] = useState(null);
   const [totalAmountCents, setTotalAmountCents] = useState(0);
+  const [applePayAvailable, setApplePayAvailable] = useState(false);
 
   const cardRef = useRef(null);
+  const paymentsRef = useRef(null);
+  const applePayRef = useRef(null);
+  const applePayBtnRef = useRef(null);
+  const payContextRef = useRef({});
   const containerId = useMemo(
     () => `square-card-container-${Math.random().toString(36).slice(2)}`,
     []
@@ -225,6 +230,42 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
     return { totalAmountCents: Math.round(totalAmount), addonsArray };
   };
 
+  payContextRef.current = {
+    calculateTotals,
+    event,
+    currentUser,
+    registrationData,
+    onRegister,
+  };
+
+  const submitPaidWithSourceId = useCallback(async (sourceId) => {
+    const ctx = payContextRef.current;
+    const { totalAmountCents: totalAmount, addonsArray } = ctx.calculateTotals();
+    if (!totalAmount || totalAmount <= 0) {
+      toast.error('Invalid payment amount. Please try again.');
+      throw new Error('Invalid payment amount');
+    }
+    const response = await api.post(`/events/${ctx.event.id}/create-payment`, {
+      sourceId,
+      amount: totalAmount,
+      quantity: ctx.registrationData.quantity,
+      userEmail: ctx.currentUser?.email || ctx.registrationData.email,
+      userName: ctx.currentUser?.displayName || ctx.registrationData.name,
+      userId: ctx.currentUser?.uid || ctx.currentUser?.id || `anon_${Date.now()}`,
+      addons: addonsArray,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || 'Payment failed. Please try again.');
+    }
+    if (data.paymentId) {
+      await ctx.onRegister(data.paymentId);
+      toast.success('Payment successful! Registration confirmation will be sent via email.');
+    } else {
+      throw new Error('Payment succeeded but no paymentId was returned.');
+    }
+  }, []);
+
   useEffect(() => {
     if (!event) return;
     if (!requiresPayment) {
@@ -259,6 +300,7 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
         if (cancelled) return;
 
         const payments = window.Square.payments(cfg.applicationId, cfg.locationId);
+        paymentsRef.current = payments;
         const card = await payments.card();
         cardRef.current = card;
         await card.attach(`#${containerId}`);
@@ -276,13 +318,103 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
     return () => {
       cancelled = true;
       try {
+        applePayRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      applePayRef.current = null;
+      try {
         cardRef.current?.destroy?.();
       } catch (e) {
         // ignore
       }
       cardRef.current = null;
+      paymentsRef.current = null;
     };
   }, [requiresPayment, containerId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function setupApplePay() {
+      try {
+        applePayRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      applePayRef.current = null;
+      setApplePayAvailable(false);
+      if (!requiresPayment || !squareReady || !paymentsRef.current) return;
+      const cents = totalAmountCents;
+      if (!cents || cents < 50) return;
+      const dollars = (cents / 100).toFixed(2);
+      try {
+        const paymentRequest = paymentsRef.current.paymentRequest({
+          countryCode: 'US',
+          currencyCode: 'USD',
+          total: { amount: dollars, label: event.title || 'Event registration' },
+        });
+        const ap = await paymentsRef.current.applePay(paymentRequest);
+        if (cancelled) {
+          ap.destroy?.();
+          return;
+        }
+        applePayRef.current = ap;
+        setApplePayAvailable(true);
+      } catch (e) {
+        console.debug('Apple Pay unavailable:', e?.message || e);
+      }
+    }
+    setupApplePay();
+    return () => {
+      cancelled = true;
+      try {
+        applePayRef.current?.destroy?.();
+      } catch (e) {
+        // ignore
+      }
+      applePayRef.current = null;
+    };
+  }, [requiresPayment, squareReady, totalAmountCents, event?.title]);
+
+  useEffect(() => {
+    const btn = applePayBtnRef.current;
+    if (!btn || !applePayAvailable) return;
+
+    const onApplePayClick = async (e) => {
+      e.preventDefault();
+      const ap = applePayRef.current;
+      if (!ap) return;
+      if (!currentUser && (!registrationData.name || !registrationData.email)) {
+        toast.error('Please enter your name and email.');
+        return;
+      }
+      setPaymentLoading(true);
+      try {
+        const tokenizeResult = await ap.tokenize();
+        if (tokenizeResult.status !== 'OK') {
+          const message =
+            tokenizeResult.errors?.[0]?.message ||
+            'Apple Pay could not complete. Try again or use a card.';
+          throw new Error(message);
+        }
+        await submitPaidWithSourceId(tokenizeResult.token);
+      } catch (error) {
+        console.error('Payment error:', error);
+        toast.error(error.message || 'Payment failed. Please try again.');
+      } finally {
+        setPaymentLoading(false);
+      }
+    };
+
+    btn.addEventListener('click', onApplePayClick);
+    return () => btn.removeEventListener('click', onApplePayClick);
+  }, [
+    applePayAvailable,
+    currentUser,
+    registrationData.name,
+    registrationData.email,
+    submitPaidWithSourceId,
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -321,7 +453,7 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
     setPaymentLoading(true);
 
     try {
-      const { totalAmountCents: totalAmount, addonsArray } = calculateTotals();
+      const { totalAmountCents: totalAmount } = calculateTotals();
       if (!totalAmount || totalAmount <= 0) {
         toast.error('Invalid payment amount. Please try again.');
         return;
@@ -335,27 +467,7 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
         throw new Error(message);
       }
 
-      const response = await api.post(`/events/${event.id}/create-payment`, {
-        sourceId: tokenizeResult.token,
-        amount: totalAmount,
-        quantity: registrationData.quantity,
-        userEmail: currentUser?.email || registrationData.email,
-        userName: currentUser?.displayName || registrationData.name,
-        userId: currentUser?.uid || currentUser?.id || `anon_${Date.now()}`,
-        addons: addonsArray,
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Payment failed. Please try again.');
-      }
-
-      if (data.paymentId) {
-        await onRegister(data.paymentId);
-        toast.success('Payment successful! Registration confirmation will be sent via email.');
-      } else {
-        throw new Error('Payment succeeded but no paymentId was returned.');
-      }
+      await submitPaidWithSourceId(tokenizeResult.token);
     } catch (error) {
       console.error('Payment error:', error);
       toast.error(error.message || 'Payment failed. Please try again.');
@@ -630,6 +742,29 @@ const SquareRegistrationForm = ({ event, currentUser, registrationData, setRegis
                       <p className="text-xs text-gray-500 mt-1">Loading payment form…</p>
                     ) : null}
                   </div>
+
+                  {applePayAvailable ? (
+                    <>
+                      <div className="relative flex items-center gap-3 pt-1">
+                        <div className="flex-1 h-px bg-gray-200" />
+                        <span className="text-xs text-gray-500 shrink-0">or</span>
+                        <div className="flex-1 h-px bg-gray-200" />
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          ref={applePayBtnRef}
+                          className="bow-apple-pay-button"
+                          disabled={paymentLoading}
+                          aria-label="Pay with Apple Pay"
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Apple Pay works in Safari with a card in Wallet. Register your domain under Square Developer →
+                          Apple Pay for your production site (HTTPS).
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               </div>
             )}

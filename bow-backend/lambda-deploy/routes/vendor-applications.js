@@ -3,6 +3,7 @@ const router = express.Router();
 
 const VendorApplication = require('../models-dynamodb/VendorApplication');
 
+// Submit vendor application
 router.post('/applications', async (req, res) => {
   try {
     const {
@@ -49,6 +50,7 @@ router.post('/applications', async (req, res) => {
   }
 });
 
+// Admin: list vendor applications
 router.get('/applications', async (req, res) => {
   try {
     const applications = await VendorApplication.findAll();
@@ -65,6 +67,7 @@ router.get('/applications', async (req, res) => {
   }
 });
 
+// Admin: update vendor application status
 router.put('/applications/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
@@ -89,6 +92,7 @@ router.put('/applications/:id/status', async (req, res) => {
   }
 });
 
+// Admin: delete vendor application
 router.delete('/applications/:id', async (req, res) => {
   try {
     const { id } = req.params;

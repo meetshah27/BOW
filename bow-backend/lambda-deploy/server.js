@@ -100,7 +100,7 @@ try {
 
 app.use(logger('dev'));
 
-// Special handling for Stripe webhooks - must be raw body
+// Special handling for payment webhooks - must be raw body
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
 // Safe JSON parsing for all other routes with Lambda fallback

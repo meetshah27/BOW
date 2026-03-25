@@ -3,6 +3,7 @@ const router = express.Router();
 
 const PerformerApplication = require('../models-dynamodb/PerformerApplication');
 
+// Submit performer application
 router.post('/applications', async (req, res) => {
   try {
     const {
@@ -53,6 +54,7 @@ router.post('/applications', async (req, res) => {
   }
 });
 
+// Admin: list performer applications
 router.get('/applications', async (req, res) => {
   try {
     const applications = await PerformerApplication.findAll();
@@ -69,6 +71,7 @@ router.get('/applications', async (req, res) => {
   }
 });
 
+// Admin: update performer application status
 router.put('/applications/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
@@ -95,6 +98,7 @@ router.put('/applications/:id/status', async (req, res) => {
   }
 });
 
+// Admin: delete performer application
 router.delete('/applications/:id', async (req, res) => {
   try {
     const { id } = req.params;

@@ -60,7 +60,7 @@ router.post('/create-payment', async (req, res) => {
         donorEmail,
         donorName,
         donorId: donorId || null,
-        status: (payment.status || 'UNKNOWN').toLowerCase(),
+        status: payment.status === 'COMPLETED' ? 'succeeded' : String(payment.status || 'UNKNOWN').toLowerCase(),
         isRecurring: false,
         frequency: 'one-time',
         metadata: {
@@ -132,7 +132,7 @@ router.post('/confirm-payment', async (req, res) => {
         donorEmail: payment.buyerEmailAddress || '',
         donorName: '',
         donorId: null,
-        status: 'completed',
+        status: 'succeeded',
         isRecurring: false,
         frequency: 'one-time',
         metadata: { provider: 'square', squarePaymentId: id },

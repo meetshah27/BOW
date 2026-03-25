@@ -236,7 +236,7 @@ const Dashboard = () => {
       iconBg: 'bg-orange-200'
     },
     {
-      title: 'Monthly Donations',
+      title: 'Total Donations',
       value: stats.loading ? '...' : `$${stats.monthlyDonations?.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
       icon: CreditCard,
       color: 'bg-gradient-to-br from-green-100 to-green-200 text-green-700',
@@ -2765,7 +2765,7 @@ const DonationsManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        donation.status === 'succeeded' ? 'bg-green-100 text-green-800' : 
+                        (donation.status === 'succeeded' || donation.status === 'completed') ? 'bg-green-100 text-green-800' : 
                         donation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>

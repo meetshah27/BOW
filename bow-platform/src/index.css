@@ -18,6 +18,24 @@
   }
 }
 
+/* Square Apple Pay (Safari / WebKit); see https://developer.squareup.com/docs/web-payments/apple-pay */
+.bow-apple-pay-button {
+  height: 48px;
+  width: 100%;
+  max-width: 100%;
+  display: inline-block;
+  -webkit-appearance: -apple-pay-button;
+  -apple-pay-button-type: plain;
+  -apple-pay-button-style: black;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.bow-apple-pay-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-base;

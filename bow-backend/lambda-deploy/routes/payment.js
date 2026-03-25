@@ -60,7 +60,7 @@ router.post('/create-payment', async (req, res) => {
         donorEmail,
         donorName,
         donorId: donorId || null,
-        status: (payment.status || 'UNKNOWN').toLowerCase(),
+        status: payment.status === 'COMPLETED' ? 'succeeded' : String(payment.status || 'UNKNOWN').toLowerCase(),
         isRecurring: false,
         frequency: 'one-time',
         metadata: {
@@ -71,6 +71,7 @@ router.post('/create-payment', async (req, res) => {
         receiptUrl: payment.receiptUrl || null,
       });
     } catch (dbErr) {
+      // Don't fail the payment response if DB write fails
       console.error('[Payment] Failed to persist donation record:', dbErr.message);
     }
 
@@ -121,6 +122,7 @@ router.post('/confirm-payment', async (req, res) => {
 
     const succeeded = payment.status === 'COMPLETED';
 
+    // Ensure a donation record exists for completed payments
     let donation = await Donation.findByPaymentIntentId(id);
     if (succeeded && !donation) {
       donation = await Donation.create({
@@ -130,7 +132,7 @@ router.post('/confirm-payment', async (req, res) => {
         donorEmail: payment.buyerEmailAddress || '',
         donorName: '',
         donorId: null,
-        status: 'completed',
+        status: 'succeeded',
         isRecurring: false,
         frequency: 'one-time',
         metadata: { provider: 'square', squarePaymentId: id },

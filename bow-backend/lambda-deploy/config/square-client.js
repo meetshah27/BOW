@@ -7,6 +7,7 @@ function getSquareEnvironment() {
   if (raw === 'production' || raw === 'prod') return SquareEnvironment.Production;
   if (raw === 'sandbox' || raw === 'test') return SquareEnvironment.Sandbox;
 
+  // Default safely: sandbox for non-production NODE_ENV, production otherwise
   if ((process.env.NODE_ENV || '').toLowerCase() === 'production') return SquareEnvironment.Production;
   return SquareEnvironment.Sandbox;
 }

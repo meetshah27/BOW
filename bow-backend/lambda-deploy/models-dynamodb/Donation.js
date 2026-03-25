@@ -211,12 +211,13 @@ class Donation {
   static async getStats() {
     const command = new ScanCommand({
       TableName: TABLES.DONATIONS,
-      FilterExpression: '#status = :status',
+      FilterExpression: '(#status = :succeeded OR #status = :completed)',
       ExpressionAttributeNames: {
         '#status': 'status'
       },
       ExpressionAttributeValues: {
-        ':status': 'succeeded'
+        ':succeeded': 'succeeded',
+        ':completed': 'completed'
       }
     });
 
