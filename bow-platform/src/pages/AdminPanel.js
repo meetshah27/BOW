@@ -129,6 +129,8 @@ const Dashboard = () => {
   const { triggerConfetti } = useCelebration();
   const [isFoundersCelebrating, setIsFoundersCelebrating] = useState(false);
   const [stats, setStats] = useState({
+    currentEventRegistrations: null,
+    currentEventLabel: null,
     totalMembers: null,
     activeEvents: null,
     monthlyDonations: null,
@@ -187,6 +189,9 @@ const Dashboard = () => {
         // Fetch active events
         const eventsRes = await api.get('/events');
         const eventsData = eventsRes.ok ? await eventsRes.json() : [];
+        // Fetch all registrations (for dashboard "current event" summary)
+        const registrationsRes = await api.get('/events/registrations');
+        const registrationsData = registrationsRes.ok ? await registrationsRes.json() : [];
         // Fetch monthly donations
         const donationsRes = await api.get('/payment/donations/stats');
         const donationsData = donationsRes.ok ? await donationsRes.json() : {};
@@ -200,7 +205,26 @@ const Dashboard = () => {
         const membershipsRes = await api.get('/memberships/stats');
         const membershipsData = membershipsRes.ok ? await membershipsRes.json() : {};
 
+        const today = new Date();
+        const upcomingActiveEvents = Array.isArray(eventsData)
+          ? eventsData
+              .filter(e => e?.isActive && e?.date)
+              .filter(e => new Date(e.date) >= new Date(today.getFullYear(), today.getMonth(), today.getDate()))
+              .sort((a, b) => new Date(a.date) - new Date(b.date))
+          : [];
+
+        const currentEvent = upcomingActiveEvents[0] || null;
+        const currentEventId = currentEvent?.id || currentEvent?._id || null;
+        const currentEventRegs = Array.isArray(registrationsData) && currentEventId
+          ? registrationsData.filter(r => (r.eventId === currentEventId) || (r.eventId?._id === currentEventId)).length
+          : 0;
+        const currentEventLabel = currentEvent
+          ? `${currentEvent.title || 'Current Event'} • ${new Date(currentEvent.date).toLocaleDateString()}`
+          : 'No upcoming active event';
+
         setStats({
+          currentEventRegistrations: currentEventRegs,
+          currentEventLabel,
           totalMembers: usersData.totalUsers ?? 0,
           activeEvents: Array.isArray(eventsData) ? eventsData.filter(e => e.isActive).length : 0,
           monthlyDonations: donationsData.monthlyStats && donationsData.monthlyStats[0] ? (donationsData.monthlyStats[0].amount / 100) : 0,
@@ -221,6 +245,14 @@ const Dashboard = () => {
 
   // Enhanced stat cards with icons and color backgrounds
   const statCards = [
+    {
+      title: 'Current Event Registrations',
+      value: stats.loading ? '...' : (stats.currentEventRegistrations ?? 0),
+      subtitle: stats.loading ? '' : stats.currentEventLabel,
+      icon: ClipboardList,
+      color: 'bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800',
+      iconBg: 'bg-amber-200'
+    },
     {
       title: 'Total Members',
       value: stats.loading ? '...' : stats.totalMembers,
@@ -309,6 +341,9 @@ const Dashboard = () => {
             </div>
             <div className="text-2xl font-bold mb-1">{stat.value}</div>
             <div className="text-sm font-medium">{stat.title}</div>
+            {!!stat.subtitle && (
+              <div className="text-xs mt-1 opacity-80">{stat.subtitle}</div>
+            )}
           </div>
         ))}
       </div>
