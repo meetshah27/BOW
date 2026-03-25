@@ -2,10 +2,19 @@ const express = require('express');
 const router = express.Router();
 
 const PerformerApplication = require('../models-dynamodb/PerformerApplication');
+const Settings = require('../models-dynamodb/Settings');
 
 // Submit performer application
 router.post('/applications', async (req, res) => {
   try {
+    const settings = await Settings.getSettings();
+    if (!settings.performerApplicationEnabled) {
+      return res.status(403).json({
+        error: 'Performer applications are temporarily closed.',
+        code: 'PERFORMER_APPLICATIONS_DISABLED'
+      });
+    }
+
     const {
       applicantName,
       applicantEmail,

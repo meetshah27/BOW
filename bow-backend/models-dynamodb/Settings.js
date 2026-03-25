@@ -31,6 +31,12 @@ class Settings {
     this.membershipApplicationEnabled = data.membershipApplicationEnabled !== undefined 
       ? data.membershipApplicationEnabled 
       : true; // Default to enabled
+    this.vendorApplicationEnabled = data.vendorApplicationEnabled !== undefined
+      ? data.vendorApplicationEnabled
+      : true; // Default to enabled
+    this.performerApplicationEnabled = data.performerApplicationEnabled !== undefined
+      ? data.performerApplicationEnabled
+      : true; // Default to enabled
     this.lastUpdated = data.lastUpdated || new Date().toISOString();
     this.updatedBy = data.updatedBy || 'system';
   }
@@ -65,6 +71,8 @@ class Settings {
       Item: {
         id: this.id,
         membershipApplicationEnabled: this.membershipApplicationEnabled,
+        vendorApplicationEnabled: this.vendorApplicationEnabled,
+        performerApplicationEnabled: this.performerApplicationEnabled,
         lastUpdated: new Date().toISOString(),
         updatedBy: this.updatedBy
       }

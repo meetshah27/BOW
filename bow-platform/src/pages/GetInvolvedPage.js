@@ -31,6 +31,8 @@ const GetInvolvedPage = () => {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [membershipApplicationEnabled, setMembershipApplicationEnabled] = useState(true);
+  const [vendorApplicationEnabled, setVendorApplicationEnabled] = useState(true);
+  const [performerApplicationEnabled, setPerformerApplicationEnabled] = useState(true);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [showPerformerModal, setShowPerformerModal] = useState(false);
@@ -86,20 +88,35 @@ const GetInvolvedPage = () => {
     setShowCommunityModal(true);
   };
 
-  // Fetch membership application setting
+  // Fetch application settings
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         setSettingsLoading(true);
-        const response = await api.get('/settings/membershipApplicationEnabled');
-        if (response.ok) {
-          const data = await response.json();
+        const [membershipRes, vendorRes, performerRes] = await Promise.all([
+          api.get('/settings/membershipApplicationEnabled'),
+          api.get('/settings/vendorApplicationEnabled'),
+          api.get('/settings/performerApplicationEnabled'),
+        ]);
+
+        if (membershipRes.ok) {
+          const data = await membershipRes.json();
           setMembershipApplicationEnabled(data.value);
         }
+        if (vendorRes.ok) {
+          const data = await vendorRes.json();
+          setVendorApplicationEnabled(data.value);
+        }
+        if (performerRes.ok) {
+          const data = await performerRes.json();
+          setPerformerApplicationEnabled(data.value);
+        }
       } catch (error) {
-        console.error('Error fetching membership application setting:', error);
+        console.error('Error fetching application settings:', error);
         // Default to enabled if there's an error
         setMembershipApplicationEnabled(true);
+        setVendorApplicationEnabled(true);
+        setPerformerApplicationEnabled(true);
       } finally {
         setSettingsLoading(false);
       }
@@ -613,13 +630,23 @@ const GetInvolvedPage = () => {
                         Food, crafts, services, and community partners are welcome.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      className="btn-primary w-full sm:w-auto justify-center"
-                      onClick={() => setShowVendorModal(true)}
-                    >
-                      Apply Now
-                    </button>
+                    {vendorApplicationEnabled ? (
+                      <button
+                        type="button"
+                        className="btn-primary w-full sm:w-auto justify-center"
+                        onClick={() => setShowVendorModal(true)}
+                      >
+                        Apply Now
+                      </button>
+                    ) : (
+                      <div className="text-center p-4 sm:p-5 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 w-full sm:w-auto">
+                        <Award className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                        <h4 className="text-base font-semibold text-gray-600 mb-1">Vendor Applications Temporarily Closed</h4>
+                        <p className="text-xs text-gray-500">
+                          We're currently not accepting new vendor applications. Please check back later.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -651,13 +678,23 @@ const GetInvolvedPage = () => {
                         Bands, solo artists, dancers, DJs, and cultural performances are welcome.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      className="btn-primary w-full sm:w-auto justify-center"
-                      onClick={() => setShowPerformerModal(true)}
-                    >
-                      Apply Now
-                    </button>
+                    {performerApplicationEnabled ? (
+                      <button
+                        type="button"
+                        className="btn-primary w-full sm:w-auto justify-center"
+                        onClick={() => setShowPerformerModal(true)}
+                      >
+                        Apply Now
+                      </button>
+                    ) : (
+                      <div className="text-center p-4 sm:p-5 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 w-full sm:w-auto">
+                        <Music className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                        <h4 className="text-base font-semibold text-gray-600 mb-1">Performer Applications Temporarily Closed</h4>
+                        <p className="text-xs text-gray-500">
+                          We're currently not accepting new performer applications. Please check back later.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

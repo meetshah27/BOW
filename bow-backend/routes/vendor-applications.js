@@ -2,10 +2,19 @@ const express = require('express');
 const router = express.Router();
 
 const VendorApplication = require('../models-dynamodb/VendorApplication');
+const Settings = require('../models-dynamodb/Settings');
 
 // Submit vendor application
 router.post('/applications', async (req, res) => {
   try {
+    const settings = await Settings.getSettings();
+    if (!settings.vendorApplicationEnabled) {
+      return res.status(403).json({
+        error: 'Vendor applications are temporarily closed.',
+        code: 'VENDOR_APPLICATIONS_DISABLED'
+      });
+    }
+
     const {
       applicantName,
       applicantEmail,

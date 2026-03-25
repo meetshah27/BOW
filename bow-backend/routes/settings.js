@@ -10,6 +10,8 @@ router.get('/', async (req, res) => {
       success: true,
       settings: {
         membershipApplicationEnabled: settings.membershipApplicationEnabled,
+        vendorApplicationEnabled: settings.vendorApplicationEnabled,
+        performerApplicationEnabled: settings.performerApplicationEnabled,
         lastUpdated: settings.lastUpdated,
         updatedBy: settings.updatedBy
       }
@@ -84,6 +86,8 @@ router.put('/', async (req, res) => {
       message: 'Settings updated successfully',
       settings: {
         membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
+        vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
+        performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
         lastUpdated: updatedSettings.lastUpdated,
         updatedBy: updatedSettings.updatedBy
       }
@@ -127,6 +131,8 @@ router.put('/membership-application', async (req, res) => {
       message: `Membership application ${enabled ? 'enabled' : 'disabled'} successfully`,                                                                       
       settings: {
         membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,    
+        vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
+        performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
         lastUpdated: updatedSettings.lastUpdated,
         updatedBy: updatedSettings.updatedBy
       }
@@ -136,6 +142,86 @@ router.put('/membership-application', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to toggle membership application',
+      message: error.message
+    });
+  }
+});
+
+// Toggle vendor application specifically
+router.put('/vendor-application', async (req, res) => {
+  try {
+    const { enabled, updatedBy } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid enabled value. Must be boolean.'
+      });
+    }
+
+    const settings = await Settings.getSettings();
+    await settings.update({
+      vendorApplicationEnabled: enabled,
+      updatedBy: updatedBy || 'unknown'
+    });
+
+    const updatedSettings = await Settings.getSettings();
+    return res.json({
+      success: true,
+      message: `Vendor application ${enabled ? 'enabled' : 'disabled'} successfully`,
+      settings: {
+        membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
+        vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
+        performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        lastUpdated: updatedSettings.lastUpdated,
+        updatedBy: updatedSettings.updatedBy
+      }
+    });
+  } catch (error) {
+    console.error('Error toggling vendor application:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to toggle vendor application',
+      message: error.message
+    });
+  }
+});
+
+// Toggle performer application specifically
+router.put('/performer-application', async (req, res) => {
+  try {
+    const { enabled, updatedBy } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid enabled value. Must be boolean.'
+      });
+    }
+
+    const settings = await Settings.getSettings();
+    await settings.update({
+      performerApplicationEnabled: enabled,
+      updatedBy: updatedBy || 'unknown'
+    });
+
+    const updatedSettings = await Settings.getSettings();
+    return res.json({
+      success: true,
+      message: `Performer application ${enabled ? 'enabled' : 'disabled'} successfully`,
+      settings: {
+        membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
+        vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
+        performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        lastUpdated: updatedSettings.lastUpdated,
+        updatedBy: updatedSettings.updatedBy
+      }
+    });
+  } catch (error) {
+    console.error('Error toggling performer application:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to toggle performer application',
       message: error.message
     });
   }
