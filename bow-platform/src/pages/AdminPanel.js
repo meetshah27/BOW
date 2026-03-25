@@ -3768,9 +3768,9 @@ const AdminPanel = () => {
         <meta name="description" content="Admin panel for managing Beats of Washington events, users, and content." />
       </Helmet>
 
-      <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100 overflow-x-hidden md:pt-8">
+      <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-primary-50 via-orange-50 to-secondary-100 overflow-x-hidden pt-14 sm:pt-16 md:pt-20">
         {/* Mobile Menu Toggle */}
-        <div className="md:hidden bg-white shadow-md p-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="md:hidden bg-white shadow-md p-4 flex items-center justify-between sticky top-14 sm:top-16 z-40">
           <span className="text-xl font-bold text-primary-700">Admin Portal</span>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -3783,8 +3783,8 @@ const AdminPanel = () => {
 
         {/* Enhanced Sidebar */}
         <aside
-          className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl transition-transform duration-300 ease-in-out md:transition-none md:pt-2 md:mt-10`}
-          style={{ height: '100vh' }} /* ensure clickable on mobile; desktop still offset via margin */
+          className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:fixed left-0 z-50 w-64 bg-gradient-to-b from-primary-100 via-white to-secondary-50 shadow-lg flex flex-col rounded-r-3xl transition-transform duration-300 ease-in-out md:transition-none md:pt-2 top-14 sm:top-16`}
+          style={{ height: 'calc(100vh - 3.5rem)' }} /* account for sticky site navbar */
         >
           <div className="h-20 flex items-center justify-center border-b">
             <span className="text-2xl font-bold text-primary-700">Admin Portal</span>
