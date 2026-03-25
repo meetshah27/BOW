@@ -622,24 +622,24 @@ const GetInvolvedPage = () => {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 md:p-8 max-w-3xl mx-auto overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-4 sm:gap-6 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Apply as a Vendor</h3>
-                      <p className="text-sm sm:text-base text-gray-600 mt-2">
+                      <p className="text-sm sm:text-base text-gray-600 mt-2 break-words">
                         Food, crafts, services, and community partners are welcome.
                       </p>
                     </div>
                     {vendorApplicationEnabled ? (
                       <button
                         type="button"
-                        className="btn-primary w-full sm:w-auto justify-center"
+                        className="btn-primary w-full sm:w-auto shrink-0 justify-center py-3 sm:py-2.5"
                         onClick={() => setShowVendorModal(true)}
                       >
                         Apply Now
                       </button>
                     ) : (
-                      <div className="text-center p-4 sm:p-5 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 w-full sm:w-auto">
+                      <div className="text-center p-4 sm:p-5 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 w-full sm:max-w-sm sm:shrink-0">
                         <Award className="w-6 h-6 text-gray-400 mx-auto mb-2" />
                         <h4 className="text-base font-semibold text-gray-600 mb-1">Vendor Applications Temporarily Closed</h4>
                         <p className="text-xs text-gray-500">
@@ -670,24 +670,24 @@ const GetInvolvedPage = () => {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 md:p-8 max-w-3xl mx-auto overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-4 sm:gap-6 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Apply as a Performer</h3>
-                      <p className="text-sm sm:text-base text-gray-600 mt-2">
+                      <p className="text-sm sm:text-base text-gray-600 mt-2 break-words">
                         Bands, solo artists, dancers, DJs, and cultural performances are welcome.
                       </p>
                     </div>
                     {performerApplicationEnabled ? (
                       <button
                         type="button"
-                        className="btn-primary w-full sm:w-auto justify-center"
+                        className="btn-primary w-full sm:w-auto shrink-0 justify-center py-3 sm:py-2.5"
                         onClick={() => setShowPerformerModal(true)}
                       >
                         Apply Now
                       </button>
                     ) : (
-                      <div className="text-center p-4 sm:p-5 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 w-full sm:w-auto">
+                      <div className="text-center p-4 sm:p-5 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 w-full sm:max-w-sm sm:shrink-0">
                         <Music className="w-6 h-6 text-gray-400 mx-auto mb-2" />
                         <h4 className="text-base font-semibold text-gray-600 mb-1">Performer Applications Temporarily Closed</h4>
                         <p className="text-xs text-gray-500">

@@ -76,10 +76,10 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
   if (success) {
     return (
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4 overflow-y-auto overscroll-y-contain"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
-        <div className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full p-6 sm:p-8 text-center">
+        <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-md w-full p-6 sm:p-8 text-center max-h-[min(100dvh,640px)] sm:max-h-none overflow-y-auto shadow-2xl sm:shadow-xl">
           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg overflow-hidden">
             {logoUrl ? (
               <img src={logoUrl} alt="BOW Logo" className="w-full h-full object-cover" />
@@ -101,11 +101,11 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4 overflow-y-auto overscroll-y-contain"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-xl sm:rounded-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto my-4 sm:my-auto">
-        <div className="p-4 sm:p-6 border-b border-gray-200 flex items-start sm:items-center justify-between sticky top-0 bg-white z-10">
+      <div className="bg-white w-full max-w-2xl sm:mx-auto rounded-t-2xl sm:rounded-2xl shadow-2xl sm:shadow-xl flex flex-col max-h-[min(100dvh,920px)] sm:max-h-[90vh] min-h-0 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:pb-0">
+        <div className="p-4 sm:p-6 border-b border-gray-200 flex items-start sm:items-center justify-between shrink-0 bg-white">
           <div className="flex items-center flex-1 min-w-0 pr-3">
             {logoUrl && (
               <img
@@ -116,7 +116,7 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
             )}
             <div className="min-w-0">
               <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Performer Application</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2 sm:line-clamp-none">
                 Apply to perform at BOW events
               </p>
             </div>
@@ -131,7 +131,7 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 flex-1 overflow-y-auto min-h-0 overscroll-y-contain">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start">
               <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
@@ -142,7 +142,7 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
             <div>
               <label className="block font-medium mb-1 text-sm sm:text-base text-gray-700">
                 <User className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
@@ -173,7 +173,7 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
             <div>
               <label className="block font-medium mb-1 text-sm sm:text-base text-gray-700">
                 <Phone className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
@@ -203,7 +203,7 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
             <div>
               <label className="block font-medium mb-1 text-sm sm:text-base text-gray-700">Performance Type *</label>
               <input
@@ -228,7 +228,7 @@ const PerformerApplicationForm = ({ logoUrl, onClose }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
             <div>
               <label className="block font-medium mb-1 text-sm sm:text-base text-gray-700">Website</label>
               <input
