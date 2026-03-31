@@ -22,8 +22,8 @@ import {
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
-
-
+import RevealOnScroll from '../components/common/RevealOnScroll';
+import AnimatedCounter from '../components/common/AnimatedCounter';
 
 // CountUpNumber component with Intersection Observer
 function CountUpNumber({ end, duration = 1.5, suffix = '' }) {
@@ -88,6 +88,23 @@ function CountUpNumber({ end, duration = 1.5, suffix = '' }) {
       {count.toLocaleString()}{suffix}
     </span>
   );
+}
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(() =>
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduced(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  return reduced;
 }
 
 // Countdown component
@@ -265,6 +282,7 @@ const HomePage = () => {
     backgroundType: 'image',
     backgroundUrl: '',
     overlayOpacity: 0.2,
+    gradientScrimOpacity: 1,
     title: 'Empowering Communities',
     subtitle: 'Through Music',
     description: '',
@@ -342,7 +360,18 @@ const HomePage = () => {
         console.log('✅ Hero settings fetched from backend:', data);
         
         if (data && (data.backgroundUrl || data.title)) {
-          setHeroSettings(data);
+          setHeroSettings((prev) => ({
+            ...prev,
+            ...data,
+            overlayOpacity:
+              typeof data.overlayOpacity === 'number' && !Number.isNaN(data.overlayOpacity)
+                ? Math.min(1, Math.max(0, data.overlayOpacity))
+                : prev.overlayOpacity,
+            gradientScrimOpacity:
+              typeof data.gradientScrimOpacity === 'number' && !Number.isNaN(data.gradientScrimOpacity)
+                ? Math.min(1, Math.max(0, data.gradientScrimOpacity))
+                : 1
+          }));
           setHeroFetched(true);
           console.log('✅ Hero settings updated successfully');
         } else {
@@ -727,8 +756,29 @@ const HomePage = () => {
 
   // Sponsors are now fetched dynamically from the API
 
+  const [impactInView, setImpactInView] = useState(false);
+  const impactRef = useRef(null);
+
+  useEffect(() => {
+    const el = impactRef.current;
+    if (!el) return undefined;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setImpactInView(true);
+          obs.disconnect(); // fire once
+        }
+      },
+      { threshold: 0.18, rootMargin: '0px 0px -10% 0px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   // Style for event badge (match event section)
   const eventBadgeClass = "inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200";
+
+  const reducedMotion = usePrefersReducedMotion();
 
   return (
     <>
@@ -738,17 +788,31 @@ const HomePage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white overflow-hidden rounded-b-[32px] sm:rounded-b-[40px] md:rounded-b-[48px] min-h-[360px] sm:min-h-[420px] md:min-h-[480px] flex flex-col">
+      <section className="relative isolate text-white overflow-hidden rounded-b-[32px] sm:rounded-b-[40px] md:rounded-b-[48px] min-h-[380px] sm:min-h-[440px] md:min-h-[500px] flex flex-col bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700">
+        <div
+          className="absolute inset-0 overflow-hidden rounded-b-[32px] sm:rounded-b-[40px] md:rounded-b-[48px]"
+          aria-hidden="true"
+        >
+          <div
+            className={`absolute inset-0 hero-mesh-layer ${reducedMotion ? 'hero-mesh-static' : ''}`}
+          />
+          {!reducedMotion && (
+            <>
+              <div className="hero-orb hero-orb--a" />
+              <div className="hero-orb hero-orb--b" />
+              <div className="hero-orb hero-orb--c" />
+            </>
+          )}
+          <div className="absolute inset-0 hero-noise pointer-events-none" />
+        </div>
 
-
-        
         {/* Background Image/Video */}
         {heroSettings.backgroundUrl && heroSettings.backgroundType && (
           heroSettings.backgroundType === 'image' ? (
             <img
               src={heroSettings.backgroundUrl}
               alt="Hero background"
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover z-[1]"
             />
           ) : (
             <video
@@ -756,33 +820,57 @@ const HomePage = () => {
               autoPlay
               muted
               loop
-              className="absolute inset-0 w-full h-full object-cover"
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover z-[1]"
             />
           )
         )}
-        
-        {/* Overlay */}
-        <div 
-          className="absolute inset-0 bg-black"
-          style={{ opacity: heroSettings.overlayOpacity || 0.2 }}
-        ></div>
-        <div className="container-custom py-6 sm:py-8 md:py-10 px-4 sm:px-6 relative z-10 flex flex-col flex-1">
-          <div className="max-w-4xl mx-auto mb-3 sm:mb-4 md:mb-0 flex items-center justify-center">
-            <div className="flex-1 text-center">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight px-2">
+
+        <div
+          className="absolute inset-0 z-[2] pointer-events-none"
+          aria-hidden="true"
+          style={{
+            opacity:
+              typeof heroSettings.gradientScrimOpacity === 'number' &&
+              !Number.isNaN(heroSettings.gradientScrimOpacity)
+                ? Math.min(1, Math.max(0, heroSettings.gradientScrimOpacity))
+                : 1,
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 42%, rgba(0,0,0,0.08) 100%)'
+          }}
+        />
+        <div
+          className="absolute inset-0 z-[2] bg-black pointer-events-none"
+          style={{
+            opacity:
+              typeof heroSettings.overlayOpacity === 'number' && !Number.isNaN(heroSettings.overlayOpacity)
+                ? Math.min(1, Math.max(0, heroSettings.overlayOpacity))
+                : 0.2
+          }}
+        />
+
+        <div className="container-custom py-7 sm:py-9 md:py-11 px-4 sm:px-6 relative z-10 flex flex-col flex-1">
+          <div className="max-w-4xl mx-auto mb-3 sm:mb-4 md:mb-1 flex flex-col items-center justify-center text-center">
+            <p className="hero-stagger hero-stagger-0 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-white/80 mb-3 sm:mb-4">
+              <Sparkles className="w-4 h-4 text-amber-200" aria-hidden />
+              Beats of Washington
+            </p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.08] px-2 font-display">
+              <span className="hero-stagger hero-stagger-1 block">
                 {heroSettings.title || 'Empowering Communities'}
-                <span className="block text-secondary-300 mt-1 sm:mt-2">{heroSettings.subtitle || 'Through Music'}</span>
-              </h1>
-            </div>
+              </span>
+              <span className="hero-stagger hero-stagger-2 block text-secondary-200 mt-1 sm:mt-2 drop-shadow-sm">
+                {heroSettings.subtitle || 'Through Music'}
+              </span>
+            </h1>
           </div>
           {heroSettings.description && (
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-3 sm:mb-4 md:mb-6 text-gray-100 leading-relaxed max-w-4xl mx-auto text-center px-2 sm:px-4">
+            <p className="hero-stagger hero-stagger-3 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-2 sm:mb-3 md:mb-4 text-gray-100 leading-relaxed max-w-4xl mx-auto text-center px-2 sm:px-4">
               {heroSettings.description}
-          </p>
+            </p>
           )}
-          {/* Live Event Timer - pushed to bottom on mobile, normal spacing on desktop */}
           {liveEvent && (
-            <div className="mt-auto md:mt-8 w-full px-2 sm:px-0">
+            <div className="hero-stagger hero-stagger-4 mt-auto md:mt-6 w-full px-2 sm:px-0">
               <LiveEventTimer event={liveEvent} />
             </div>
           )}
@@ -790,9 +878,9 @@ const HomePage = () => {
       </section>
 
       {/* Upcoming Events Section */}
-       <section id="upcoming-events-section" className="bg-white pt-0 pb-8 sm:pt-2 sm:pb-12 md:pt-4 md:pb-14">
-        <div className="container-custom px-4 sm:px-6">
-          <div className="text-center mb-8 sm:mb-10 md:mb-12 relative">
+       <section id="upcoming-events-section" className="relative bg-white pt-0 pb-8 sm:pt-2 sm:pb-12 md:pt-4 md:pb-14">
+        <div className="container-custom relative z-10 px-4 sm:px-6">
+          <RevealOnScroll className="text-center mb-8 sm:mb-10 md:mb-12 relative">
             {/* Decorative background elements - hidden on mobile for performance */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-br from-primary-200/20 to-secondary-200/20 rounded-full blur-3xl animate-pulse"></div>
@@ -857,7 +945,7 @@ const HomePage = () => {
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-secondary-400 rounded-full animate-bounce" style={{animationDelay: '0.7s'}}></div>
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.9s'}}></div>
             </div>
-          </div>
+          </RevealOnScroll>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {events
@@ -1038,7 +1126,10 @@ const HomePage = () => {
       )}
 
       {/* Our Impact in Numbers Section */}
-      <section className="stats-section relative py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+      <section
+        ref={impactRef}
+        className="stats-section relative py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden"
+      >
         {/* Animated Background Elements - visible on all screens, smaller/subtle on mobile */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Floating particles - smaller on mobile */}
@@ -1088,7 +1179,7 @@ const HomePage = () => {
               
               <div className="relative">
                 <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-500">
-                  50,000+
+                  <AnimatedCounter end={50000} duration={900} suffix="+" start={impactInView} />
                 </div>
                 <div className="text-gray-700 font-semibold text-sm sm:text-base md:text-lg group-hover:text-blue-700 transition-colors duration-300">
                   Community Members
@@ -1116,7 +1207,7 @@ const HomePage = () => {
               
               <div className="relative">
                 <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-500">
-                  2,000+
+                  <AnimatedCounter end={2000} duration={850} suffix="+" start={impactInView} />
                 </div>
                 <div className="text-gray-700 font-semibold text-sm sm:text-base md:text-lg group-hover:text-red-700 transition-colors duration-300">
                   Volunteers
@@ -1144,7 +1235,7 @@ const HomePage = () => {
               
               <div className="relative">
                 <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-500">
-                  100+
+                  <AnimatedCounter end={100} duration={650} suffix="+" start={impactInView} />
                 </div>
                 <div className="text-gray-700 font-semibold text-sm sm:text-base md:text-lg group-hover:text-green-700 transition-colors duration-300">
                   Events Annually

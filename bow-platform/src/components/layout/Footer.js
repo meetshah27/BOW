@@ -308,9 +308,14 @@ const Footer = () => {
           <div className="mt-5 sm:mt-4 md:mt-5 text-center">
             <span className="text-gray-500 text-xs sm:text-sm break-words px-2 block">
               Website developed by{' '}
-              <span className="text-gray-400">
+              <a
+                href="https://www.instagram.com/gauravkhandekar_/?igsh=bm1zNjVpYThvOW5h&utm_source=qr#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-primary-400 transition-colors duration-200"
+              >
                 Gaurav Khandekar
-              </span>
+              </a>
             </span>
           </div>
         </div>

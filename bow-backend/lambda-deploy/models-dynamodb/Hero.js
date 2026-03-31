@@ -26,12 +26,25 @@ const client = new DynamoDBClient({
 
 const docClient = DynamoDBDocumentClient.from(client);
 
+function clamp01(n, fallback) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.min(1, Math.max(0, v));
+}
+
 class Hero {
   constructor(data = {}) {
     this.id = data.id || 'hero-settings';
     this.backgroundType = data.backgroundType || 'image';
     this.backgroundUrl = data.backgroundUrl || '';
-    this.overlayOpacity = data.overlayOpacity || 0.2;
+    this.overlayOpacity =
+      data.overlayOpacity !== undefined && data.overlayOpacity !== null
+        ? clamp01(data.overlayOpacity, 0.2)
+        : 0.2;
+    this.gradientScrimOpacity =
+      data.gradientScrimOpacity !== undefined && data.gradientScrimOpacity !== null
+        ? clamp01(data.gradientScrimOpacity, 1)
+        : 1;
     this.title = data.title || 'Empowering Communities';
     this.subtitle = data.subtitle || 'Through Music';
     this.description = data.description !== undefined ? data.description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.';
@@ -68,6 +81,7 @@ class Hero {
         backgroundType: this.backgroundType,
         backgroundUrl: this.backgroundUrl,
         overlayOpacity: this.overlayOpacity,
+        gradientScrimOpacity: this.gradientScrimOpacity,
         title: this.title,
         subtitle: this.subtitle,
         description: this.description,

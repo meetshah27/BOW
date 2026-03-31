@@ -7,11 +7,22 @@ const AnimatedCounter = ({
   suffix = '', 
   prefix = '',
   className = '',
+  start = true,
   onComplete = null 
 }) => {
   const [count, setCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const ref = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReducedMotion(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -32,6 +43,12 @@ const AnimatedCounter = ({
 
   useEffect(() => {
     if (!isVisible) return;
+    if (!start) return undefined;
+    if (reducedMotion) {
+      setCount(end);
+      if (onComplete) onComplete();
+      return undefined;
+    }
 
     const timer = setTimeout(() => {
       let startTime = null;
@@ -60,7 +77,7 @@ const AnimatedCounter = ({
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [isVisible, end, duration, delay, onComplete]);
+  }, [isVisible, start, reducedMotion, end, duration, delay, onComplete]);
 
   return (
     <span ref={ref} className={className}>

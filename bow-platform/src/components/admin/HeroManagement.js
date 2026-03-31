@@ -18,6 +18,7 @@ const HeroManagement = () => {
     backgroundType: 'image',
     backgroundUrl: '',
     overlayOpacity: 0.2,
+    gradientScrimOpacity: 1,
     title: 'Empowering Communities',
     subtitle: 'Through Music',
     description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
@@ -53,12 +54,19 @@ const HeroManagement = () => {
           backgroundType: 'image', // Default to image
           backgroundUrl: '',
           overlayOpacity: 0.2,
+          gradientScrimOpacity: 1,
           title: 'Empowering Communities',
           subtitle: 'Through Music',
           description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
           isActive: true,
           ...data // Override with backend data if available
         };
+        if (
+          settingsWithDefaults.gradientScrimOpacity === undefined ||
+          settingsWithDefaults.gradientScrimOpacity === null
+        ) {
+          settingsWithDefaults.gradientScrimOpacity = 1;
+        }
         
 
         
@@ -379,24 +387,54 @@ const HeroManagement = () => {
              
            </div>
 
-          {/* Overlay Opacity */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Overlay Opacity: {heroSettings.overlayOpacity}
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={heroSettings.overlayOpacity}
-              onChange={(e) => handleInputChange('overlayOpacity', parseFloat(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0%</span>
-              <span>50%</span>
-              <span>100%</span>
+          {/* Photo brightness: gradient + uniform overlay (saved to API) */}
+          <div className="space-y-5 rounded-lg border border-gray-200 bg-gray-50/80 p-4">
+            <p className="text-sm text-gray-600">
+              Lower both values for a <strong>brighter</strong> photo; raise them if white text is hard to read.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Bottom gradient fade — strength ({Math.round((heroSettings.gradientScrimOpacity ?? 1) * 100)}%)
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Darkens mostly toward the bottom (for contrast over busy images). Set to 0% for no fade.
+              </p>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={heroSettings.gradientScrimOpacity ?? 1}
+                onChange={(e) =>
+                  handleInputChange('gradientScrimOpacity', parseFloat(e.target.value))
+                }
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Bright (0%)</span>
+                <span>Strong (100%)</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Uniform dark layer — opacity ({Math.round((heroSettings.overlayOpacity ?? 0.2) * 100)}%)
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Even dimming over the whole image/video. Use 0% for maximum brightness if your asset is already dark.
+              </p>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={heroSettings.overlayOpacity ?? 0.2}
+                onChange={(e) => handleInputChange('overlayOpacity', parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>None (0%)</span>
+                <span>Heavy (100%)</span>
+              </div>
             </div>
           </div>
 
@@ -489,10 +527,17 @@ const HeroManagement = () => {
                 )
               )}
               
-              {/* Overlay */}
-              <div 
-                className="absolute inset-0 bg-black"
-                style={{ opacity: heroSettings.overlayOpacity }}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  opacity: heroSettings.gradientScrimOpacity ?? 1,
+                  background:
+                    'linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 42%, rgba(0,0,0,0.08) 100%)'
+                }}
+              />
+              <div
+                className="absolute inset-0 bg-black pointer-events-none"
+                style={{ opacity: heroSettings.overlayOpacity ?? 0.2 }}
               />
               
               {/* Content */}

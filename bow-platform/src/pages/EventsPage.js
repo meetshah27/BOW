@@ -25,6 +25,7 @@ import {
 import { formatDate, parseDateString, isFuture, isEventDatePast } from '../utils/dateUtils';
 import api from '../config/api';
 import HeroSection from '../components/common/HeroSection';
+import RevealOnScroll from '../components/common/RevealOnScroll';
 
 // Fallback events data
 const FALLBACK_EVENTS = [
@@ -304,43 +305,44 @@ const EventsPage = () => {
       {/* Search and Filters */}
       <section className="bg-white py-4 sm:py-6 md:py-8 border-b">
         <div className="container-custom px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Events</h2>
-            {/* View Toggle */}
-            <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
-              <button
-                onClick={() => {
-                  setViewMode('list');
-                  setShouldScrollToEvents(true);
-                }}
-                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-colors flex items-center justify-center gap-2 ${
-                  viewMode === 'list'
-                    ? 'bg-white text-primary-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Grid className="w-4 h-4" />
-                <span className="hidden sm:inline">List View</span>
-                <span className="sm:hidden">List</span>
-              </button>
-              <button
-                onClick={() => {
-                  setViewMode('calendar');
-                  setShouldScrollToEvents(true);
-                }}
-                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-colors flex items-center justify-center gap-2 ${
-                  viewMode === 'calendar'
-                    ? 'bg-white text-primary-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <CalendarIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Calendar View</span>
-                <span className="sm:hidden">Calendar</span>
-              </button>
+          <RevealOnScroll>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Events</h2>
+              {/* View Toggle */}
+              <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+                <button
+                  onClick={() => {
+                    setViewMode('list');
+                    setShouldScrollToEvents(true);
+                  }}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-colors flex items-center justify-center gap-2 ${
+                    viewMode === 'list'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Grid className="w-4 h-4" />
+                  <span className="hidden sm:inline">List View</span>
+                  <span className="sm:hidden">List</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('calendar');
+                    setShouldScrollToEvents(true);
+                  }}
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-colors flex items-center justify-center gap-2 ${
+                    viewMode === 'calendar'
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <CalendarIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">Calendar View</span>
+                  <span className="sm:hidden">Calendar</span>
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Search */}
             <div className="sm:col-span-2">
               <div className="relative">
@@ -354,7 +356,6 @@ const EventsPage = () => {
                 />
               </div>
             </div>
-
             {/* Category Filter */}
             <div>
               <select
@@ -385,6 +386,7 @@ const EventsPage = () => {
               </select>
             </div>
           </div>
+          </RevealOnScroll>
         </div>
       </section>
 

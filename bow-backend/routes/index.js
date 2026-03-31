@@ -334,6 +334,7 @@ router.get('/api/hero', async (req, res) => {
           backgroundType: 'image',
           backgroundUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
           overlayOpacity: 0.2,
+          gradientScrimOpacity: 1,
           title: 'Empowering Communities',
           subtitle: 'Through Music',
           description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
@@ -348,6 +349,7 @@ router.get('/api/hero', async (req, res) => {
         backgroundType: 'image',
         backgroundUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
         overlayOpacity: 0.2,
+        gradientScrimOpacity: 1,
         title: 'Empowering Communities',
         subtitle: 'Through Music',
         description: 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
@@ -914,10 +916,16 @@ router.put('/api/founder-media', async (req, res) => {
   }
 });
 
+function clampHeroOpacity(v, fallback) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(1, Math.max(0, n));
+}
+
 // API: Update hero settings (admin only)
 router.put('/api/hero', async (req, res) => {
   try {
-    const { backgroundType, backgroundUrl, overlayOpacity, title, subtitle, description, isActive } = req.body;
+    const { backgroundType, backgroundUrl, overlayOpacity, gradientScrimOpacity, title, subtitle, description, isActive } = req.body;
     
     // Validate required fields
     if (!backgroundType) {
@@ -954,7 +962,11 @@ router.put('/api/hero', async (req, res) => {
         const updatedSettings = await heroSettings.update({
           backgroundType,
           backgroundUrl,
-          overlayOpacity: overlayOpacity || 0.2,
+          overlayOpacity: clampHeroOpacity(overlayOpacity, 0.2),
+          gradientScrimOpacity: clampHeroOpacity(
+            gradientScrimOpacity !== undefined && gradientScrimOpacity !== null ? gradientScrimOpacity : 1,
+            1
+          ),
           title: title || 'Empowering Communities',
           subtitle: subtitle || 'Through Music',
           description: description !== undefined ? description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
@@ -972,7 +984,11 @@ router.put('/api/hero', async (req, res) => {
         const updatedSettings = {
           backgroundType,
           backgroundUrl,
-          overlayOpacity: overlayOpacity || 0.2,
+          overlayOpacity: clampHeroOpacity(overlayOpacity, 0.2),
+          gradientScrimOpacity: clampHeroOpacity(
+            gradientScrimOpacity !== undefined && gradientScrimOpacity !== null ? gradientScrimOpacity : 1,
+            1
+          ),
           title: title || 'Empowering Communities',
           subtitle: subtitle || 'Through Music',
           description: description !== undefined ? description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',
@@ -991,7 +1007,11 @@ router.put('/api/hero', async (req, res) => {
       const updatedSettings = {
         backgroundType,
         backgroundUrl,
-        overlayOpacity: overlayOpacity || 0.2,
+        overlayOpacity: clampHeroOpacity(overlayOpacity, 0.2),
+        gradientScrimOpacity: clampHeroOpacity(
+          gradientScrimOpacity !== undefined && gradientScrimOpacity !== null ? gradientScrimOpacity : 1,
+          1
+        ),
         title: title || 'Empowering Communities',
         subtitle: subtitle || 'Through Music',
         description: description !== undefined ? description : 'Beats of Washington connects, inspires, and celebrates cultural diversity through music and community events across Washington State since 2019.',

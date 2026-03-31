@@ -147,7 +147,9 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 // Serve only essential static files (not uploaded content)
 app.use('/sponsors', express.static(path.join(__dirname, 'public/sponsors')));
-app.use('/favicon.ico', express.static(path.join(__dirname, 'public/favicon.ico')));
+// Browsers request /favicon.ico on every origin; we don't ship one in this API repo.
+// Respond without body so logs stay clean (express.static was misused + file was missing).
+app.get('/favicon.ico', (_req, res) => res.status(204).end());
 
 // Health check endpoint with enhanced monitoring
 app.use(healthCheckMiddleware);
@@ -208,19 +210,22 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // Log the error
-  console.error('❌ Server error:', err.message);
-  console.error('📍 URL:', req.url);
-  console.error('📅 Timestamp:', new Date().toISOString());
-  if (err.stack) {
-    console.error('🧵 Stack trace:', err.stack);
+  const status = err.status || 500;
+  // Avoid noisy "Server error" logs for routine 404s (e.g. typos, probes)
+  if (status !== 404) {
+    console.error('❌ Server error:', err.message);
+    console.error('📍 URL:', req.url);
+    console.error('📅 Timestamp:', new Date().toISOString());
+    if (err.stack) {
+      console.error('🧵 Stack trace:', err.stack);
+    }
   }
 
   // render the error page
-  res.status(err.status || 500);
+  res.status(status);
   res.json({ 
     error: err.message,
-    status: err.status || 500,
+    status,
     timestamp: new Date().toISOString(),
     path: req.url
   });
