@@ -13,13 +13,19 @@ import {
   Minus,
   CheckCircle,
   Loader,
-  Star
+  Star,
+  Heart,
+  Music,
+  Users,
+  Tag,
+  Gift
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import api from '../config/api';
 import RevealOnScroll from '../components/common/RevealOnScroll';
 import SquareOrderForm from '../components/shop/SquareOrderForm';
+import HeroSection from '../components/common/HeroSection';
 
 const ShopPage = () => {
   const { currentUser } = useAuth();
@@ -32,6 +38,8 @@ const ShopPage = () => {
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [aboutPageContent, setAboutPageContent] = useState({ logo: '' });
+  const [loadingLogo, setLoadingLogo] = useState(true);
 
   // Fetch products
   useEffect(() => {
@@ -53,7 +61,22 @@ const ShopPage = () => {
         setLoading(false);
       }
     };
+    const fetchAboutPageContent = async () => {
+      try {
+        const res = await api.get('/about-page');
+        if (res.ok) {
+          const data = await res.json();
+          setAboutPageContent(data);
+        }
+      } catch (error) {
+        console.error('Error fetching about page content:', error);
+      } finally {
+        setLoadingLogo(false);
+      }
+    };
+
     fetchProducts();
+    fetchAboutPageContent();
   }, []);
 
   const categories = ['All', ...new Set(products.map(p => p.category))];
@@ -143,26 +166,28 @@ const ShopPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <div className="relative bg-primary-900 py-20 overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-900 via-transparent to-primary-900 z-10"></div>
-          <img 
-            src="https://images.unsplash.com/photo-1523381235312-3a1647fa9921?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-            className="w-full h-full object-cover" 
-            alt="Hero background"
-          />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 text-center">
-          <RevealOnScroll>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
-              Official <span className="text-orange-500">Merchandise</span>
-            </h1>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto mb-8">
-              Support our community building through music by rocking official BOW apparel and accessories.
-            </p>
-          </RevealOnScroll>
-        </div>
-      </div>
+      <HeroSection
+        title={
+          <>
+            Official <span className="text-secondary-300">Merchandise</span>
+          </>
+        }
+        description="Support our community building through music by rocking official BOW apparel and accessories."
+        badge="🛍️ Welcome to Our Shop 🛍️"
+        logoUrl={aboutPageContent.logo}
+        showLogo={true}
+        floatingElements={[
+          { icon: ShoppingBag, position: 'top-10 left-10', animation: 'animate-float-slow' },
+          { icon: Tag, position: 'top-20 right-32', animation: 'animate-float-slow-reverse' },
+          { icon: Gift, position: 'bottom-20 left-32', animation: 'animate-float-slow' },
+          { icon: Star, position: 'bottom-32 right-10', animation: 'animate-float-slow-reverse' }
+        ]}
+        interactiveElements={[
+          { icon: ShoppingBag, label: 'Quality', color: 'text-orange-300' },
+          { icon: Heart, label: 'Community', color: 'text-red-300' },
+          { icon: Star, label: 'Premium', color: 'text-yellow-300' }
+        ]}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-30">
         {/* Search and Filter Bar */}
