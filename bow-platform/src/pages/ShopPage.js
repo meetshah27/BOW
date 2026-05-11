@@ -40,6 +40,8 @@ const ShopPage = () => {
   const [orderComplete, setOrderComplete] = useState(false);
   const [aboutPageContent, setAboutPageContent] = useState({ logo: '' });
   const [loadingLogo, setLoadingLogo] = useState(true);
+  const [selectedSizes, setSelectedSizes] = useState({});
+  const [addedItemModal, setAddedItemModal] = useState(null);
 
   // Fetch products
   useEffect(() => {
@@ -88,34 +90,41 @@ const ShopPage = () => {
   });
 
   const addToCart = (product) => {
+    let size = null;
+    if (product.sizes && product.sizes.length > 0) {
+      size = selectedSizes[product.id] || product.sizes[0];
+    }
+    
+    const cartItemId = size ? `${product.id}-${size}` : product.id;
+
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => item.cartItemId === cartItemId || (!item.cartItemId && item.id === product.id));
       if (existing) {
         if (existing.quantity >= product.stock) {
           toast.error(`Only ${product.stock} items available in stock.`);
           return prev;
         }
-        toast.success(`${product.name} quantity updated!`);
+        setAddedItemModal({ ...product, size });
         return prev.map(item => 
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          (item.cartItemId === cartItemId || (!item.cartItemId && item.id === product.id)) ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
       if (product.stock <= 0) {
         toast.error(`Sorry, ${product.name} is out of stock.`);
         return prev;
       }
-      toast.success(`${product.name} added to cart!`);
-      return [...prev, { ...product, quantity: 1 }];
+      setAddedItemModal({ ...product, size });
+      return [...prev, { ...product, size, cartItemId, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (productId) => {
-    setCart(prev => prev.filter(item => item.id !== productId));
+  const removeFromCart = (cartItemId) => {
+    setCart(prev => prev.filter(item => (item.cartItemId || item.id) !== cartItemId));
   };
 
-  const updateQuantity = (productId, delta) => {
+  const updateQuantity = (cartItemId, delta) => {
     setCart(prev => prev.map(item => {
-      if (item.id === productId) {
+      if ((item.cartItemId || item.id) === cartItemId) {
         const newQty = item.quantity + delta;
         if (newQty > item.stock) {
           toast.error(`Only ${item.stock} items available in stock.`);
@@ -264,6 +273,29 @@ const ShopPage = () => {
                       {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-orange-400 text-orange-400" />)}
                       <span className="text-[10px] text-gray-400 ml-1">(0 reviews)</span>
                     </div>
+
+                    {/* Size Selection */}
+                    {product.sizes && product.sizes.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Select Size</p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.sizes.map(size => (
+                            <button
+                              key={size}
+                              onClick={() => setSelectedSizes(prev => ({ ...prev, [product.id]: size }))}
+                              className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${
+                                (selectedSizes[product.id] || product.sizes[0]) === size
+                                  ? 'bg-primary-600 text-white shadow-md'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between mt-4">
                       <div>
                         <span className="text-2xl font-black text-gray-900">${product.price.toFixed(2)}</span>
@@ -342,7 +374,7 @@ const ShopPage = () => {
                 {cart.length > 0 ? (
                   <div className="space-y-6">
                     {cart.map((item) => (
-                      <div key={item.id} className="flex gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                      <div key={item.cartItemId || item.id} className="flex gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
                         <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-white">
                           {item.images?.[0] ? (
                             <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
@@ -354,14 +386,17 @@ const ShopPage = () => {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-gray-900 mb-1">{item.name}</h4>
+                          {item.size && (
+                            <p className="text-xs text-gray-500 mb-1">Size: {item.size}</p>
+                          )}
                           <p className="text-primary-600 font-bold mb-3">${item.price.toFixed(2)}</p>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 bg-white px-3 py-1 rounded-lg border border-gray-200">
-                              <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-400 hover:text-primary-600"><Minus className="w-4 h-4" /></button>
+                              <button onClick={() => updateQuantity(item.cartItemId || item.id, -1)} className="text-gray-400 hover:text-primary-600"><Minus className="w-4 h-4" /></button>
                               <span className="font-bold w-4 text-center">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-400 hover:text-primary-600"><Plus className="w-4 h-4" /></button>
+                              <button onClick={() => updateQuantity(item.cartItemId || item.id, 1)} className="text-gray-400 hover:text-primary-600"><Plus className="w-4 h-4" /></button>
                             </div>
-                            <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-600 text-xs font-semibold">Remove</button>
+                            <button onClick={() => removeFromCart(item.cartItemId || item.id)} className="text-red-500 hover:text-red-600 text-xs font-semibold">Remove</button>
                           </div>
                         </div>
                       </div>
@@ -394,7 +429,7 @@ const ShopPage = () => {
                     className="w-full bg-gradient-to-r from-primary-600 to-orange-500 text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all transform active:scale-95 flex items-center justify-center"
                   >
                     <CreditCard className="w-5 h-5 mr-2" />
-                    Checkout Now
+                    Continue
                   </button>
                   <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest">
                     Payments secured by Square
@@ -441,6 +476,39 @@ const ShopPage = () => {
             >
               Continue Shopping
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Added to Cart Modal */}
+      {addedItemModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAddedItemModal(null)}></div>
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center relative z-10 animate-fade-in shadow-2xl">
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10" />
+            </div>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Added to Cart!</h2>
+            <p className="text-gray-600 mb-8 font-medium">
+              <span className="font-bold">{addedItemModal.name}</span> {addedItemModal.size ? `(Size: ${addedItemModal.size})` : ''} has been added to your cart.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => {
+                  setAddedItemModal(null);
+                  handleCheckout();
+                }}
+                className="w-full bg-gradient-to-r from-primary-600 to-orange-500 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+              >
+                Continue
+              </button>
+              <button 
+                onClick={() => setAddedItemModal(null)}
+                className="w-full bg-gray-100 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
+              >
+                Continue Shopping
+              </button>
+            </div>
           </div>
         </div>
       )}
