@@ -68,13 +68,22 @@ const ShopPage = () => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
+        if (existing.quantity >= product.stock) {
+          toast.error(`Only ${product.stock} items available in stock.`);
+          return prev;
+        }
+        toast.success(`${product.name} quantity updated!`);
         return prev.map(item => 
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
+      if (product.stock <= 0) {
+        toast.error(`Sorry, ${product.name} is out of stock.`);
+        return prev;
+      }
+      toast.success(`${product.name} added to cart!`);
       return [...prev, { ...product, quantity: 1 }];
     });
-    toast.success(`${product.name} added to cart!`);
   };
 
   const removeFromCart = (productId) => {
@@ -84,8 +93,12 @@ const ShopPage = () => {
   const updateQuantity = (productId, delta) => {
     setCart(prev => prev.map(item => {
       if (item.id === productId) {
-        const newQty = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQty };
+        const newQty = item.quantity + delta;
+        if (newQty > item.stock) {
+          toast.error(`Only ${item.stock} items available in stock.`);
+          return item;
+        }
+        return { ...item, quantity: Math.max(1, newQty) };
       }
       return item;
     }));
@@ -227,10 +240,28 @@ const ShopPage = () => {
                       <span className="text-[10px] text-gray-400 ml-1">(0 reviews)</span>
                     </div>
                     <div className="flex items-center justify-between mt-4">
-                      <span className="text-2xl font-black text-gray-900">${product.price.toFixed(2)}</span>
+                      <div>
+                        <span className="text-2xl font-black text-gray-900">${product.price.toFixed(2)}</span>
+                        <div className="mt-1">
+                          {product.stock > 0 ? (
+                            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100">
+                              {product.stock} in stock
+                            </span>
+                          ) : (
+                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                              Out of stock
+                            </span>
+                          )}
+                        </div>
+                      </div>
                       <button 
                         onClick={() => addToCart(product)}
-                        className="bg-primary-600 text-white p-3 rounded-2xl hover:bg-primary-700 shadow-lg hover:shadow-primary-200 transition-all transform active:scale-90"
+                        disabled={product.stock <= 0}
+                        className={`p-3 rounded-2xl shadow-lg transition-all transform active:scale-90 ${
+                          product.stock > 0 
+                            ? 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-primary-200' 
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none active:scale-100'
+                        }`}
                       >
                         <Plus className="w-5 h-5" />
                       </button>
