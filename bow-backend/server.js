@@ -188,6 +188,7 @@ app.use('/api/sponsors', sponsorsRouter);
 app.use('/api/vendor-applications', vendorApplicationsRouter);
 app.use('/api/performer-applications', performerApplicationsRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/orders', require('./routes/orders'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/upload', require('./routes/upload'));
 

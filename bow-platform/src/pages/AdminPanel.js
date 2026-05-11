@@ -40,6 +40,7 @@ import {
   Star,
   Quote,
   ShoppingCart,
+  ShoppingBag,
   Music
 } from 'lucide-react';
 import VolunteerManagement from '../components/admin/VolunteerManagement';
@@ -59,6 +60,7 @@ import SponsorManagementFixed from '../components/admin/SponsorManagementFixed';
 import VendorApplicationsManagement from '../components/admin/VendorApplicationsManagement';
 import PerformerApplicationsManagement from '../components/admin/PerformerApplicationsManagement';
 import ProductManagement from '../components/admin/ProductManagement';
+import OrderManagement from '../components/admin/OrderManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // Helper function to fix timezone issues with dates
@@ -3704,6 +3706,7 @@ const AdminPanel = () => {
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Products', href: '/admin/products', icon: ShoppingCart },
+    { name: 'Shop Orders', href: '/admin/shop-orders', icon: ShoppingBag },
     { name: 'New Members', href: '/admin/new-members', icon: UserPlus },
     { name: 'Vendor Applications', href: '/admin/vendor-applications', icon: ShoppingCart },
     { name: 'Performer Applications', href: '/admin/performer-applications', icon: Music },
@@ -3741,6 +3744,8 @@ const AdminPanel = () => {
         return <UserManagement />;
       case 'products':
         return <ProductManagement />;
+      case 'shop orders':
+        return <OrderManagement />;
       case 'new members':
         return <NewMembersManagement />;
       case 'vendor applications':

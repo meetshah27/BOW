@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Shield, CreditCard, Loader, X, ShoppingBag, MapPin, User, CheckCircle } from 'lucide-react';
+import { Shield, CreditCard, Loader, X, ShoppingBag, User, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../config/api';
 
@@ -97,6 +97,11 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
   }, [amount, customerInfo, items, user, onSuccess]);
 
   useEffect(() => {
+    if (amount === 0) {
+      setSquareReady(true);
+      return;
+    }
+
     let cancelled = false;
 
     async function initSquare() {
@@ -190,7 +195,7 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!squareReady || !cardRef.current || loading) return;
+    if (!squareReady || loading) return;
 
     if (!customerInfo.name || !customerInfo.email || !customerInfo.address) {
       toast.error('Please complete all shipping fields.');
@@ -199,6 +204,14 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
 
     setLoading(true);
     try {
+      if (amount === 0) {
+        // Free order bypass
+        await submitPaidWithSourceId('FREE_ORDER');
+        return;
+      }
+
+      if (!cardRef.current) throw new Error('Payment system not ready');
+      
       const result = await cardRef.current.tokenize();
       if (result.status !== 'OK') {
         throw new Error(result.errors?.[0]?.message || 'Payment failed');
@@ -251,7 +264,6 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
               name="name" 
               value={customerInfo.name} 
               onChange={handleInputChange} 
-              disabled={!!user}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" 
             />
             <input 
@@ -259,7 +271,6 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
               name="email" 
               value={customerInfo.email} 
               onChange={handleInputChange} 
-              disabled={!!user}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500" 
             />
           </div>
@@ -277,32 +288,45 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
           </div>
         </div>
 
-        {/* Square Payment Container - Exact structure as Tickets page */}
         <div className="space-y-4 border-t pt-4">
-          <div className="flex items-center gap-2 font-bold text-gray-900">
-            <CreditCard className="w-4 h-4" /> Payment Details
-          </div>
-          
-          {squareInitError && (
-            <div className="bg-red-50 text-red-700 p-3 rounded-lg text-xs">{squareInitError}</div>
+          {amount > 0 && (
+            <>
+              <div className="flex items-center gap-2 font-bold text-gray-900">
+                <CreditCard className="w-4 h-4" /> Payment Details
+              </div>
+              
+              {squareInitError && (
+                <div className="bg-red-50 text-red-700 p-3 rounded-lg text-xs">{squareInitError}</div>
+              )}
+
+              <div className="space-y-3">
+                <label className="block text-xs text-gray-500">Card details</label>
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[50px] flex flex-col justify-center">
+                  <div id={containerId} />
+                </div>
+                {!squareReady && !squareInitError && (
+                  <p className="text-xs text-gray-400">Loading payment system...</p>
+                )}
+              </div>
+
+              {applePayAvailable && (
+                <div className="pt-2">
+                  <button type="button" ref={applePayBtnRef} className="bow-apple-pay-button" />
+                  <div className="relative flex items-center justify-center my-4">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+                    <span className="relative px-2 text-[10px] font-bold text-gray-300 uppercase bg-white">or pay with card</span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          <div className="space-y-3">
-            <label className="block text-xs text-gray-500">Card details</label>
-            <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[50px] flex flex-col justify-center">
-              <div id={containerId} />
-            </div>
-            {!squareReady && !squareInitError && (
-              <p className="text-xs text-gray-400">Loading payment system...</p>
-            )}
-          </div>
-
-          {applePayAvailable && (
-            <div className="pt-2">
-              <button type="button" ref={applePayBtnRef} className="bow-apple-pay-button" />
-              <div className="relative flex items-center justify-center my-4">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-                <span className="relative px-2 text-[10px] font-bold text-gray-300 uppercase bg-white">or pay with card</span>
+          {amount === 0 && (
+            <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex items-center gap-3">
+              <CheckCircle className="w-6 h-6 text-green-500" />
+              <div>
+                <p className="text-sm font-bold text-green-800">Free Order</p>
+                <p className="text-xs text-green-600">No payment required for this order.</p>
               </div>
             </div>
           )}
@@ -313,13 +337,17 @@ const SquareOrderForm = ({ amount, items, onSuccess, onCancel, user }) => {
         <button
           onClick={handleSubmit}
           disabled={loading || !squareReady}
-          className="w-full bg-primary-600 text-white py-4 rounded-xl font-bold shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+          className={`w-full py-4 rounded-xl font-bold shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 transition-all ${
+            amount === 0 
+              ? 'bg-green-600 hover:bg-green-700 text-white' 
+              : 'bg-primary-600 hover:bg-primary-700 text-white'
+          }`}
         >
-          {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
-          {loading ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+          {loading ? <Loader className="w-5 h-5 animate-spin" /> : (amount === 0 ? <CheckCircle className="w-5 h-5" /> : <Shield className="w-5 h-5" />)}
+          {loading ? 'Processing...' : (amount === 0 ? 'Place Free Order' : `Pay $${amount.toFixed(2)}`)}
         </button>
         <div className="flex items-center justify-center gap-1 mt-3 text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-          <CheckCircle className="w-3 h-3 text-green-500" /> Secure Square Encryption
+          <CheckCircle className="w-3 h-3 text-green-500" /> {amount === 0 ? 'Direct Order Processing' : 'Secure Square Encryption'}
         </div>
       </div>
     </div>

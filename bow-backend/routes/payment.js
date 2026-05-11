@@ -108,33 +108,64 @@ router.post('/create-order-payment', async (req, res) => {
   const { sourceId, amount, currency = 'USD', customerEmail, customerName, userId, items, shippingAddress } = req.body;
 
   try {
-    if (!sourceId) {
+    const isFreeOrder = Number(amount) === 0 && sourceId === 'FREE_ORDER';
+
+    if (!sourceId && !isFreeOrder) {
       return res.status(400).json({ error: 'Missing sourceId (Square token).' });
     }
 
-    if (!amount || Number(amount) < 50) {
+    if (!isFreeOrder && (!amount || Number(amount) < 50)) {
       return res.status(400).json({ error: 'Invalid amount. Minimum purchase is $0.50.' });
     }
 
-    const client = getSquareClient();
-    const idempotencyKey = crypto.randomUUID();
+    let paymentStatus = 'pending';
+    let squarePaymentId = 'FREE_ORDER_' + Date.now();
+    let receiptUrl = null;
 
-    const createRes = await client.payments.create({
-      sourceId,
-      idempotencyKey,
-      amountMoney: {
-        amount: toBigIntAmount(amount),
-        currency: String(currency || 'USD').toUpperCase(),
-      },
-      autocomplete: true,
-      buyerEmailAddress: customerEmail,
-      note: `BOW Shop purchase from ${customerName}`,
-      referenceId: `bow_order_${Date.now()}`,
-    });
+    if (!isFreeOrder) {
+      const client = getSquareClient();
+      const idempotencyKey = crypto.randomUUID();
 
-    const payment = createRes.payment;
-    if (!payment) {
-      return res.status(500).json({ error: 'Payment was not created.' });
+      const createRes = await client.payments.create({
+        sourceId,
+        idempotencyKey,
+        amountMoney: {
+          amount: toBigIntAmount(amount),
+          currency: String(currency || 'USD').toUpperCase(),
+        },
+        autocomplete: true,
+        buyerEmailAddress: customerEmail,
+        note: `BOW Shop purchase from ${customerName}`,
+        referenceId: `bow_order_${Date.now()}`,
+      });
+
+      const payment = createRes.payment;
+      if (!payment) {
+        return res.status(500).json({ error: 'Payment was not created.' });
+      }
+      
+      paymentStatus = payment.status === 'COMPLETED' ? 'paid' : 'pending';
+      squarePaymentId = payment.id;
+      receiptUrl = payment.receiptUrl || null;
+    } else {
+      // Free order logic
+      paymentStatus = 'paid';
+    }
+
+    // Parse shipping address safely
+    let parsedShipping = {};
+    if (shippingAddress) {
+      if (Array.isArray(shippingAddress)) {
+        parsedShipping = shippingAddress;
+      } else if (typeof shippingAddress === 'string') {
+        try {
+          parsedShipping = JSON.parse(shippingAddress);
+        } catch (e) {
+          parsedShipping = { addressLine1: shippingAddress };
+        }
+      } else {
+        parsedShipping = shippingAddress;
+      }
     }
 
     // Create order record
@@ -142,16 +173,16 @@ router.post('/create-order-payment', async (req, res) => {
     try {
       order = await Order.create({
         userId: userId || 'guest',
-        items: Array.isArray(items) ? items : (items ? JSON.parse(items) : []),
+        items: Array.isArray(items) ? items : (items ? (typeof items === 'string' ? JSON.parse(items) : items) : []),
         totalAmount: Number(amount),
-        status: payment.status === 'COMPLETED' ? 'paid' : 'pending',
-        paymentIntentId: payment.id,
-        shippingAddress: Array.isArray(shippingAddress) ? shippingAddress : (shippingAddress ? (typeof shippingAddress === 'string' ? JSON.parse(shippingAddress) : shippingAddress) : {}),
+        status: paymentStatus,
+        paymentIntentId: squarePaymentId,
+        shippingAddress: parsedShipping,
         customerEmail,
         customerName,
         metadata: {
-          provider: 'square',
-          squarePaymentId: payment.id,
+          provider: isFreeOrder ? 'free' : 'square',
+          squarePaymentId: squarePaymentId,
         }
       });
     } catch (dbErr) {
@@ -159,14 +190,14 @@ router.post('/create-order-payment', async (req, res) => {
     }
 
     // Send order confirmation email (best-effort)
-    if (payment.status === 'COMPLETED') {
+    if (paymentStatus === 'paid' || paymentStatus === 'COMPLETED') {
       try {
         await EmailService.sendOrderConfirmation({
           customerName,
           customerEmail,
           items: Array.isArray(items) ? items : (items ? JSON.parse(items) : []),
           totalAmount: Number(amount),
-          paymentId: payment.id,
+          paymentId: squarePaymentId,
           shippingAddress: typeof shippingAddress === 'string' ? shippingAddress : JSON.stringify(shippingAddress)
         });
       } catch (emailErr) {
@@ -175,11 +206,11 @@ router.post('/create-order-payment', async (req, res) => {
     }
 
     return res.json({
-      success: payment.status === 'COMPLETED',
-      paymentId: payment.id,
-      status: payment.status,
+      success: paymentStatus === 'paid' || paymentStatus === 'COMPLETED',
+      paymentId: squarePaymentId,
+      status: paymentStatus,
       order: order,
-      receiptUrl: payment.receiptUrl || null,
+      receiptUrl: receiptUrl,
     });
   } catch (err) {
     console.error('[Payment] Error creating Square order payment:', err);
@@ -191,7 +222,7 @@ router.post('/create-order-payment', async (req, res) => {
 router.post('/confirm-payment', async (req, res) => {
   const { paymentIntentId, paymentId } = req.body;
   const id = paymentId || paymentIntentId;
-  
+
   try {
     if (!id) {
       return res.status(400).json({ error: 'paymentId is required.' });
@@ -248,7 +279,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 // GET /api/payment/status
 router.get('/status', (req, res) => {
   const isConfigured = !!process.env.SQUARE_ACCESS_TOKEN;
-  res.json({ 
+  res.json({
     configured: isConfigured,
     message: isConfigured ? 'Payment processing is ready' : 'Payment processing is not configured'
   });
@@ -259,24 +290,24 @@ router.get('/donations', async (req, res) => {
   try {
     console.log('[GET /api/payment/donations] Fetching all donations');
     console.log('[GET /api/payment/donations] Donation model loaded:', !!Donation);
-    
+
     if (!Donation) {
       console.log('[GET /api/payment/donations] Donation model not available');
       return res.status(500).json({ error: 'Donation model not available' });
     }
-    
+
     const { page = 1, limit = 10, status } = req.query;
-    
+
     const result = await Donation.findAll({ page, limit, status });
     const { donations, pagination } = result;
-    
+
     console.log(`[GET /api/payment/donations] Found ${donations.length} donations`);
-    
+
     if (donations.length === 0) {
       console.log('[GET /api/payment/donations] No donations found - returning empty array');
       return res.json({ donations: [], pagination });
     }
-    
+
     res.json({
       donations,
       pagination
@@ -289,7 +320,7 @@ router.get('/donations', async (req, res) => {
       code: err.code,
       statusCode: err.$metadata?.httpStatusCode
     });
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch donations',
       message: err.message,
       details: process.env.NODE_ENV === 'development' ? err.stack : undefined
@@ -302,17 +333,17 @@ router.get('/donations/stats', async (req, res) => {
   try {
     console.log('[GET /api/payment/donations/stats] Fetching donation statistics');
     console.log('[GET /api/payment/donations/stats] Donation model loaded:', !!Donation);
-    
+
     if (!Donation) {
       console.log('[GET /api/payment/donations/stats] Donation model not available');
       return res.status(500).json({ error: 'Donation model not available' });
     }
-    
+
     const stats = await Donation.getStats();
     const { totalDonations, totalAmount, monthlyStats } = stats;
-    
+
     console.log('[GET /api/payment/donations/stats] Statistics retrieved successfully');
-    
+
     res.json({
       totalDonations,
       totalAmount,
@@ -326,7 +357,7 @@ router.get('/donations/stats', async (req, res) => {
       code: err.code,
       statusCode: err.$metadata?.httpStatusCode
     });
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch donation statistics',
       message: err.message,
       details: process.env.NODE_ENV === 'development' ? err.stack : undefined
@@ -340,12 +371,12 @@ router.get('/donations/user/:userIdOrEmail', async (req, res) => {
     const { userIdOrEmail } = req.params;
     console.log('[GET /api/payment/donations/user/:userIdOrEmail] Fetching donations for:', userIdOrEmail);
     console.log('[GET /api/payment/donations/user/:userIdOrEmail] Donation model loaded:', !!Donation);
-    
+
     if (!Donation) {
       console.log('[GET /api/payment/donations/user/:userIdOrEmail] Donation model not available');
       return res.status(500).json({ error: 'Donation model not available' });
     }
-    
+
     let donations = [];
     // Try to find by donorId (userId)
     if (userIdOrEmail.includes('@')) {
@@ -358,14 +389,14 @@ router.get('/donations/user/:userIdOrEmail', async (req, res) => {
       const allDonations = await Donation.findAll({ limit: 1000 });
       donations = allDonations.donations.filter(d => d.donorId === userIdOrEmail);
     }
-    
+
     console.log(`[GET /api/payment/donations/user/:userIdOrEmail] Found ${donations.length} donations`);
-    
+
     if (donations.length === 0) {
       console.log('[GET /api/payment/donations/user/:userIdOrEmail] No donations found - returning empty array');
       return res.json([]);
     }
-    
+
     res.json(donations);
   } catch (err) {
     console.error('[GET /api/payment/donations/user/:userIdOrEmail] Error fetching user donations:', err);
@@ -375,7 +406,7 @@ router.get('/donations/user/:userIdOrEmail', async (req, res) => {
       code: err.code,
       statusCode: err.$metadata?.httpStatusCode
     });
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch user donations',
       message: err.message,
       details: process.env.NODE_ENV === 'development' ? err.stack : undefined
@@ -387,7 +418,7 @@ router.get('/donations/user/:userIdOrEmail', async (req, res) => {
 router.post('/donations/bulk-delete', async (req, res) => {
   try {
     const { paymentIntentIds } = req.body;
-    
+
     if (!paymentIntentIds || !Array.isArray(paymentIntentIds) || paymentIntentIds.length === 0) {
       return res.status(400).json({ error: 'Payment Intent IDs array is required and must not be empty' });
     }
@@ -412,7 +443,7 @@ router.post('/donations/bulk-delete', async (req, res) => {
         // Delete the donation
         await Donation.deleteByPaymentIntentId(paymentIntentId);
         results.push({ paymentIntentId, success: true, deletedDonation: donation });
-        
+
         console.log('[Payment] Donation deleted successfully:', paymentIntentId);
       } catch (error) {
         console.error('[Payment] Error deleting donation:', paymentIntentId, error);
@@ -422,11 +453,11 @@ router.post('/donations/bulk-delete', async (req, res) => {
 
     const successCount = results.length;
     const errorCount = errors.length;
-    
+
     console.log(`[Payment] Bulk delete completed: ${successCount} successful, ${errorCount} failed`);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: `Bulk delete completed: ${successCount} successful, ${errorCount} failed`,
       results,
       errors,
@@ -445,7 +476,7 @@ router.post('/donations/bulk-delete', async (req, res) => {
 // DELETE /api/payment/donations/:paymentIntentId - Delete a donation
 router.delete('/donations/:paymentIntentId', async (req, res) => {
   const { paymentIntentId } = req.params;
-  
+
   try {
     const donation = await Donation.findByPaymentIntentId(paymentIntentId);
     if (!donation) {
