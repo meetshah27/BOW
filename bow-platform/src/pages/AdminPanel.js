@@ -7,6 +7,11 @@ import ImagePlaceholder from '../components/common/ImagePlaceholder';
 import api, { buildApiUrl } from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
 import { useCelebration } from '../contexts/CelebrationContext';
+import { 
+  LineChart, Line, AreaChart, Area, BarChart, Bar, 
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, Legend 
+} from 'recharts';
 
 import { 
   Users, 
@@ -144,6 +149,16 @@ const Dashboard = () => {
     error: null
   });
   const [logoUrl, setLogoUrl] = useState('');
+
+  // Mock data for visual analytics
+  const analyticsData = [
+    { name: 'Dec', tickets: 65, revenue: 1240, members: 12 },
+    { name: 'Jan', tickets: 45, revenue: 980, members: 18 },
+    { name: 'Feb', tickets: 80, revenue: 1560, members: 22 },
+    { name: 'Mar', tickets: 120, revenue: 2100, members: 45 },
+    { name: 'Apr', tickets: 90, revenue: 1850, members: 32 },
+    { name: 'May', tickets: 145, revenue: 2600, members: 50 },
+  ];
 
   // Handle founders button click with celebration
   const handleFoundersClick = () => {
@@ -361,6 +376,74 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* Visual Analytics Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* Ticket Sales & Signups Chart */}
+        <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <TrendingUp className="w-6 h-6 mr-2 text-primary-600" />
+              Growth & Engagement
+            </h3>
+            <span className="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">Last 6 Months</span>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={analyticsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTickets" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorMembers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                <RechartsTooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ fontWeight: 600 }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
+                <Area type="monotone" name="Ticket Sales" dataKey="tickets" stroke="#f97316" strokeWidth={3} fillOpacity={1} fill="url(#colorTickets)" />
+                <Area type="monotone" name="New Members" dataKey="members" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorMembers)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Shop Revenue Chart */}
+        <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <ShoppingBag className="w-6 h-6 mr-2 text-green-600" />
+              Shop Revenue
+            </h3>
+            <span className="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">Last 6 Months</span>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analyticsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(value) => `$${value}`} />
+                <RechartsTooltip 
+                  cursor={{fill: '#f1f5f9'}}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value) => [`$${value}`, 'Revenue']}
+                  itemStyle={{ fontWeight: 600, color: '#10b981' }}
+                />
+                <Bar name="Revenue" dataKey="revenue" fill="#10b981" radius={[6, 6, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
       {/* Recent Activity (unchanged) */}
       <div className="bg-white/80 rounded-2xl shadow-xl p-6 mt-8">
         <div className="space-y-4">
