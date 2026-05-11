@@ -29,12 +29,27 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create product (Admin only logic can be added via middleware)
+// Create product
 router.post('/', upload.array('images', 5), async (req, res) => {
   try {
-    const { name, description, price, category, sizes, colors, stock } = req.body;
+    const { name, description, price, category, sizes, colors, stock, images: bodyImages, isActive } = req.body;
     
     let imageUrls = [];
+    
+    // 1. Handle pre-uploaded URLs from body (sent as JSON from frontend)
+    if (bodyImages) {
+      if (Array.isArray(bodyImages)) {
+        imageUrls = [...bodyImages];
+      } else {
+        try {
+          imageUrls = JSON.parse(bodyImages);
+        } catch (e) {
+          imageUrls = [bodyImages];
+        }
+      }
+    }
+
+    // 2. Handle direct file uploads if any
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const uploadResult = await uploadToS3(file, S3_CONFIG.FOLDERS.PRODUCTS);
@@ -50,7 +65,8 @@ router.post('/', upload.array('images', 5), async (req, res) => {
       images: imageUrls,
       sizes: Array.isArray(sizes) ? sizes : (sizes ? JSON.parse(sizes) : []),
       colors: Array.isArray(colors) ? colors : (colors ? JSON.parse(colors) : []),
-      stock: parseInt(stock) || 0
+      stock: parseInt(stock) || 0,
+      isActive: isActive !== undefined ? (isActive === 'true' || isActive === true) : true
     };
 
     const product = await Product.create(productData);
@@ -73,10 +89,30 @@ router.put('/:id', upload.array('images', 5), async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const { name, description, price, category, sizes, colors, stock, isActive, existingImages } = req.body;
+    const { name, description, price, category, sizes, colors, stock, isActive, images: bodyImages, existingImages } = req.body;
     
-    let imageUrls = Array.isArray(existingImages) ? existingImages : (existingImages ? JSON.parse(existingImages) : []);
+    let imageUrls = [];
+
+    // 1. Handle images from body (could be new URLs or existing ones)
+    if (bodyImages) {
+      if (Array.isArray(bodyImages)) {
+        imageUrls = [...bodyImages];
+      } else {
+        try {
+          imageUrls = JSON.parse(bodyImages);
+        } catch (e) {
+          imageUrls = [bodyImages];
+        }
+      }
+    } else if (existingImages) {
+      // Fallback for older frontend logic
+      imageUrls = Array.isArray(existingImages) ? existingImages : JSON.parse(existingImages);
+    } else {
+      // Default to current images if nothing provided
+      imageUrls = [...(product.images || [])];
+    }
     
+    // 2. Handle new direct file uploads
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const uploadResult = await uploadToS3(file, S3_CONFIG.FOLDERS.PRODUCTS);
