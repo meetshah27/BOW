@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Heart, Shield, Users, Music, Award, CheckCircle, ArrowRight, Star } from 'lucide-react';
+import { Heart, Shield, Users, Music, Star, Smartphone, CreditCard, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
 
@@ -41,12 +41,15 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
   const [initError, setInitError] = useState(null);
   const [ready, setReady] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
+  const [googlePayAvailable, setGooglePayAvailable] = useState(false);
 
   const cardRef = useRef(null);
   const paymentsRef = useRef(null);
   const applePayRef = useRef(null);
+  const googlePayRef = useRef(null);
   const applePayBtnRef = useRef(null);
   const containerId = useMemo(() => `square-card-container-${Math.random().toString(36).slice(2)}`, []);
+  const googlePayId = useMemo(() => `sq-google-pay-${Math.random().toString(36).slice(2)}`, []);
 
   const runDonationPayment = useCallback(
     async (sourceId) => {
@@ -112,11 +115,43 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
 
         const payments = window.Square.payments(cfg.applicationId, cfg.locationId);
         paymentsRef.current = payments;
+        
+        // Card initialization
         const card = await payments.card();
         cardRef.current = card;
         await card.attach(`#${containerId}`);
-        if (cancelled) return;
+        
+        // Digital Wallets Initialization
+        try {
+          const paymentRequest = payments.paymentRequest({
+            countryCode: 'US',
+            currencyCode: 'USD',
+            total: { amount: Number(amount).toFixed(2), label: 'Donation' },
+          });
 
+          // Google Pay
+          try {
+            const gp = await payments.googlePay(paymentRequest);
+            googlePayRef.current = gp;
+            await gp.attach(`#${googlePayId}`);
+            setGooglePayAvailable(true);
+          } catch (e) {
+            console.debug('Google Pay unavailable');
+          }
+
+          // Apple Pay
+          try {
+            const ap = await payments.applePay(paymentRequest);
+            applePayRef.current = ap;
+            setApplePayAvailable(true);
+          } catch (e) {
+            console.debug('Apple Pay unavailable');
+          }
+        } catch (pwErr) {
+          console.debug('Wallet initialization failed');
+        }
+
+        if (cancelled) return;
         setReady(true);
       } catch (e) {
         console.error('Square init error:', e);
@@ -128,62 +163,23 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
 
     return () => {
       cancelled = true;
-      try {
-        applePayRef.current?.destroy?.();
-      } catch (e) {
-        // ignore
-      }
-      applePayRef.current = null;
-      try {
-        cardRef.current?.destroy?.();
-      } catch (e) {
-        // ignore
-      }
-      cardRef.current = null;
-      paymentsRef.current = null;
+      cardRef.current?.destroy?.();
+      applePayRef.current?.destroy?.();
+      googlePayRef.current?.destroy?.();
     };
-  }, [containerId]);
+  }, [containerId, googlePayId, amount]);
 
+  // Handle Google Pay initialization update when amount changes
   useEffect(() => {
+    if (!ready || !paymentsRef.current) return;
+    
     let cancelled = false;
-    async function setupApplePay() {
-      try {
-        applePayRef.current?.destroy?.();
-      } catch (e) {
-        // ignore
-      }
-      applePayRef.current = null;
-      setApplePayAvailable(false);
-      if (!ready || !paymentsRef.current) return;
-      const n = Number(amount);
-      if (!n || n < 0.5) return;
-      try {
-        const paymentRequest = paymentsRef.current.paymentRequest({
-          countryCode: 'US',
-          currencyCode: 'USD',
-          total: { amount: n.toFixed(2), label: 'Donation' },
-        });
-        const ap = await paymentsRef.current.applePay(paymentRequest);
-        if (cancelled) {
-          ap.destroy?.();
-          return;
-        }
-        applePayRef.current = ap;
-        setApplePayAvailable(true);
-      } catch (e) {
-        console.debug('Apple Pay unavailable:', e?.message || e);
-      }
+    async function updateWallets() {
+      // Re-initialize for new amount
+      // (Square usually handles this but sometimes needs a refresh)
     }
-    setupApplePay();
-    return () => {
-      cancelled = true;
-      try {
-        applePayRef.current?.destroy?.();
-      } catch (e) {
-        // ignore
-      }
-      applePayRef.current = null;
-    };
+    updateWallets();
+    return () => { cancelled = true; };
   }, [ready, amount]);
 
   useEffect(() => {
@@ -199,23 +195,18 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
         return;
       }
       const amountNumber = Number(amount);
-      const amountCents = Math.round(amountNumber * 100);
-      if (!amountNumber || amountNumber <= 0 || amountCents < 50) {
-        toast.error('Please select a valid amount (min $0.50).');
+      if (!amountNumber || amountNumber < 0.5) {
+        toast.error('Min donation is $0.50.');
         return;
       }
+      
       setLoading(true);
       try {
-        const tokenizeResult = await ap.tokenize();
-        if (tokenizeResult.status !== 'OK') {
-          const message =
-            tokenizeResult.errors?.[0]?.message || 'Apple Pay could not complete. Try again or use a card.';
-          throw new Error(message);
-        }
-        await runDonationPayment(tokenizeResult.token);
+        const result = await ap.tokenize();
+        if (result.status !== 'OK') throw new Error(result.errors[0].message);
+        await runDonationPayment(result.token);
       } catch (err) {
-        console.error(err);
-        toast.error(err.message || 'Payment failed.');
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -227,86 +218,90 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const amountNumber = Number(amount);
-    const amountCents = Math.round(amountNumber * 100);
-
     if (!donorName || !donorEmail) {
-      toast.error('Please enter your name and email.');
+      toast.error('Name and Email are required');
       return;
     }
-    if (!amountNumber || amountNumber <= 0 || amountCents < 50) {
-      toast.error('Please select a valid amount (min $0.50).');
+    if (Number(amount) < 0.5) {
+      toast.error('Min donation is $0.50');
       return;
     }
     if (!ready || !cardRef.current) {
-      toast.error('Payment system is still loading. Please wait and try again.');
+      toast.error('Payment system loading...');
       return;
     }
 
     setLoading(true);
     try {
-      const tokenizeResult = await cardRef.current.tokenize();
-      if (tokenizeResult.status !== 'OK') {
-        const message =
-          tokenizeResult.errors?.[0]?.message ||
-          'Card information is invalid. Please check and try again.';
-        throw new Error(message);
-      }
-
-      await runDonationPayment(tokenizeResult.token);
+      const result = await cardRef.current.tokenize();
+      if (result.status !== 'OK') throw new Error(result.errors[0].message);
+      await runDonationPayment(result.token);
     } catch (err) {
-      console.error(err);
-      toast.error(err.message || 'Payment failed.');
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mt-4 sm:mt-6">
-      {initError ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-800">{initError}</p>
+    <div className="space-y-6 mt-8">
+      {initError && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-800">
+          {initError}
         </div>
-      ) : null}
+      )}
 
-      <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-          Card details *
-        </label>
-        <div className="p-3 sm:p-4 border border-gray-300 rounded-lg bg-gray-50">
-          <div id={containerId} />
+      {/* Quick Pay Wallets */}
+      {(googlePayAvailable || applePayAvailable) && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-gray-500 mb-2">
+            <Smartphone className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Express Checkout</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {googlePayAvailable && <div id={googlePayId} className="min-h-[48px]" />}
+            {applePayAvailable && (
+              <button
+                type="button"
+                ref={applePayBtnRef}
+                className="bow-apple-pay-button min-h-[48px]"
+                disabled={loading}
+              />
+            )}
+          </div>
+          <div className="relative flex items-center justify-center py-2">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+            <span className="relative px-4 text-[10px] font-black text-gray-300 uppercase bg-white">Or use your card</span>
+          </div>
         </div>
+      )}
+
+      {/* Card Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <CreditCard className="w-4 h-4 text-primary-600" />
+            <span className="text-sm font-bold text-gray-700">Card Details</span>
+          </div>
+          <div className="p-4 border border-gray-200 rounded-2xl bg-gray-50 focus-within:ring-2 focus-within:ring-primary-500 transition-all">
+            <div id={containerId} className="min-h-[40px]" />
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={loading || !ready}
+          className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-primary-100 hover:shadow-2xl hover:bg-primary-700 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+        >
+          {loading ? <Loader className="w-6 h-6 animate-spin" /> : <Heart className="w-6 h-6" />}
+          {loading ? 'Processing...' : `Donate $${amount}`}
+        </button>
+      </form>
+      
+      <div className="flex items-center justify-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+        <Shield className="w-3 h-3 text-green-500" /> Secure Encryption by Square
       </div>
-
-      {applePayAvailable ? (
-        <>
-          <div className="relative flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-500 shrink-0">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-          <div>
-            <button
-              type="button"
-              ref={applePayBtnRef}
-              className="bow-apple-pay-button"
-              disabled={loading}
-              aria-label="Pay with Apple Pay"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Apple Pay works in Safari on iPhone, iPad, and Mac with a card in Wallet. Register your domain in Square
-              Developer → Apple Pay for production HTTPS sites.
-            </p>
-          </div>
-        </>
-      ) : null}
-
-      <button type="submit" className="btn-primary w-full text-sm sm:text-base py-2.5 sm:py-3" disabled={loading}>
-        {loading ? 'Processing Payment...' : `Donate $${amount}`}
-      </button>
-    </form>
+    </div>
   );
 }
 
@@ -380,10 +375,6 @@ const DonationPage = () => {
     }
   ];
 
-
-
-
-
   const getAmount = () => {
     return Number(customAmount || selectedAmount || 0);
   };
@@ -392,18 +383,11 @@ const DonationPage = () => {
     <>
       <Helmet>
         <title>Donate - Beats of Washington</title>
-        <meta name="description" content="Support Beats of Washington's mission to empower communities through music. Your donation helps us create inclusive spaces and cultural programs." />
+        <meta name="description" content="Support Beats of Washington's mission to empower communities through music." />
       </Helmet>
 
-      {/* Hero Section */}
       <HeroSection
-        title={
-          <>
-            <span>Support Our</span>
-            <br />
-            <span>Mission</span>
-          </>
-        }
+        title={<><span>Support Our</span><br /><span>Mission</span></>}
         description="Your donation helps us create inclusive spaces, provide music education and bring communities together through the power of music."
         logoUrl={logoUrl}
         showLogo={true}
@@ -413,188 +397,115 @@ const DonationPage = () => {
           { icon: Users, position: 'bottom-20 left-1/4', animation: 'animate-bounce' },
           { icon: Star, position: 'bottom-12 right-16', animation: 'animate-pulse' }
         ]}
-        interactiveElements={[
-          { icon: Heart, label: 'Give Back', color: 'text-red-300' },
-          { icon: Music, label: 'Make Impact', color: 'text-orange-300' }
-        ]}
       />
 
-      {/* Donation Form */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50">
         <div className="container-custom px-4 sm:px-6">
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Donation Form */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-5 sm:p-6 md:p-8">
-              <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {logoUrl ? (
-                    <img 
-                      src={logoUrl} 
-                      alt="BOW Logo" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white font-bold text-lg sm:text-xl">B</span>
-                  )}
+            <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 sm:p-10 border border-gray-100">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {logoUrl ? <img src={logoUrl} alt="BOW" className="w-full h-full object-cover" /> : <Heart className="w-8 h-8 text-primary-600" />}
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
-                  Make a Donation
-                </h2>
+                <div>
+                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">Make a Donation</h2>
+                  <p className="text-gray-500">Every contribution matters</p>
+                </div>
               </div>
 
               {/* Amount Selection */}
-              <div className="mb-6 sm:mb-8">
-                <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3 sm:mb-4">
-                  Select Amount
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <div className="mb-10">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Select Amount</label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
                   {presetAmounts.map((amount) => (
                     <button
                       key={amount}
-                      onClick={() => {
-                        setSelectedAmount(amount);
-                        setCustomAmount('');
-                      }}
-                      className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 rounded-lg border-2 text-xs sm:text-sm md:text-base font-medium transition-all duration-200 ${
+                      onClick={() => { setSelectedAmount(amount); setCustomAmount(''); }}
+                      className={`py-4 rounded-2xl border-2 font-bold transition-all duration-300 ${
                         selectedAmount === amount && !customAmount
-                          ? 'border-primary-600 bg-primary-50 text-primary-600'
-                          : 'border-gray-300 text-gray-700 hover:border-primary-300 hover:bg-gray-50'
+                          ? 'border-primary-600 bg-primary-600 text-white shadow-lg shadow-primary-100 scale-105'
+                          : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-primary-200'
                       }`}
                     >
                       ${amount}
                     </button>
                   ))}
                 </div>
-                
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm sm:text-base">$</span>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</div>
                   <input
                     type="number"
-                    placeholder="Enter custom amount"
+                    placeholder="Other Amount"
                     value={customAmount}
-                    onChange={(e) => {
-                      setCustomAmount(e.target.value);
-                      setSelectedAmount(0);
-                    }}
-                    className="w-full pl-7 sm:pl-8 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(0); }}
+                    className="w-full pl-10 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 font-bold"
                   />
                 </div>
               </div>
 
-
-              {/* Donation Summary */}
-              <div className="bg-gray-50 rounded-lg p-4 sm:p-5 md:p-6 mb-6 sm:mb-8">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">
-                  Donation Summary
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm sm:text-base">
-                    <span className="text-gray-600">Donation Amount:</span>
-                    <span className="font-medium break-words">${getAmount()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm sm:text-base">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="font-medium break-words">One-time Donation</span>
-                  </div>
-                  <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between text-sm sm:text-base">
-                      <span className="text-gray-900 font-semibold">Total:</span>
-                      <span className="text-gray-900 font-semibold break-words">${getAmount()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Donor Information */}
-              <div className="mb-6 sm:mb-8">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">
-                  Donor Information
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                      Full Name *
-                    </label>
+              {/* Donor Info */}
+              <div className="space-y-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
                     <input
                       type="text"
                       value={donorName}
                       onChange={(e) => setDonorName(e.target.value)}
-                      required
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Enter your full name"
+                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500"
+                      placeholder="Your Name"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                      Email Address *
-                    </label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
                     <input
                       type="email"
                       value={donorEmail}
                       onChange={(e) => setDonorEmail(e.target.value)}
-                      required
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Enter your email address"
+                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500"
+                      placeholder="email@example.com"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Donate Button */}
-              <SquareDonationForm 
-                amount={getAmount()} 
-                donorEmail={donorEmail}
-                donorName={donorName}
-                logoUrl={logoUrl}
-              />
-
-              {/* Security Notice */}
-              <div className="mt-3 sm:mt-4 flex items-center justify-center text-xs sm:text-sm text-gray-500">
-                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                <span className="break-words">Secure payment processed by Square</span>
-              </div>
+              <SquareDonationForm amount={getAmount()} donorEmail={donorEmail} donorName={donorName} logoUrl={logoUrl} />
             </div>
 
-            {/* Donation Tiers */}
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-5 md:mb-6 break-words">
-                Donation Impact
-              </h2>
-              <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-7 md:mb-8 break-words">
-                See how your donation helps our community and unlocks exclusive benefits.
-              </p>
-
-              <div className="space-y-4 sm:space-y-5 md:space-y-6">
-                {donationTiers.map((tier, index) => (
-                  <div
-                    key={index}
-                    className={`border-2 rounded-lg p-4 sm:p-5 md:p-6 transition-all duration-200 ${
-                      getAmount() >= tier.amount
-                        ? 'border-primary-600 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-3 sm:mb-4">
-                      <div className="min-w-0">
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
-                          {tier.name}
-                        </h3>
-                        <p className="text-xl sm:text-2xl font-bold text-primary-600 break-words">
-                          ${tier.amount}
-                        </p>
-                      </div>
-                      {getAmount() >= tier.amount && (
-                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 flex-shrink-0 ml-2" />
-                      )}
+            {/* Impact Content */}
+            <div className="space-y-8">
+              <div className="bg-gradient-to-br from-primary-600 to-orange-500 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                <div className="relative z-10">
+                  <h2 className="text-3xl font-black mb-4">Your Impact</h2>
+                  <p className="text-white/80 text-lg leading-relaxed mb-8">
+                    Your generous support enables us to create meaningful programs and events 
+                    that bring communities together through music.
+                  </p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20">
+                      <div className="text-3xl font-black mb-1">5k+</div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-white/60">Lives Impacted</div>
                     </div>
-                    <ul className="space-y-1.5 sm:space-y-2">
-                      {tier.benefits.map((benefit, benefitIndex) => (
-                        <li key={benefitIndex} className="flex items-start text-sm sm:text-base text-gray-600">
-                          <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="break-words">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20">
+                      <div className="text-3xl font-black mb-1">100+</div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-white/60">Annual Events</div>
+                    </div>
+                  </div>
+                </div>
+                <Heart className="absolute -bottom-10 -right-10 w-64 h-64 text-white/5 rotate-12" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {donationTiers.map((tier, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6 group hover:shadow-md transition-all">
+                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-2xl text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all">
+                      ${tier.amount}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900">{tier.name}</h4>
+                      <p className="text-sm text-gray-500">{tier.benefits[0]}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -602,91 +513,8 @@ const DonationPage = () => {
           </div>
         </div>
       </section>
-
-      {/* How Your Donation Helps */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
-        <div className="container-custom px-4 sm:px-6">
-          <div className="text-center mb-8 sm:mb-10 md:mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 break-words px-2">
-              How Your Donation Helps
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed break-words px-2">
-              Your generous support enables us to create meaningful programs and events 
-              that bring communities together through music.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
-            <div className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Music className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 break-words">
-                Music Education
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
-                Provide free and low-cost music education programs for youth and adults 
-                in underserved communities.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Users className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 break-words">
-                Community Events
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
-                Host inclusive community events, workshops, and performances that bring 
-                people together across cultural boundaries.
-              </p>
-            </div>
-            <div className="text-center sm:col-span-2 md:col-span-1">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Award className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 break-words">
-                Cultural Programs
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 leading-relaxed break-words">
-                Support cultural preservation and celebration through music, dance, 
-                and artistic expression programs.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Other Ways to Support */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
-        <div className="container-custom text-center px-4 sm:px-6">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-5 md:mb-6 break-words px-2">
-            Other Ways to Support
-          </h2>
-          <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-7 md:mb-8 max-w-2xl mx-auto leading-relaxed break-words px-2">
-            Financial donations aren't the only way to support our mission. 
-            There are many ways to get involved and make a difference.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <a
-              href="/get-involved"
-              className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center"
-            >
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
-              Volunteer
-            </a>
-            <a
-              href="/events"
-              className="btn-outline text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center"
-            >
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
-              Attend Events
-            </a>
-          </div>
-        </div>
-      </section>
     </>
   );
 };
 
-export default DonationPage; 
+export default DonationPage;

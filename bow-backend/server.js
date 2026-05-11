@@ -30,6 +30,7 @@ const settingsRouter = require('./routes/settings');
 const sponsorsRouter = require('./routes/sponsors');
 const vendorApplicationsRouter = require('./routes/vendor-applications');
 const performerApplicationsRouter = require('./routes/performer-applications');
+const productsRouter = require('./routes/products');
 
 const app = express();
 
@@ -186,6 +187,7 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/sponsors', sponsorsRouter);
 app.use('/api/vendor-applications', vendorApplicationsRouter);
 app.use('/api/performer-applications', performerApplicationsRouter);
+app.use('/api/products', productsRouter);
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/upload', require('./routes/upload'));
 

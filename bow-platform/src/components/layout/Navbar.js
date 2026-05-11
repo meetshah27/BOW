@@ -14,17 +14,18 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { logoUrl } = useLogo();
-
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
     { name: 'Leadership', href: '/leadership' },
     { name: 'Events', href: '/events' },
+    { name: 'Shop', href: '/shop' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Get Involved', href: '/get-involved' },
     { name: 'Stories', href: '/stories' },
     { name: 'Contact', href: '/contact' },
   ];
+
 
   const socialLinks = [
     {
@@ -35,9 +36,9 @@ const Navbar = () => {
           <rect width="24" height="24" rx="6" fill="url(#ig-gradient)"/>
           <defs>
             <linearGradient id="ig-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#f58529"/>
-              <stop offset="0.5" stop-color="#dd2a7b"/>
-              <stop offset="1" stop-color="#515bd4"/>
+              <stop stopColor="#f58529"/>
+              <stop offset="0.5" stopColor="#dd2a7b"/>
+              <stop offset="1" stopColor="#515bd4"/>
             </linearGradient>
           </defs>
           <circle cx="12" cy="12" r="5" stroke="#fff" strokeWidth="2"/>

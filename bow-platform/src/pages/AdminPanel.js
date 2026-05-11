@@ -58,6 +58,7 @@ import SettingsManagement from '../components/admin/SettingsManagement';
 import SponsorManagementFixed from '../components/admin/SponsorManagementFixed';
 import VendorApplicationsManagement from '../components/admin/VendorApplicationsManagement';
 import PerformerApplicationsManagement from '../components/admin/PerformerApplicationsManagement';
+import ProductManagement from '../components/admin/ProductManagement';
 import { getFutureDateString, formatDate, parseDateString } from '../utils/dateUtils';
 
 // Helper function to fix timezone issues with dates
@@ -204,6 +205,9 @@ const Dashboard = () => {
         // Fetch membership application stats
         const membershipsRes = await api.get('/memberships/stats');
         const membershipsData = membershipsRes.ok ? await membershipsRes.json() : {};
+        // Fetch products
+        const productsRes = await api.get('/products');
+        const productsData = productsRes.ok ? await productsRes.json() : [];
 
         const today = new Date();
         const upcomingActiveEvents = Array.isArray(eventsData)
@@ -233,6 +237,7 @@ const Dashboard = () => {
           activeLeaders: leadersData.activeCount ?? 0,
           pendingMemberships: membershipsData.pending ?? 0,
           totalMemberships: membershipsData.total ?? 0,
+          totalProducts: Array.isArray(productsData) ? productsData.length : 0,
           loading: false,
           error: null
         });
@@ -301,6 +306,13 @@ const Dashboard = () => {
       icon: UserPlus,
       color: 'bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700',
       iconBg: 'bg-purple-200'
+    },
+    {
+      title: 'Store Products',
+      value: stats.loading ? '...' : stats.totalProducts,
+      icon: ShoppingCart,
+      color: 'bg-gradient-to-br from-pink-100 to-pink-200 text-pink-700',
+      iconBg: 'bg-pink-200'
     }
   ];
 
@@ -3691,6 +3703,7 @@ const AdminPanel = () => {
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
     { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Products', href: '/admin/products', icon: ShoppingCart },
     { name: 'New Members', href: '/admin/new-members', icon: UserPlus },
     { name: 'Vendor Applications', href: '/admin/vendor-applications', icon: ShoppingCart },
     { name: 'Performer Applications', href: '/admin/performer-applications', icon: Music },
@@ -3726,6 +3739,8 @@ const AdminPanel = () => {
         return <LeaderManagement />;
       case 'users':
         return <UserManagement />;
+      case 'products':
+        return <ProductManagement />;
       case 'new members':
         return <NewMembersManagement />;
       case 'vendor applications':

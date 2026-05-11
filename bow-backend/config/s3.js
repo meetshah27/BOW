@@ -67,7 +67,8 @@ const S3_CONFIG = {
     STORIES: 'stories',
     FOUNDERS: 'founders',
     ABOUT: 'about',
-    NEWSLETTER: 'newsletter'
+    NEWSLETTER: 'newsletter',
+    PRODUCTS: 'products'
   }
 };
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const Donation = require('../models-dynamodb/Donation');
+const Order = require('../models-dynamodb/Order');
 const { EmailService } = require('../config/ses');
 const { getSquareClient } = require('../config/square-client');
 
@@ -98,6 +99,90 @@ router.post('/create-payment', async (req, res) => {
     });
   } catch (err) {
     console.error('[Payment] Error creating Square payment:', err);
+    return res.status(500).json({ error: err.message || 'Payment failed' });
+  }
+});
+
+// POST /api/payment/create-order-payment - Square payment for products
+router.post('/create-order-payment', async (req, res) => {
+  const { sourceId, amount, currency = 'USD', customerEmail, customerName, userId, items, shippingAddress } = req.body;
+
+  try {
+    if (!sourceId) {
+      return res.status(400).json({ error: 'Missing sourceId (Square token).' });
+    }
+
+    if (!amount || Number(amount) < 50) {
+      return res.status(400).json({ error: 'Invalid amount. Minimum purchase is $0.50.' });
+    }
+
+    const client = getSquareClient();
+    const idempotencyKey = crypto.randomUUID();
+
+    const createRes = await client.payments.create({
+      sourceId,
+      idempotencyKey,
+      amountMoney: {
+        amount: toBigIntAmount(amount),
+        currency: String(currency || 'USD').toUpperCase(),
+      },
+      autocomplete: true,
+      buyerEmailAddress: customerEmail,
+      note: `BOW Shop purchase from ${customerName}`,
+      referenceId: `bow_order_${Date.now()}`,
+    });
+
+    const payment = createRes.payment;
+    if (!payment) {
+      return res.status(500).json({ error: 'Payment was not created.' });
+    }
+
+    // Create order record
+    let order;
+    try {
+      order = await Order.create({
+        userId: userId || 'guest',
+        items: Array.isArray(items) ? items : (items ? JSON.parse(items) : []),
+        totalAmount: Number(amount),
+        status: payment.status === 'COMPLETED' ? 'paid' : 'pending',
+        paymentIntentId: payment.id,
+        shippingAddress: Array.isArray(shippingAddress) ? shippingAddress : (shippingAddress ? (typeof shippingAddress === 'string' ? JSON.parse(shippingAddress) : shippingAddress) : {}),
+        customerEmail,
+        customerName,
+        metadata: {
+          provider: 'square',
+          squarePaymentId: payment.id,
+        }
+      });
+    } catch (dbErr) {
+      console.error('[Payment] Failed to persist order record:', dbErr.message);
+    }
+
+    // Send order confirmation email (best-effort)
+    if (payment.status === 'COMPLETED') {
+      try {
+        await EmailService.sendOrderConfirmation({
+          customerName,
+          customerEmail,
+          items: Array.isArray(items) ? items : (items ? JSON.parse(items) : []),
+          totalAmount: Number(amount),
+          paymentId: payment.id,
+          shippingAddress: typeof shippingAddress === 'string' ? shippingAddress : JSON.stringify(shippingAddress)
+        });
+      } catch (emailErr) {
+        console.error('[Payment] Failed to send order confirmation email:', emailErr.message);
+      }
+    }
+
+    return res.json({
+      success: payment.status === 'COMPLETED',
+      paymentId: payment.id,
+      status: payment.status,
+      order: order,
+      receiptUrl: payment.receiptUrl || null,
+    });
+  } catch (err) {
+    console.error('[Payment] Error creating Square order payment:', err);
     return res.status(500).json({ error: err.message || 'Payment failed' });
   }
 });
@@ -376,4 +461,4 @@ router.delete('/donations/:paymentIntentId', async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

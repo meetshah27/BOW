@@ -10,7 +10,7 @@ const securityMiddleware = (app) => {
         defaultSrc: ["'self'"],
         // Allow inline styles for Tailwind / React, and Google Fonts
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "https://*.web.squarecdn.com", "https://web.squarecdn.com"],
         // Allow images from our domain, S3/HTTPS, data URLs (for inline icons) and blobs
         imgSrc: ["'self'", "data:", "https:", "blob:"],
         // Scripts: self, inline/eval (CRA/React dev tools), and Stripe JS
@@ -18,24 +18,31 @@ const securityMiddleware = (app) => {
           "'self'",
           "'unsafe-inline'",
           "'unsafe-eval'",
-          "https://js.stripe.com"
+          "https://js.stripe.com",
+          "https://*.web.squarecdn.com",
+          "https://web.squarecdn.com"
         ],
         // XHR / fetch / websockets destinations
         connectSrc: [
           "'self'",
           "https://api.stripe.com",
-          // API Gateway / Lambda endpoints (wildcard for stages)
           "https://*.execute-api.us-west-2.amazonaws.com",
-          // Cognito hosted UI
-          "https://bow-users.auth.us-west-2.amazoncognito.com"
+          "https://bow-users.auth.us-west-2.amazoncognito.com",
+          "https://*.squareupsandbox.com",
+          "https://*.squareup.com",
+          "https://*.web.squarecdn.com",
+          "https://web.squarecdn.com"
         ],
-        // Frames we allow to be embedded (Stripe, YouTube iframes, etc.)
         frameSrc: [
           "'self'",
           "https://js.stripe.com",
           "https://hooks.stripe.com",
           "https://www.youtube.com",
-          "https://youtube.com"
+          "https://youtube.com",
+          "https://*.web.squarecdn.com",
+          "https://web.squarecdn.com",
+          "https://*.squareupsandbox.com",
+          "https://*.squareup.com"
         ],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: []
@@ -136,4 +143,3 @@ const securityMiddleware = (app) => {
 };
 
 module.exports = securityMiddleware;
-

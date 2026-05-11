@@ -35,6 +35,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import LegalNoticesPage from './pages/LegalNoticesPage';
 import StoryDetailsPage from './pages/StoryDetailsPage';
+import ShopPage from './pages/ShopPage';
 
 // Protected Route Component
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -64,6 +65,7 @@ function AppRoutes() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/stories" element={<PeopleStoriesPage />} />
             <Route path="/stories/:id" element={<StoryDetailsPage />} />
+            <Route path="/shop" element={<ShopPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsOfServicePage />} />
