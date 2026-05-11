@@ -15,8 +15,6 @@ import {
   Loader,
   Star,
   Heart,
-  Music,
-  Users,
   Tag,
   Gift
 } from 'lucide-react';
@@ -39,7 +37,6 @@ const ShopPage = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [aboutPageContent, setAboutPageContent] = useState({ logo: '' });
-  const [loadingLogo, setLoadingLogo] = useState(true);
   const [selectedSizes, setSelectedSizes] = useState({});
   const [addedItemModal, setAddedItemModal] = useState(null);
 
@@ -72,8 +69,6 @@ const ShopPage = () => {
         }
       } catch (error) {
         console.error('Error fetching about page content:', error);
-      } finally {
-        setLoadingLogo(false);
       }
     };
 

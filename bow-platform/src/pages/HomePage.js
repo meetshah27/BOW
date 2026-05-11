@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Image,
   Play,
-  Mail
+  Mail,
+  ShoppingBag
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -900,14 +901,13 @@ const HomePage = () => {
                   <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Link>
                 <div className="flex items-center gap-1.5 sm:gap-2 whitespace-nowrap flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleScrollToNewsletter}
+                  <Link
+                    to="/shop"
                     className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-primary-500 text-primary-600 font-semibold text-xs sm:text-sm shadow hover:bg-primary-500 hover:text-white transition-all duration-300"
                   >
-                    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>Subscribe</span>
-                  </button>
+                    <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span>Shop</span>
+                  </Link>
                   <Link
                     to="/donate"
                     className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold text-xs sm:text-sm shadow-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300"
