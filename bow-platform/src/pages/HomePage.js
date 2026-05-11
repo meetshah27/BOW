@@ -19,7 +19,8 @@ import {
   Image,
   Play,
   Mail,
-  ShoppingBag
+  ShoppingBag,
+  Target
 } from 'lucide-react';
 import { parseDateString, formatDate, isFuture } from '../utils/dateUtils';
 import api from '../config/api';
@@ -321,6 +322,16 @@ const HomePage = () => {
   const [loadingSlideshow, setLoadingSlideshow] = useState(true);
   const [slideshowFetched, setSlideshowFetched] = useState(false);
 
+  // Settings state
+  const [settings, setSettings] = useState({
+    campaignProgressBarEnabled: true,
+    campaignTitle: 'Help us raise $5,000 for new instruments!',
+    campaignDescription: 'Every donation brings us closer to providing quality music education and new instruments to youth in our community.',
+    campaignGoal: 5000,
+    campaignRaised: 3250
+  });
+  const [settingsFetched, setSettingsFetched] = useState(false);
+
   // Fetch functions defined outside useEffect to prevent recreation
   const fetchEvents = useCallback(async () => {
     if (eventsFetched) {
@@ -500,6 +511,24 @@ const HomePage = () => {
     }
   }, [sponsorsFetched]);
 
+  const fetchSettings = useCallback(async () => {
+    if (settingsFetched) {
+      console.log('⚠️ Settings already fetched, skipping duplicate request');
+      return;
+    }
+    
+    try {
+      const res = await api.get('/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setSettings(data.settings);
+        setSettingsFetched(true);
+      }
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  }, [settingsFetched]);
+
   // Initial data fetch - only run once
   useEffect(() => {
     fetchEvents();
@@ -507,6 +536,7 @@ const HomePage = () => {
     fetchMissionMedia();
     fetchSponsors();
     fetchLogo();
+    fetchSettings();
   }, []); // Empty dependency array - only run on mount
 
   // Add refresh capability for sponsors when page becomes visible
@@ -877,6 +907,57 @@ const HomePage = () => {
           )}
         </div>
       </section>
+
+      {/* Campaign Progress Bar */}
+      {settings.campaignProgressBarEnabled !== false && (
+        <section className="relative bg-white pt-12 sm:pt-16 pb-4 sm:pb-8">
+          <div className="container-custom px-4 sm:px-6 relative z-10">
+            <RevealOnScroll>
+              <div className="max-w-4xl mx-auto bg-gradient-to-br from-orange-50 to-amber-50 rounded-[2rem] p-6 sm:p-10 shadow-xl border border-orange-100 relative overflow-hidden group">
+                {/* Decorative BG */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none transition-transform duration-700 group-hover:scale-110"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-200/30 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none transition-transform duration-700 group-hover:scale-110"></div>
+                
+                <div className="text-center mb-6 sm:mb-8 relative z-10">
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs sm:text-sm font-bold uppercase tracking-wider mb-3 sm:mb-4">
+                    <Target className="w-4 h-4" /> Current Campaign
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-2 sm:mb-3">{settings.campaignTitle}</h2>
+                  <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">{settings.campaignDescription}</p>
+                </div>
+
+                <div className="relative z-10 max-w-2xl mx-auto">
+                  <div className="flex justify-between text-sm sm:text-base font-black text-gray-800 mb-2 px-1">
+                    <span className="text-orange-600">Raised: ${settings.campaignRaised?.toLocaleString() || 0}</span>
+                    <span>Goal: ${settings.campaignGoal?.toLocaleString() || 0}</span>
+                  </div>
+                  <div className="h-6 sm:h-8 w-full bg-white rounded-full overflow-hidden shadow-inner relative border border-gray-100">
+                    <div 
+                      className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full relative overflow-hidden transition-all duration-1000 ease-out flex items-center justify-end pr-3"
+                      style={{ width: `${Math.min(100, Math.round(((settings.campaignRaised || 0) / (settings.campaignGoal || 1)) * 100))}%` }}
+                    >
+                      {/* Glossy overlay */}
+                      <div className="absolute inset-0 bg-white/20"></div>
+                      {/* Stripes animation */}
+                      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgNDBsNDAtNDBIMjBMMCAyMHptNDAgMEwyMCA0MGgyMEwwIDBoMjB6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMTUiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==')] animate-[slide_2s_linear_infinite]"></div>
+                      <span className="relative z-10 text-white font-bold text-xs sm:text-sm drop-shadow-md">
+                        {Math.min(100, Math.round(((settings.campaignRaised || 0) / (settings.campaignGoal || 1)) * 100))}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-8 sm:mt-10 text-center">
+                    <Link to="/donate" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-orange-500 text-white font-bold rounded-full shadow-[0_10px_25px_-5px_rgba(249,115,22,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(249,115,22,0.5)] hover:scale-105 transition-all duration-300 text-base sm:text-lg group/btn">
+                      <Heart className="w-5 h-5 group-hover/btn:animate-ping absolute opacity-50" fill="currentColor" />
+                      <Heart className="w-5 h-5 relative z-10" fill="currentColor" /> 
+                      <span className="relative z-10">Donate Now</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </RevealOnScroll>
+          </div>
+        </section>
+      )}
 
       {/* Upcoming Events Section */}
        <section id="upcoming-events-section" className="relative bg-white pt-0 pb-8 sm:pt-2 sm:pb-12 md:pt-4 md:pb-14">

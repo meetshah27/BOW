@@ -12,6 +12,11 @@ router.get('/', async (req, res) => {
         membershipApplicationEnabled: settings.membershipApplicationEnabled,
         vendorApplicationEnabled: settings.vendorApplicationEnabled,
         performerApplicationEnabled: settings.performerApplicationEnabled,
+        campaignProgressBarEnabled: settings.campaignProgressBarEnabled,
+        campaignTitle: settings.campaignTitle,
+        campaignDescription: settings.campaignDescription,
+        campaignGoal: settings.campaignGoal,
+        campaignRaised: settings.campaignRaised,
         lastUpdated: settings.lastUpdated,
         updatedBy: settings.updatedBy
       }
@@ -88,6 +93,11 @@ router.put('/', async (req, res) => {
         membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
         vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
         performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        campaignProgressBarEnabled: updatedSettings.campaignProgressBarEnabled,
+        campaignTitle: updatedSettings.campaignTitle,
+        campaignDescription: updatedSettings.campaignDescription,
+        campaignGoal: updatedSettings.campaignGoal,
+        campaignRaised: updatedSettings.campaignRaised,
         lastUpdated: updatedSettings.lastUpdated,
         updatedBy: updatedSettings.updatedBy
       }
@@ -133,6 +143,11 @@ router.put('/membership-application', async (req, res) => {
         membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,    
         vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
         performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        campaignProgressBarEnabled: updatedSettings.campaignProgressBarEnabled,
+        campaignTitle: updatedSettings.campaignTitle,
+        campaignDescription: updatedSettings.campaignDescription,
+        campaignGoal: updatedSettings.campaignGoal,
+        campaignRaised: updatedSettings.campaignRaised,
         lastUpdated: updatedSettings.lastUpdated,
         updatedBy: updatedSettings.updatedBy
       }
@@ -173,6 +188,11 @@ router.put('/vendor-application', async (req, res) => {
         membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
         vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
         performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        campaignProgressBarEnabled: updatedSettings.campaignProgressBarEnabled,
+        campaignTitle: updatedSettings.campaignTitle,
+        campaignDescription: updatedSettings.campaignDescription,
+        campaignGoal: updatedSettings.campaignGoal,
+        campaignRaised: updatedSettings.campaignRaised,
         lastUpdated: updatedSettings.lastUpdated,
         updatedBy: updatedSettings.updatedBy
       }
@@ -213,6 +233,11 @@ router.put('/performer-application', async (req, res) => {
         membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
         vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
         performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        campaignProgressBarEnabled: updatedSettings.campaignProgressBarEnabled,
+        campaignTitle: updatedSettings.campaignTitle,
+        campaignDescription: updatedSettings.campaignDescription,
+        campaignGoal: updatedSettings.campaignGoal,
+        campaignRaised: updatedSettings.campaignRaised,
         lastUpdated: updatedSettings.lastUpdated,
         updatedBy: updatedSettings.updatedBy
       }
@@ -222,6 +247,56 @@ router.put('/performer-application', async (req, res) => {
     return res.status(500).json({
       success: false,
       error: 'Failed to toggle performer application',
+      message: error.message
+    });
+  }
+});
+
+// Toggle campaign progress bar specifically and update details
+router.put('/campaign-progress-bar', async (req, res) => {
+  try {
+    const { enabled, title, description, goal, raised, updatedBy } = req.body;
+
+    if (enabled !== undefined && typeof enabled !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid enabled value. Must be boolean.'
+      });
+    }
+
+    const settings = await Settings.getSettings();
+    const updatePayload = { updatedBy: updatedBy || 'unknown' };
+    
+    if (enabled !== undefined) updatePayload.campaignProgressBarEnabled = enabled;
+    if (title !== undefined) updatePayload.campaignTitle = title;
+    if (description !== undefined) updatePayload.campaignDescription = description;
+    if (goal !== undefined) updatePayload.campaignGoal = Number(goal);
+    if (raised !== undefined) updatePayload.campaignRaised = Number(raised);
+
+    await settings.update(updatePayload);
+
+    const updatedSettings = await Settings.getSettings();
+    return res.json({
+      success: true,
+      message: `Campaign Progress Bar updated successfully`,
+      settings: {
+        membershipApplicationEnabled: updatedSettings.membershipApplicationEnabled,
+        vendorApplicationEnabled: updatedSettings.vendorApplicationEnabled,
+        performerApplicationEnabled: updatedSettings.performerApplicationEnabled,
+        campaignProgressBarEnabled: updatedSettings.campaignProgressBarEnabled,
+        campaignTitle: updatedSettings.campaignTitle,
+        campaignDescription: updatedSettings.campaignDescription,
+        campaignGoal: updatedSettings.campaignGoal,
+        campaignRaised: updatedSettings.campaignRaised,
+        lastUpdated: updatedSettings.lastUpdated,
+        updatedBy: updatedSettings.updatedBy
+      }
+    });
+  } catch (error) {
+    console.error('Error toggling campaign progress bar:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to toggle campaign progress bar',
       message: error.message
     });
   }

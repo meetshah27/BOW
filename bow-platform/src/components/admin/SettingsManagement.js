@@ -8,6 +8,11 @@ const SettingsManagement = () => {
     membershipApplicationEnabled: true,
     vendorApplicationEnabled: true,
     performerApplicationEnabled: true,
+    campaignProgressBarEnabled: true,
+    campaignTitle: 'Help us raise $5,000 for new instruments!',
+    campaignDescription: 'Every donation brings us closer to providing quality music education and new instruments to youth in our community.',
+    campaignGoal: 5000,
+    campaignRaised: 3250,
     lastUpdated: null,
     updatedBy: 'system'
   });
@@ -118,6 +123,33 @@ const SettingsManagement = () => {
       }
     } catch (error) {
       console.error('Error updating performer application setting:', error);
+      toast.error('Failed to update setting');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateCampaignProgressBarSetting = async (updates) => {
+    try {
+      setSaving(true);
+      const payload = { ...updates, updatedBy: 'admin' };
+      const response = await api.put('/settings/campaign-progress-bar', payload);
+
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(prev => ({
+          ...prev,
+          ...updates,
+          lastUpdated: data.settings.lastUpdated,
+          updatedBy: data.settings.updatedBy
+        }));
+        toast.success(`Campaign Progress Bar settings updated successfully`);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to update setting');
+      }
+    } catch (error) {
+      console.error('Error updating campaign progress bar setting:', error);
       toast.error('Failed to update setting');
     } finally {
       setSaving(false);
@@ -310,6 +342,108 @@ const SettingsManagement = () => {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Campaign Progress Bar Toggle */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Campaign Progress Bar
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Control whether the Campaign Progress Bar is displayed on the homepage. When disabled, the thermometer goal tracker will be hidden.
+                </p>
+                <div className="flex items-center text-sm text-gray-500">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  <span>
+                    Last updated: {settings.lastUpdated ?
+                      new Date(settings.lastUpdated).toLocaleString() :
+                      'Never'
+                    } by {settings.updatedBy}
+                  </span>
+                </div>
+              </div>
+              <div className="ml-6 flex items-center gap-4">
+                <button
+                  onClick={() => updateCampaignProgressBarSetting({ enabled: !settings.campaignProgressBarEnabled })}
+                  disabled={saving}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    settings.campaignProgressBarEnabled !== false // Default to true
+                      ? 'bg-primary-600'
+                      : 'bg-gray-200'
+                  } ${saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.campaignProgressBarEnabled !== false ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {settings.campaignProgressBarEnabled !== false && (
+              <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Title</label>
+                  <input
+                    type="text"
+                    value={settings.campaignTitle || ''}
+                    onChange={(e) => setSettings(prev => ({ ...prev, campaignTitle: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="e.g. Help us raise $5,000 for new instruments!"
+                  />
+                </div>
+                
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Description</label>
+                  <textarea
+                    value={settings.campaignDescription || ''}
+                    onChange={(e) => setSettings(prev => ({ ...prev, campaignDescription: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    rows="2"
+                    placeholder="Brief description of the campaign goal..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Goal Amount ($)</label>
+                  <input
+                    type="number"
+                    value={settings.campaignGoal || 0}
+                    onChange={(e) => setSettings(prev => ({ ...prev, campaignGoal: Number(e.target.value) }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Raised Amount ($)</label>
+                  <input
+                    type="number"
+                    value={settings.campaignRaised || 0}
+                    onChange={(e) => setSettings(prev => ({ ...prev, campaignRaised: Number(e.target.value) }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+
+                <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
+                  <button
+                    onClick={() => updateCampaignProgressBarSetting({
+                      title: settings.campaignTitle,
+                      description: settings.campaignDescription,
+                      goal: settings.campaignGoal,
+                      raised: settings.campaignRaised
+                    })}
+                    disabled={saving}
+                    className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Content
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
