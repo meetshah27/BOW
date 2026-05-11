@@ -14,16 +14,14 @@ import {
   Users,
   Star,
   Download,
-  Edit,
   Camera,
   CreditCard,
-  Trophy,
   TrendingUp,
   Award,
   Gift,
   Menu,
   X,
-  LayoutDashboard
+  ShoppingBag
 } from 'lucide-react';
 import api, { buildApiUrl } from '../config/api';
 import PaymentReceipt from '../components/PaymentReceipt';
@@ -35,6 +33,7 @@ const Dashboard = () => {
   const [events, setEvents] = useState([]);
   const [payments, setPayments] = useState([]);
   const [volunteerApplications, setVolunteerApplications] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -59,9 +58,20 @@ const Dashboard = () => {
         // Fetch volunteer applications
         let volunteerRes = await api.get(`/volunteers/user/${userEmail || userId}/applications`);
         let volunteerData = volunteerRes.ok ? await volunteerRes.json() : [];
+        // Fetch shop orders
+        let ordersRes = await api.get(`/orders/user/${userId}`);
+        let ordersData = ordersRes.ok ? await ordersRes.json() : [];
+        // Fallback to email for orders
+        if (ordersData.length === 0 && userEmail) {
+          let ordersEmailRes = await api.get(`/orders/user/${userEmail}`);
+          if (ordersEmailRes.ok) {
+            ordersData = await ordersEmailRes.json();
+          }
+        }
         setEvents(eventsData);
         setPayments(paymentsData);
         setVolunteerApplications(volunteerData);
+        setOrders(ordersData);
       } catch (err) {
         setError('Failed to load your data.');
       } finally {
@@ -95,11 +105,18 @@ const Dashboard = () => {
       bgColor: 'bg-gradient-to-br from-green-50 to-green-100'
     },
     { 
+      label: 'Shop Orders', 
+      value: orders.length,
+      icon: ShoppingBag,
+      color: 'bg-orange-100 text-orange-600',
+      bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100'
+    },
+    { 
       label: 'Community Rank', 
       value: 'Active',
       icon: Star,
-      color: 'bg-orange-100 text-orange-600',
-      bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100'
+      color: 'bg-purple-100 text-purple-600',
+      bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100'
     }
   ];
 
@@ -980,6 +997,108 @@ const MyPayments = () => {
   );
 };
 
+const MyOrders = () => {
+  const { currentUser } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        let userId = currentUser?.uid || currentUser?.id || '';
+        let res = await api.get(`/orders/user/${userId}`);
+        let data = res.ok ? await res.json() : [];
+        
+        // Fallback to email if no orders found and user has email
+        if (data.length === 0 && currentUser?.email) {
+          let resEmail = await api.get(`/orders/user/${currentUser.email}`);
+          if (resEmail.ok) {
+            data = await resEmail.json();
+          }
+        }
+        
+        setOrders(data);
+      } catch (err) {
+        setError('Failed to load your orders.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (currentUser) fetchOrders();
+  }, [currentUser]);
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold text-gray-900">My Shop Orders</h2>
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Order History</h3>
+        </div>
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center py-8">{error}</div>
+          ) : (
+            <table className="w-full text-left">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {orders.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                      <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No orders found.</p>
+                      <p className="text-sm">
+                        <Link to="/shop" className="text-primary-600 hover:text-primary-800">
+                          Visit the shop
+                        </Link>
+                      </p>
+                    </td>
+                  </tr>
+                ) : orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">#{order.id.substring(0, 8)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {order.items?.map((item, idx) => (
+                        <div key={idx} className="whitespace-nowrap">{item.name} x{item.quantity}</div>
+                      ))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${order.totalAmount?.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${
+                        order.status === 'delivered' ? 'bg-purple-100 text-purple-800' :
+                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'paid' ? 'bg-green-100 text-green-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SupportHelpCenter = () => {
   const [form, setForm] = React.useState({ name: '', email: '', message: '' });
   const [submitting, setSubmitting] = React.useState(false);
@@ -1098,7 +1217,7 @@ const MemberPortal = () => {
   const location = useLocation();
   const { currentUser } = useAuth();
   const { logoUrl } = useLogo();
-  const [userStats, setUserStats] = useState({ events: 0, volunteers: 0, donations: 0, totalAmount: 0 });
+  const [userStats, setUserStats] = useState({ events: 0, volunteers: 0, donations: 0, orders: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -1129,12 +1248,25 @@ const MemberPortal = () => {
         let volunteerRes = await api.get(`/volunteers/user/${userEmail || userId}/applications`);
         let volunteerData = volunteerRes.ok ? await volunteerRes.json() : [];
         
+        // Fetch shop orders
+        let ordersRes = await api.get(`/orders/user/${userId}`);
+        let ordersData = ordersRes.ok ? await ordersRes.json() : [];
+        
+        // Fallback to email for orders
+        if (ordersData.length === 0 && userEmail) {
+          let ordersEmailRes = await api.get(`/orders/user/${userEmail}`);
+          if (ordersEmailRes.ok) {
+            ordersData = await ordersEmailRes.json();
+          }
+        }
+        
         const totalAmount = paymentsData.reduce((sum, p) => sum + (p.amount || 0) / 100, 0);
         
         setUserStats({
           events: eventsData.length,
           volunteers: volunteerData.length,
           donations: paymentsData.length,
+          orders: ordersData.length,
           totalAmount: totalAmount
         });
       } catch (err) {
@@ -1152,6 +1284,7 @@ const MemberPortal = () => {
     { name: 'My Events', href: '/member/events', icon: Calendar },
     { name: 'My Volunteers', href: '/member/volunteers', icon: Users },
     { name: 'My Payments', href: '/member/payments', icon: CreditCard },
+    { name: 'My Orders', href: '/member/orders', icon: ShoppingBag },
     { name: 'Support', href: '/member/support', icon: Heart },
     { name: 'Profile', href: '/member/profile', icon: Settings },
     { name: 'Settings', href: '/member/settings', icon: Settings },
@@ -1264,6 +1397,10 @@ const MemberPortal = () => {
                         <span className="font-medium text-primary-600">{userStats.events}</span>
                       </div>
                       <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Orders</span>
+                        <span className="font-medium text-orange-600">{userStats.orders}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-600">Volunteers</span>
                         <span className="font-medium text-indigo-600">{userStats.volunteers || 0}</span>
                       </div>
@@ -1294,6 +1431,7 @@ const MemberPortal = () => {
                   <Route path="/events" element={<MyEvents />} />
                   <Route path="/volunteers" element={<MyVolunteerApplications />} />
                   <Route path="/payments" element={<MyPayments />} />
+                  <Route path="/orders" element={<MyOrders />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/support" element={<SupportHelpCenter />} />

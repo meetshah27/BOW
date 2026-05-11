@@ -71,6 +71,28 @@ class Order {
     }
   }
 
+  // Find orders by customer email
+  static async findByCustomerEmail(email) {
+    const command = new ScanCommand({
+      TableName: TABLES.ORDERS,
+      FilterExpression: '#customerEmail = :email',
+      ExpressionAttributeNames: {
+        '#customerEmail': 'customerEmail'
+      },
+      ExpressionAttributeValues: {
+        ':email': email
+      }
+    });
+
+    try {
+      const result = await docClient.send(command);
+      return result.Items ? result.Items.map(item => new Order(item)) : [];
+    } catch (error) {
+      console.error('Error finding orders by customer email:', error);
+      throw error;
+    }
+  }
+
   // Update order
   async update(updateData) {
     const updateExpressions = [];

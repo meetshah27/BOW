@@ -15,10 +15,20 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/orders/user/:userId - Get orders for a specific user
-router.get('/user/:userId', async (req, res) => {
+// GET /api/orders/user/:userIdOrEmail - Get orders for a specific user
+router.get('/user/:userIdOrEmail', async (req, res) => {
   try {
-    const orders = await Order.findByUserId(req.params.userId);
+    const { userIdOrEmail } = req.params;
+    let orders;
+    
+    if (userIdOrEmail.includes('@')) {
+      // Looks like an email
+      orders = await Order.findByCustomerEmail(userIdOrEmail);
+    } else {
+      // Try by userId
+      orders = await Order.findByUserId(userIdOrEmail);
+    }
+    
     orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json(orders);
   } catch (error) {

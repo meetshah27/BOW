@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const Donation = require('../models-dynamodb/Donation');
 const Order = require('../models-dynamodb/Order');
+const Product = require('../models-dynamodb/Product');
 const { EmailService } = require('../config/ses');
 const { getSquareClient } = require('../config/square-client');
 
@@ -187,6 +188,23 @@ router.post('/create-order-payment', async (req, res) => {
       });
     } catch (dbErr) {
       console.error('[Payment] Failed to persist order record:', dbErr.message);
+    }
+
+    // Deduct inventory stock
+    if (order && order.items && order.items.length > 0) {
+      try {
+        for (const item of order.items) {
+          if (item.id) {
+            const product = await Product.findById(item.id);
+            if (product && product.stock !== undefined) {
+              const newStock = Math.max(0, product.stock - (item.quantity || 1));
+              await product.update({ stock: newStock });
+            }
+          }
+        }
+      } catch (stockErr) {
+        console.error('[Payment] Error deducting stock:', stockErr.message);
+      }
     }
 
     // Send order confirmation email (best-effort)
