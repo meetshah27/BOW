@@ -64,7 +64,7 @@ const ConfettiAnimation = ({ trigger, duration = 3000 }) => {
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
       {particles.map(particle => (
         <div
           key={particle.id}

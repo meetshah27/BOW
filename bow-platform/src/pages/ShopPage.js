@@ -19,6 +19,7 @@ import {
   Gift
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCelebration } from '../contexts/CelebrationContext';
 import toast from 'react-hot-toast';
 import api from '../config/api';
 import RevealOnScroll from '../components/common/RevealOnScroll';
@@ -27,6 +28,7 @@ import HeroSection from '../components/common/HeroSection';
 
 const ShopPage = () => {
   const { currentUser } = useAuth();
+  const { triggerConfetti } = useCelebration();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -137,6 +139,7 @@ const ShopPage = () => {
     setCart([]);
     setShowCheckout(false);
     setOrderComplete(true);
+    triggerConfetti();
   };
 
   const handleCheckout = () => {
@@ -457,8 +460,16 @@ const ShopPage = () => {
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-xl"></div>
           <div className="bg-white rounded-[3rem] p-12 max-w-lg w-full text-center relative z-10 animate-fade-in shadow-2xl">
-            <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-              <CheckCircle className="w-12 h-12" />
+            <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg overflow-hidden">
+              {aboutPageContent.logo ? (
+                <img 
+                  src={aboutPageContent.logo} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <CheckCircle className="w-12 h-12 text-white" />
+              )}
             </div>
             <h2 className="text-4xl font-black text-gray-900 mb-4">Order Confirmed!</h2>
             <p className="text-gray-600 mb-10 text-lg">
@@ -480,8 +491,16 @@ const ShopPage = () => {
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAddedItemModal(null)}></div>
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center relative z-10 animate-fade-in shadow-2xl">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10" />
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg overflow-hidden">
+              {aboutPageContent.logo ? (
+                <img 
+                  src={aboutPageContent.logo} 
+                  alt="BOW Logo" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <CheckCircle className="w-10 h-10 text-white" />
+              )}
             </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">Added to Cart!</h2>
             <p className="text-gray-600 mb-8 font-medium">
