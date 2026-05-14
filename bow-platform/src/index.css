@@ -16,6 +16,19 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', system-ui, sans-serif;
   }
+
+  /* ✅ Fix iOS mobile zoom on input focus — iOS zooms when font-size < 16px */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Square Apple Pay (Safari / WebKit); see https://developer.squareup.com/docs/web-payments/apple-pay */
