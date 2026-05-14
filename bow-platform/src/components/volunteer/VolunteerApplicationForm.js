@@ -408,41 +408,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                   </div>
                 </div>
 
-                <div className="mt-3 sm:mt-4">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Address
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <input
-                      type="text"
-                      placeholder="Street Address"
-                      value={formData.applicantAddress.street}
-                      onChange={(e) => handleInputChange('applicantAddress.street', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                    <input
-                      type="text"
-                      placeholder="City"
-                      value={formData.applicantAddress.city}
-                      onChange={(e) => handleInputChange('applicantAddress.city', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                    <input
-                      type="text"
-                      placeholder="State"
-                      value={formData.applicantAddress.state}
-                      onChange={(e) => handleInputChange('applicantAddress.state', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                    <input
-                      type="text"
-                      placeholder="ZIP Code"
-                      value={formData.applicantAddress.zipCode}
-                      onChange={(e) => handleInputChange('applicantAddress.zipCode', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+
 
                 <div className="mt-3 sm:mt-4">
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
