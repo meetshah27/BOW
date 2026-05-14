@@ -161,16 +161,8 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
   const validateStep = (step) => {
     switch (step) {
       case 1:
-        // For logged-in users, name, email, and phone are pre-filled and required
-        // For non-logged-in users, all fields are required
-        if (currentUser) {
-          return formData.applicantName && formData.applicantEmail && formData.applicantPhone && formData.applicantAge;
-        } else {
-          return formData.applicantName && formData.applicantEmail && formData.applicantPhone && formData.applicantAge;
-        }
+        return formData.applicantName && formData.applicantEmail && formData.applicantPhone && formData.applicantAge && formData.timeCommitment;
       case 2:
-        return formData.experience && formData.motivation && formData.timeCommitment;
-      case 3:
         return formData.backgroundCheckConsent;
       default:
         return true;
@@ -303,7 +295,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                  {/* Progress Bar */}
          <div className="mb-4 sm:mb-6">
            <div className="flex justify-between mb-2 gap-1 sm:gap-2">
-            {[1, 2, 3].map(step => (
+            {[1, 2].map(step => (
               <div
                 key={step}
                 className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0 ${
@@ -318,7 +310,6 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
           </div>
           <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 gap-1">
             <span className="text-center flex-1 truncate">Personal Info</span>
-            <span className="text-center flex-1 truncate">Experience</span>
             <span className="text-center flex-1 truncate">Consent</span>
           </div>
         </div>
@@ -452,60 +443,8 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                     />
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* Step 2: Experience and Availability */}
-                     {currentStep === 2 && (
-             <div className="space-y-3 sm:space-y-4">
-               <div>
-                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
-                  Experience & Availability
-                </h3>
-                
-                                                  <div className="mb-3">
-                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                     Relevant Experience *
-                   </label>
-                   <textarea
-                     value={formData.experience}
-                     onChange={(e) => handleInputChange('experience', e.target.value)}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                     rows="3"
-                     placeholder="Describe your experience..."
-                     required
-                   />
-                 </div>
-
-                <div className="mb-3 sm:mb-4">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    Skills (comma-separated)
-                  </label>
-                                     <input
-                     type="text"
-                     value={formData.skills}
-                     onChange={(e) => handleInputChange('skills', e.target.value)}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                     placeholder="e.g., event planning, music"
-                   />
-                </div>
-
-                                 <div className="mb-3">
-                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                     Why do you want to volunteer with BOW? *
-                   </label>
-                   <textarea
-                     value={formData.motivation}
-                     onChange={(e) => handleInputChange('motivation', e.target.value)}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                     rows="2"
-                     placeholder="Tell us about your motivation..."
-                     required
-                   />
-                 </div>
-
-                <div className="mb-3 sm:mb-4">
+                <div className="mt-3 sm:mt-4">
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Time Commitment *
                   </label>
@@ -521,33 +460,16 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                     ))}
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                    Availability
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
-                    {Object.entries(formData.availability).map(([key, value]) => (
-                      <label key={key} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={value}
-                          onChange={() => handleAvailabilityChange(key)}
-                          className="mr-2 w-4 h-4"
-                        />
-                        <span className="text-xs sm:text-sm capitalize">{key}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           )}
 
 
 
-          {/* Step 3: Consent */}
-           {currentStep === 3 && (
+
+
+          {/* Step 2: Consent */}
+           {currentStep === 2 && (
              <div className="space-y-3 sm:space-y-4">
                <div>
                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
@@ -610,7 +532,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
               </button>
             </div>
             
-            {currentStep < 3 ? (
+            {currentStep < 2 ? (
               <button
                 type="button"
                 onClick={nextStep}
