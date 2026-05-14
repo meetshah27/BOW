@@ -171,8 +171,6 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
       case 2:
         return formData.experience && formData.motivation && formData.timeCommitment;
       case 3:
-        return formData.emergencyContact.name && formData.emergencyContact.phone;
-      case 4:
         return formData.backgroundCheckConsent;
       default:
         return true;
@@ -305,7 +303,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
                  {/* Progress Bar */}
          <div className="mb-4 sm:mb-6">
            <div className="flex justify-between mb-2 gap-1 sm:gap-2">
-            {[1, 2, 3, 4].map(step => (
+            {[1, 2, 3].map(step => (
               <div
                 key={step}
                 className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0 ${
@@ -321,7 +319,6 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
           <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 gap-1">
             <span className="text-center flex-1 truncate">Personal Info</span>
             <span className="text-center flex-1 truncate">Experience</span>
-            <span className="text-center flex-1 truncate">Emergency</span>
             <span className="text-center flex-1 truncate">Consent</span>
           </div>
         </div>
@@ -547,115 +544,10 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
             </div>
           )}
 
-          {/* Step 3: Emergency Contact */}
-          {currentStep === 3 && (
-            <div className="space-y-4 sm:space-y-6">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-                  Emergency Contact
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Emergency Contact Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.emergencyContact.name}
-                      onChange={(e) => handleInputChange('emergencyContact.name', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Relationship *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.emergencyContact.relationship}
-                      onChange={(e) => handleInputChange('emergencyContact.relationship', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Emergency Contact Phone *
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.emergencyContact.phone}
-                      onChange={(e) => handleInputChange('emergencyContact.phone', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
 
-                <div className="mt-4 sm:mt-6">
-                  <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-2 sm:mb-3">References</h4>
-                  {formData.references.map((reference, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-                      <div className="flex justify-between items-center mb-2 sm:mb-3">
-                        <h5 className="font-medium text-sm sm:text-base">Reference {index + 1}</h5>
-                        {formData.references.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeReference(index)}
-                            className="text-xs sm:text-sm text-red-500 hover:text-red-700"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <input
-                          type="text"
-                          placeholder="Name"
-                          value={reference.name}
-                          onChange={(e) => handleReferenceChange(index, 'name', e.target.value)}
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Relationship"
-                          value={reference.relationship}
-                          onChange={(e) => handleReferenceChange(index, 'relationship', e.target.value)}
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        />
-                        <input
-                          type="tel"
-                          placeholder="Phone"
-                          value={reference.phone}
-                          onChange={(e) => handleReferenceChange(index, 'phone', e.target.value)}
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        />
-                        <input
-                          type="email"
-                          placeholder="Email"
-                          value={reference.email}
-                          onChange={(e) => handleReferenceChange(index, 'email', e.target.value)}
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addReference}
-                    className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    + Add Another Reference
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
-                     {/* Step 4: Consent */}
-           {currentStep === 4 && (
+          {/* Step 3: Consent */}
+           {currentStep === 3 && (
              <div className="space-y-3 sm:space-y-4">
                <div>
                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
@@ -718,7 +610,7 @@ const VolunteerApplicationForm = ({ opportunity, onClose, onSuccess, logoUrl }) 
               </button>
             </div>
             
-            {currentStep < 4 ? (
+            {currentStep < 3 ? (
               <button
                 type="button"
                 onClick={nextStep}

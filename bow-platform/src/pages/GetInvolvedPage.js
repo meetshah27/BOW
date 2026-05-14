@@ -578,7 +578,7 @@ const GetInvolvedPage = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-6 sm:mt-8">
                       {membershipApplicationEnabled ? (
                         <button
