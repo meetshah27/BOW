@@ -1030,9 +1030,26 @@ const MyOrders = () => {
     if (currentUser) fetchOrders();
   }, [currentUser]);
 
+  const handleDownloadReceipt = async (orderId) => {
+    try {
+      const response = await api.get(`/orders/${orderId}/receipt`);
+      if (response.ok) {
+        const html = await response.text();
+        const receiptWindow = window.open('', '_blank');
+        receiptWindow.document.write(html);
+        receiptWindow.document.close();
+      } else {
+        throw new Error('Failed to load receipt');
+      }
+    } catch (error) {
+      console.error('Error loading receipt:', error);
+      alert('Failed to load receipt');
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-gray-900">My Shop Orders</h2>
+      <h2 className="text-2xl font-bold text-gray-900">My Orders</h2>
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Order History</h3>
@@ -1040,25 +1057,26 @@ const MyOrders = () => {
         <div className="overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
             </div>
           ) : error ? (
             <div className="text-red-500 text-center py-8">{error}</div>
           ) : (
             <table className="w-full text-left">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                    <td colSpan={6} className="text-center py-8 text-gray-500">
                       <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                       <p>No orders found.</p>
                       <p className="text-sm">
@@ -1087,6 +1105,15 @@ const MyOrders = () => {
                       }`}>
                         {order.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button 
+                        onClick={() => handleDownloadReceipt(order.id)}
+                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:text-blue-800 transition-colors duration-200"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        Receipt
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -14,10 +14,11 @@ import {
   ExternalLink,
   Loader,
   X,
-  Package
+  Package,
+  Download
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../../config/api';
+import api, { buildApiUrl } from '../../config/api';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -343,7 +344,29 @@ const OrderManagement = () => {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end">
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await api.get(`/orders/${selectedOrder.id}/receipt`);
+                    if (response.ok) {
+                      const html = await response.text();
+                      const receiptWindow = window.open('', '_blank');
+                      receiptWindow.document.write(html);
+                      receiptWindow.document.close();
+                    } else {
+                      toast.error('Failed to load receipt');
+                    }
+                  } catch (error) {
+                    console.error('Error loading receipt:', error);
+                    toast.error('Failed to load receipt');
+                  }
+                }}
+                className="px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Receipt
+              </button>
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="px-8 py-2 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg"
