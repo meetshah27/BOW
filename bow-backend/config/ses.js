@@ -237,7 +237,7 @@ class EmailService {
                 <li>💝 Ways to support our mission</li>
             </ul>
             <p>Stay tuned for our latest news and don't forget to follow us on social media!</p>
-            <a href="https://beatsofredmond.org" class="button">Visit Our Website</a>
+            <a href="https://d3l7a9kbpl756w.cloudfront.net" class="button">Visit Our Website</a>
         </div>
         <div class="footer">
             <p>Beats of Washington<br>
@@ -432,8 +432,8 @@ class EmailService {
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://beatsofredmond.org" class="button">Visit Our Website</a>
-                <a href="https://beatsofredmond.org/events" class="button" style="background: #667eea; margin-left: 10px;">View Upcoming Events</a>
+                <a href="https://d3l7a9kbpl756w.cloudfront.net" class="button">Visit Our Website</a>
+                <a href="https://d3l7a9kbpl756w.cloudfront.net/events" class="button" style="background: #667eea; margin-left: 10px;">View Upcoming Events</a>
             </div>
         </div>
         
@@ -505,7 +505,7 @@ Beats of Washington
 Phone: 206 369-9576
 Email: beatsofredmond@gmail.com
 
-Website: https://beatsofredmond.org
+Website: https://d3l7a9kbpl756w.cloudfront.net
 Facebook: https://www.facebook.com/BeatsOfRedmond/
 Instagram: https://www.instagram.com/beatsofwa/
 YouTube: https://www.youtube.com/c/BeatsOfRedmond
@@ -1077,7 +1077,7 @@ YouTube: https://www.youtube.com/c/BeatsOfRedmond
             </div>
 
             <div style="text-align: center;">
-                <a href="https://beatsofredmond.org/shop" class="button">Return to Shop</a>
+                <a href="https://d3l7a9kbpl756w.cloudfront.net/shop" class="button">Return to Shop</a>
             </div>
         </div>
         

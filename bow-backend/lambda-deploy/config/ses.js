@@ -237,7 +237,7 @@ class EmailService {
                 <li>💝 Ways to support our mission</li>
             </ul>
             <p>Stay tuned for our latest news and don't forget to follow us on social media!</p>
-            <a href="https://beatsofredmond.org" class="button">Visit Our Website</a>
+            <a href="https://d3l7a9kbpl756w.cloudfront.net" class="button">Visit Our Website</a>
         </div>
         <div class="footer">
             <p>Beats of Washington<br>
@@ -432,8 +432,8 @@ class EmailService {
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://beatsofredmond.org" class="button">Visit Our Website</a>
-                <a href="https://beatsofredmond.org/events" class="button" style="background: #667eea; margin-left: 10px;">View Upcoming Events</a>
+                <a href="https://d3l7a9kbpl756w.cloudfront.net" class="button">Visit Our Website</a>
+                <a href="https://d3l7a9kbpl756w.cloudfront.net/events" class="button" style="background: #667eea; margin-left: 10px;">View Upcoming Events</a>
             </div>
         </div>
         
@@ -505,7 +505,7 @@ Beats of Washington
 Phone: 206 369-9576
 Email: beatsofredmond@gmail.com
 
-Website: https://beatsofredmond.org
+Website: https://d3l7a9kbpl756w.cloudfront.net
 Facebook: https://www.facebook.com/BeatsOfRedmond/
 Instagram: https://www.instagram.com/beatsofwa/
 YouTube: https://www.youtube.com/c/BeatsOfRedmond
@@ -903,6 +903,239 @@ Follow us on:
 Facebook: https://www.facebook.com/BeatsOfRedmond/
 Instagram: https://www.instagram.com/beatsofwa/
 YouTube: https://www.youtube.com/c/BeatsOfRedmond
+`;
+  }
+
+  // Send shop order confirmation email
+  static async sendOrderConfirmation(orderData) {
+    const subject = `Order Confirmed - Beats of Washington Shop`;
+    
+    // Fetch logo from about page settings if not provided
+    let logoUrl = orderData.logoUrl;
+    if (!logoUrl) {
+      try {
+        const AboutPage = require('../models-dynamodb/AboutPage');
+        const aboutPage = await AboutPage.getSettings();
+        if (aboutPage && aboutPage.logo && aboutPage.logo.trim()) {
+          const logo = aboutPage.logo.trim();
+          if (logo.startsWith('http://') || logo.startsWith('https://')) {
+            logoUrl = logo;
+          } else {
+            const s3BucketUrl = process.env.AWS_S3_BUCKET ? `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION || 'us-west-2'}.amazonaws.com/` : '';
+            if (s3BucketUrl) {
+              logoUrl = logo.startsWith('/') ? `${s3BucketUrl}${logo.substring(1)}` : `${s3BucketUrl}${logo}`;
+            }
+          }
+        }
+      } catch (logoErr) {
+        console.error('[EmailService] Error fetching logo for order confirmation:', logoErr);
+      }
+    }
+    
+    const enrichedData = { ...orderData, logoUrl: logoUrl || 'https://bow-platform.s3.amazonaws.com/bow-logo.png' };
+    
+    const htmlContent = this.getOrderConfirmationTemplate(enrichedData);
+    const textContent = this.getOrderConfirmationTextTemplate(enrichedData);
+    
+    return await this.sendEmail({
+      to: orderData.customerEmail,
+      subject,
+      htmlContent,
+      textContent
+    });
+  }
+
+  // Get shop order confirmation template
+  static getOrderConfirmationTemplate(orderData) {
+    const { 
+      customerName, 
+      items, 
+      totalAmount, 
+      paymentId, 
+      shippingAddress,
+      logoUrl = 'https://bow-platform.s3.amazonaws.com/bow-logo.png' 
+    } = orderData;
+    
+    const formattedAmount = `$${(totalAmount / 100).toFixed(2)}`;
+    const orderNumber = paymentId ? paymentId.slice(-8).toUpperCase() : 'N/A';
+    
+    const itemsHtml = items.map(item => `
+      <tr>
+        <td style="padding: 15px 10px; border-bottom: 1px solid #e9ecef;">
+          <div style="font-weight: bold; color: #333;">${item.name}</div>
+          ${item.size || item.color ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">
+            ${item.size ? `Size: ${item.size} ` : ''}${item.color ? `Color: ${item.color}` : ''}
+          </div>` : ''}
+        </td>
+        <td style="padding: 15px 10px; border-bottom: 1px solid #e9ecef; text-align: center;">${item.quantity}</td>
+        <td style="padding: 15px 10px; border-bottom: 1px solid #e9ecef; text-align: right; color: #ff6b35; font-weight: bold;">$${(item.price * item.quantity).toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Receipt - Beats of Washington</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8f9fa; }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #f7931e 0%, #ff6b35 100%); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .order-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f7931e; }
+        .receipt-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; border-bottom: 1px solid #e9ecef; }
+        .receipt-row:last-child { border-bottom: none; }
+        .receipt-label { font-weight: bold; color: #666; }
+        .receipt-value { color: #333; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px; }
+        .logo-container { text-align: center; margin-bottom: 20px; width: 100%; }
+        .logo-container img { max-width: 200px; width: 100%; height: auto; background: white; padding: 10px; border-radius: 8px; display: block; margin: 0 auto; }
+        .thank-you { text-align: center; margin: 20px 0 30px 0; }
+        .button { display: inline-block; background: #ff6b35; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="${logoUrl}" alt="Beats of Washington Logo" onerror="this.style.display='none';">
+            </div>
+            <h1 style="margin: 10px 0;">SHOP ORDER RECEIPT</h1>
+            <p style="margin: 0;">Beats of Washington</p>
+        </div>
+        <div class="content">
+            <div class="thank-you">
+                <h2>Dear ${customerName},</h2>
+                <p>Thank you for your purchase! Your order has been successfully processed and is now being prepared for shipment.</p>
+            </div>
+            
+            <div class="order-section">
+                <h3 style="margin-top: 0; color: #f7931e;">Order Details</h3>
+                <div class="receipt-row">
+                    <span class="receipt-label">Order Number:</span>
+                    <span class="receipt-value font-bold text-primary-600">BOW-SHOP-${orderNumber}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Order Date:</span>
+                    <span class="receipt-value">${new Date().toLocaleString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric'
+                    })}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Payment ID:</span>
+                    <span class="receipt-value">${paymentId || 'N/A'}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Total Amount:</span>
+                    <span class="receipt-value" style="font-weight: bold; color: #ff6b35; font-size: 18px;">${formattedAmount}</span>
+                </div>
+            </div>
+
+            <h3 style="color: #333; margin-top: 30px; border-bottom: 2px solid #f7931e; padding-bottom: 10px;">Items Purchased</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 12px 10px; text-align: left; border-bottom: 2px solid #e9ecef; color: #666;">Item</th>
+                        <th style="padding: 12px 10px; text-align: center; border-bottom: 2px solid #e9ecef; color: #666;">Qty</th>
+                        <th style="padding: 12px 10px; text-align: right; border-bottom: 2px solid #e9ecef; color: #666;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" style="padding: 15px 10px; font-weight: bold; text-align: right;">Total Paid</td>
+                        <td style="padding: 15px 10px; font-weight: bold; text-align: right; color: #ff6b35; font-size: 18px;">${formattedAmount}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="order-section" style="border-left-color: #3b82f6;">
+                <h3 style="margin-top: 0; color: #3b82f6;">Shipping Information</h3>
+                <p style="margin-bottom: 0;">${shippingAddress ? shippingAddress : '<em>Digital/No shipping address provided</em>'}</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0; padding: 20px; background: #fdf5e6; border-radius: 8px;">
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                    <strong>Generated on:</strong> ${new Date().toLocaleString('en-US', { 
+                      month: '2-digit', 
+                      day: '2-digit', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                </p>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
+                    This receipt serves as proof of purchase for the above items.
+                </p>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="https://d3l7a9kbpl756w.cloudfront.net/shop" class="button">Return to Shop</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Beats of Washington</strong><br>
+            9256 225th Way NE, WA 98053<br>
+            Phone: (206) 369-9576<br>
+            <a href="mailto:beatsofredmond@gmail.com" style="color: #ff6b35;">beatsofredmond@gmail.com</a></p>
+            
+            <p>Follow us on:
+            <a href="https://www.facebook.com/BeatsOfRedmond/" style="color: #666;">Facebook</a> | 
+            <a href="https://www.instagram.com/beatsofwa/" style="color: #666;">Instagram</a> | 
+            <a href="https://www.youtube.com/c/BeatsOfRedmond" style="color: #666;">YouTube</a></p>
+        </div>
+    </div>
+</body>
+</html>`;
+  }
+
+  // Get shop order confirmation text template
+  static getOrderConfirmationTextTemplate(orderData) {
+    const { 
+      customerName, 
+      items, 
+      totalAmount, 
+      paymentId, 
+      shippingAddress 
+    } = orderData;
+    
+    const formattedAmount = `$${(totalAmount / 100).toFixed(2)}`;
+    const orderNumber = paymentId ? paymentId.slice(-8).toUpperCase() : 'N/A';
+    const itemsText = items.map(item => `${item.name} x ${item.quantity}: $${(item.price * item.quantity).toFixed(2)}`).join('\n');
+
+    return `
+Order Confirmation - Beats of Washington Shop
+=============================================
+
+Hello ${customerName},
+
+Thank you for your purchase! Your order has been received.
+
+Order Information:
+------------------
+Order Number: BOW-SHOP-${orderNumber}
+Date: ${new Date().toLocaleDateString()}
+Total: ${formattedAmount}
+
+Items:
+------
+${itemsText}
+
+Shipping To:
+------------
+${shippingAddress}
+
+We'll notify you once your order has shipped!
+
+Thank you for supporting Beats of Washington!
 `;
   }
 
