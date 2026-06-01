@@ -396,6 +396,7 @@ const AboutPage = () => {
                     <video
                       src={missionMedia.mediaUrl}
                       controls
+                      playsInline
                       className="rounded-xl sm:rounded-2xl shadow-2xl w-full h-48 sm:h-64 md:h-80 object-cover bg-black"                                                                      
                     >
                       Sorry, your browser doesn't support embedded videos.
@@ -786,6 +787,7 @@ const AboutPage = () => {
                         <video
                           src={founderMedia.mediaUrl}
                           controls
+                          playsInline
                           className="w-full h-full object-cover rounded-xl sm:rounded-2xl shadow-lg bg-black"                                                                 
                         >
                           Your browser does not support the video tag.

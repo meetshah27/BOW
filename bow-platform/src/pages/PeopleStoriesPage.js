@@ -108,6 +108,7 @@ const StoriesPage = () => {
                          autoPlay={true}
                          muted
                          loop
+                         playsInline
                        >
                          <source src={storiesMedia.mediaUrl} type="video/mp4" />
                          Your browser does not support the video tag.

@@ -475,6 +475,7 @@ const MissionMediaManagement = () => {
                   <video
                     src={previewUrl}
                     controls
+                    playsInline
                     className="w-full h-64 object-cover rounded-lg shadow-lg"
                   >
                     Your browser does not support the video tag.

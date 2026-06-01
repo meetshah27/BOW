@@ -1456,6 +1456,7 @@ const HomePage = () => {
                       autoPlay
                       muted
                       loop
+                      playsInline
                       poster={missionMedia.thumbnailUrl}
                     >
                       Your browser does not support the video tag.

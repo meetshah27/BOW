@@ -120,6 +120,7 @@ const ImagePlaceholder = ({
           className={className}
           controls
           preload="metadata"
+          playsInline
         />
         
         {/* Action Buttons Overlay */}

@@ -146,6 +146,7 @@ const StoryDetailsPage = () => {
                   poster={story.image || '/assets/video-placeholder.jpg'}
                   controls
                   preload="metadata"
+                  playsInline
                 >
                   <source src={story.video} type="video/mp4" />
                   Your browser does not support the video tag.

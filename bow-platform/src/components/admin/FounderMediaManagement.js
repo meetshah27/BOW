@@ -625,6 +625,7 @@ const FounderMediaManagement = () => {
                   <video
                     src={previewUrl}
                     controls
+                    playsInline
                     className="w-full h-64 object-cover rounded-xl shadow-lg bg-black"
                   >
                     Your browser does not support the video tag.
