@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
   Image, 
@@ -17,7 +17,9 @@ import {
   Grid,
   Folder,
   Calendar,
-  ArrowLeft
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ImagePlaceholder from '../components/common/ImagePlaceholder';
@@ -142,13 +144,46 @@ const GalleryPage = () => {
 
   const filteredItems = baseItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = (item.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     return matchesCategory && matchesSearch;
   });
 
+  const getActiveMediaList = useCallback(() => {
+    if (selectedAlbum) {
+      return selectedAlbum.photos.map(photo => ({
+        id: photo.id,
+        title: photo.title || 'Untitled',
+        type: photo.imageUrl?.includes('.mp4') || photo.imageUrl?.includes('.mov') || photo.imageUrl?.includes('.avi') ? 'video' : 'image',
+        url: photo.imageUrl,
+        thumbnail: photo.imageUrl,
+        createdAt: photo.createdAt
+      }));
+    }
+    return filteredItems;
+  }, [selectedAlbum, filteredItems]);
+
+  const handleNextMedia = useCallback((e) => {
+    if (e) e.stopPropagation();
+    const mediaList = getActiveMediaList();
+    if (mediaList.length <= 1) return;
+    const currentIndex = mediaList.findIndex(item => item.id === selectedMedia?.id);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + 1) % mediaList.length;
+    setSelectedMedia(mediaList[nextIndex]);
+  }, [getActiveMediaList, selectedMedia]);
+
+  const handlePrevMedia = useCallback((e) => {
+    if (e) e.stopPropagation();
+    const mediaList = getActiveMediaList();
+    if (mediaList.length <= 1) return;
+    const currentIndex = mediaList.findIndex(item => item.id === selectedMedia?.id);
+    if (currentIndex === -1) return;
+    const prevIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
+    setSelectedMedia(mediaList[prevIndex]);
+  }, [getActiveMediaList, selectedMedia]);
 
   const openModal = (item) => {
     setSelectedMedia(item);
@@ -157,6 +192,25 @@ const GalleryPage = () => {
   const closeModal = () => {
     setSelectedMedia(null);
   };
+
+  // Keyboard navigation for gallery modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!selectedMedia) return;
+      if (e.key === 'ArrowRight') {
+        handleNextMedia();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrevMedia();
+      } else if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedMedia, handleNextMedia, handlePrevMedia]);
 
   // Like functionality
   const handleLike = (itemId, e) => {
@@ -743,6 +797,26 @@ const GalleryPage = () => {
                     className="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 object-contain bg-gray-100 rounded-t-xl sm:rounded-t-2xl"
                     placeholderClassName="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 bg-gray-100 flex items-center justify-center rounded-t-xl sm:rounded-t-2xl"
                   />
+                )}
+
+                {/* Navigation Arrows */}
+                {getActiveMediaList().length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePrevMedia}
+                      className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-30 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2.5 rounded-full transition-all duration-300 hover:scale-110 shadow-lg flex items-center justify-center backdrop-blur-sm"
+                      aria-label="Previous media"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button
+                      onClick={handleNextMedia}
+                      className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-30 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2.5 rounded-full transition-all duration-300 hover:scale-110 shadow-lg flex items-center justify-center backdrop-blur-sm"
+                      aria-label="Next media"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
                 )}
               </div>
               
