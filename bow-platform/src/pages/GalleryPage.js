@@ -771,7 +771,27 @@ const GalleryPage = () => {
       {/* Media Modal */}
       {selectedMedia && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+          {/* Navigation Arrows (Screen Level) */}
+          {getActiveMediaList().length > 1 && (
+            <>
+              <button
+                onClick={handlePrevMedia}
+                className="absolute left-2 md:left-4 lg:left-[calc(50%-480px)] top-1/2 transform -translate-y-1/2 z-50 bg-black/60 hover:bg-black/80 text-white p-2.5 sm:p-4 rounded-full transition-all duration-300 hover:scale-110 shadow-2xl flex items-center justify-center backdrop-blur-md border border-white/10"
+                aria-label="Previous media"
+              >
+                <ChevronLeft className="w-5 h-5 sm:w-8 sm:h-8" />
+              </button>
+              <button
+                onClick={handleNextMedia}
+                className="absolute right-2 md:right-4 lg:right-[calc(50%-480px)] top-1/2 transform -translate-y-1/2 z-50 bg-black/60 hover:bg-black/80 text-white p-2.5 sm:p-4 rounded-full transition-all duration-300 hover:scale-110 shadow-2xl flex items-center justify-center backdrop-blur-md border border-white/10"
+                aria-label="Next media"
+              >
+                <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8" />
+              </button>
+            </>
+          )}
+
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto relative z-10">
             <div className="relative">
               {/* Close Button */}
               <button
@@ -797,26 +817,6 @@ const GalleryPage = () => {
                     className="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 object-contain bg-gray-100 rounded-t-xl sm:rounded-t-2xl"
                     placeholderClassName="w-full h-auto min-h-[200px] sm:h-[400px] md:h-96 bg-gray-100 flex items-center justify-center rounded-t-xl sm:rounded-t-2xl"
                   />
-                )}
-
-                {/* Navigation Arrows */}
-                {getActiveMediaList().length > 1 && (
-                  <>
-                    <button
-                      onClick={handlePrevMedia}
-                      className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-30 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2.5 rounded-full transition-all duration-300 hover:scale-110 shadow-lg flex items-center justify-center backdrop-blur-sm"
-                      aria-label="Previous media"
-                    >
-                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </button>
-                    <button
-                      onClick={handleNextMedia}
-                      className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-30 bg-black/50 hover:bg-black/70 text-white p-1.5 sm:p-2.5 rounded-full transition-all duration-300 hover:scale-110 shadow-lg flex items-center justify-center backdrop-blur-sm"
-                      aria-label="Next media"
-                    >
-                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </button>
-                  </>
                 )}
               </div>
               

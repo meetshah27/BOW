@@ -37,6 +37,13 @@ class Settings {
     this.performerApplicationEnabled = data.performerApplicationEnabled !== undefined
       ? data.performerApplicationEnabled
       : true; // Default to enabled
+    this.campaignProgressBarEnabled = data.campaignProgressBarEnabled !== undefined
+      ? data.campaignProgressBarEnabled
+      : true; // Default to enabled
+    this.campaignTitle = data.campaignTitle || "Help us raise $5,000 for new instruments!";
+    this.campaignDescription = data.campaignDescription || "Every donation brings us closer to providing quality music education and new instruments to youth in our community.";
+    this.campaignGoal = data.campaignGoal !== undefined ? Number(data.campaignGoal) : 5000;
+    this.campaignRaised = data.campaignRaised !== undefined ? Number(data.campaignRaised) : 3250;
     this.lastUpdated = data.lastUpdated || new Date().toISOString();
     this.updatedBy = data.updatedBy || 'system';
   }
@@ -73,6 +80,11 @@ class Settings {
         membershipApplicationEnabled: this.membershipApplicationEnabled,
         vendorApplicationEnabled: this.vendorApplicationEnabled,
         performerApplicationEnabled: this.performerApplicationEnabled,
+        campaignProgressBarEnabled: this.campaignProgressBarEnabled,
+        campaignTitle: this.campaignTitle,
+        campaignDescription: this.campaignDescription,
+        campaignGoal: this.campaignGoal,
+        campaignRaised: this.campaignRaised,
         lastUpdated: new Date().toISOString(),
         updatedBy: this.updatedBy
       }

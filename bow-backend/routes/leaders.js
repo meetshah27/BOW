@@ -220,12 +220,13 @@ router.post('/:id/upload', upload.single('image'), handleMulterError, async (req
     console.log('Generated filename:', fileName);
     
     // Upload to S3
+    const bucketName = (process.env.S3_BUCKET_NAME || '').trim();
     const uploadParams = {
-      Bucket: process.env.S3_BUCKET_NAME,
+      Bucket: bucketName,
       Key: fileName,
       Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-      ACL: 'public-read'
+      ContentType: req.file.mimetype
+      // Removed ACL parameter since bucket has ACLs disabled
     };
     
     console.log('Uploading to S3 with params:', {
@@ -239,7 +240,7 @@ router.post('/:id/upload', upload.single('image'), handleMulterError, async (req
     console.log('S3 upload successful');
     
     // Construct the S3 URL since PutObjectCommand doesn't return Location
-    const imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-west-2'}.amazonaws.com/${fileName}`;
+    const imageUrl = `https://${bucketName}.s3.${process.env.AWS_REGION || 'us-west-2'}.amazonaws.com/${fileName}`;
     
     // Update leader with image URL and key
     const updateData = {

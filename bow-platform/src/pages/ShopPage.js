@@ -427,7 +427,7 @@ const ShopPage = () => {
                     className="w-full bg-gradient-to-r from-primary-600 to-orange-500 text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all transform active:scale-95 flex items-center justify-center"
                   >
                     <CreditCard className="w-5 h-5 mr-2" />
-                    Continue
+                    Proceed to Checkout
                   </button>
                   <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest">
                     Payments secured by Square
@@ -514,7 +514,7 @@ const ShopPage = () => {
                 }}
                 className="w-full bg-gradient-to-r from-primary-600 to-orange-500 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
               >
-                Continue
+                Proceed to Checkout
               </button>
               <button 
                 onClick={() => setAddedItemModal(null)}

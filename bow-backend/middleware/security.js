@@ -13,6 +13,8 @@ const securityMiddleware = (app) => {
         fontSrc: ["'self'", "https://fonts.gstatic.com", "https://*.web.squarecdn.com", "https://web.squarecdn.com"],
         // Allow images from our domain, S3/HTTPS, data URLs (for inline icons) and blobs
         imgSrc: ["'self'", "data:", "https:", "blob:"],
+        // Allow audio and video files from our domain, S3/HTTPS, data URLs and blobs
+        mediaSrc: ["'self'", "data:", "https:", "blob:"],
         // Scripts: self, inline/eval (CRA/React dev tools), and Stripe JS
         scriptSrc: [
           "'self'",
@@ -31,7 +33,8 @@ const securityMiddleware = (app) => {
           "https://*.squareupsandbox.com",
           "https://*.squareup.com",
           "https://*.web.squarecdn.com",
-          "https://web.squarecdn.com"
+          "https://web.squarecdn.com",
+          "https://*.amazonaws.com"
         ],
         frameSrc: [
           "'self'",
@@ -59,20 +62,24 @@ const securityMiddleware = (app) => {
 
   // CORS configuration
   app.use((req, res, next) => {
-    // Support additional domains via env variable
-    const additionalOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
-      .split(',')
-      .map(origin => origin.trim())
-      .filter(Boolean);
+    // Helper to parse comma-separated lists of domains
+    const parseOrigins = (envVal) => {
+      return (envVal || '')
+        .split(',')
+        .map(origin => origin.trim())
+        .filter(Boolean);
+    };
 
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
+      'https://beatsofwashington.com',
       'https://your-production-domain.com', // Replace with your actual domain
-      process.env.ALLOWED_ORIGIN,
-      process.env.FRONTEND_URL,
-      process.env.CDN_DOMAIN,
-      ...additionalOrigins
+      ...parseOrigins(process.env.ALLOWED_ORIGIN),
+      ...parseOrigins(process.env.FRONTEND_URL),
+      ...parseOrigins(process.env.CORS_ORIGIN),
+      ...parseOrigins(process.env.CORS_ALLOWED_ORIGINS),
+      ...parseOrigins(process.env.CDN_DOMAIN),
     ].filter(Boolean);
 
     const rawOrigin = req.headers.origin;
@@ -94,10 +101,12 @@ const securityMiddleware = (app) => {
     const isAllowed =
       !normalizedOrigin ||
       allowedOrigins.includes(normalizedOrigin) ||
-      // Allow CloudFront and Amplify preview domains by default
+      // Allow CloudFront, Amplify preview, and Beats of Washington domains by default
       (hostname &&
         (hostname.endsWith('.cloudfront.net') ||
-          hostname.endsWith('.amplifyapp.com')));
+          hostname.endsWith('.amplifyapp.com') ||
+          hostname === 'beatsofwashington.com' ||
+          hostname.endsWith('.beatsofwashington.com')));
 
     if (rawOrigin && isAllowed) {
       res.header('Access-Control-Allow-Origin', rawOrigin);

@@ -163,9 +163,23 @@ if (parseFloat(sizeInMB) > 50) {
 // Create zip file
 console.log('🗜️  Creating zip file...');
 try {
-  // Use PowerShell on Windows to create zip
-  const zipCommand = `Compress-Archive -Path "${DEPLOY_DIR}\\*" -DestinationPath "${ZIP_FILE}" -Force`;
-  execSync(`powershell -Command "${zipCommand}"`, { stdio: 'inherit' });
+  let zipped = false;
+  
+  // Try tar.exe on Windows (native and extremely fast)
+  try {
+    console.log('   Attempting compression with tar.exe...');
+    execSync(`tar.exe -c -f "${ZIP_FILE}" --format zip -C "${DEPLOY_DIR}" .`, { stdio: 'inherit' });
+    zipped = true;
+    console.log('   ✓ Compression successful using tar.exe');
+  } catch (tarError) {
+    console.log('   ⚠️  tar.exe compression failed or not available, falling back to PowerShell...');
+  }
+
+  // Fallback to PowerShell if tar.exe fails
+  if (!zipped) {
+    const zipCommand = `Compress-Archive -Path "${DEPLOY_DIR}\\*" -DestinationPath "${ZIP_FILE}" -Force`;
+    execSync(`powershell -Command "${zipCommand}"`, { stdio: 'inherit' });
+  }
   
   const zipSize = (fs.statSync(ZIP_FILE).size / (1024 * 1024)).toFixed(2);
   console.log(`✅ Zip file created: ${ZIP_FILE}`);
