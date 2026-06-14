@@ -229,7 +229,7 @@ const Dashboard = () => {
         const today = new Date();
         const upcomingActiveEvents = Array.isArray(eventsData)
           ? eventsData
-              .filter(e => e?.isActive && e?.date)
+              .filter(e => e?.isActive && e?.isLive && e?.date)
               .filter(e => new Date(e.date) >= new Date(today.getFullYear(), today.getMonth(), today.getDate()))
               .sort((a, b) => new Date(a.date) - new Date(b.date))
           : [];
