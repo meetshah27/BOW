@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Heart, Shield, Users, Music, Star, Smartphone, CreditCard, Loader } from 'lucide-react';
+import { Heart, Shield, Users, Music, Star, Smartphone, CreditCard, Loader, User, Mail, Award, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCelebration } from '../contexts/CelebrationContext';
 
@@ -173,13 +173,10 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
   useEffect(() => {
     if (!ready || !paymentsRef.current) return;
     
-    let cancelled = false;
     async function updateWallets() {
       // Re-initialize for new amount
-      // (Square usually handles this but sometimes needs a refresh)
     }
     updateWallets();
-    return () => { cancelled = true; };
   }, [ready, amount]);
 
   useEffect(() => {
@@ -255,7 +252,7 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
       {(googlePayAvailable || applePayAvailable) && (
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Smartphone className="w-4 h-4" />
+            <Smartphone className="w-4 h-4 text-orange-500" />
             <span className="text-xs font-bold uppercase tracking-wider">Express Checkout</span>
           </div>
           <div className="grid grid-cols-1 gap-3">
@@ -271,7 +268,7 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
           </div>
           <div className="relative flex items-center justify-center py-2">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-            <span className="relative px-4 text-[10px] font-black text-gray-300 uppercase bg-white">Or use your card</span>
+            <span className="relative px-4 text-[10px] font-black text-gray-400 uppercase bg-white">Or use your card</span>
           </div>
         </div>
       )}
@@ -280,10 +277,10 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <CreditCard className="w-4 h-4 text-primary-600" />
+            <CreditCard className="w-4 h-4 text-primary-600 animate-pulse" />
             <span className="text-sm font-bold text-gray-700">Card Details</span>
           </div>
-          <div className="p-4 border border-gray-200 rounded-2xl bg-gray-50 focus-within:ring-2 focus-within:ring-primary-500 transition-all">
+          <div className="p-4 border border-gray-200 rounded-2xl bg-gray-50/50 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent transition-all duration-300">
             <div id={containerId} className="min-h-[40px]" />
           </div>
         </div>
@@ -291,10 +288,11 @@ function SquareDonationForm({ amount, donorEmail, donorName, logoUrl }) {
         <button 
           type="submit" 
           disabled={loading || !ready}
-          className="w-full bg-primary-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-primary-100 hover:shadow-2xl hover:bg-primary-700 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+          className="w-full bg-gradient-to-r from-primary-600 via-orange-500 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-orange-100 hover:shadow-2xl transition-all duration-300 transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 relative overflow-hidden group"
         >
-          {loading ? <Loader className="w-6 h-6 animate-spin" /> : <Heart className="w-6 h-6" />}
-          {loading ? 'Processing...' : `Donate $${amount}`}
+          <span className="absolute inset-0 w-full h-full bg-white/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></span>
+          {loading ? <Loader className="w-6 h-6 animate-spin" /> : <Heart className="w-6 h-6 animate-bounce" />}
+          <span className="relative z-10">{loading ? 'Processing...' : `Donate $${amount}`}</span>
         </button>
       </form>
       
@@ -331,7 +329,13 @@ const DonationPage = () => {
     fetchLogo();
   }, []);
 
-  const presetAmounts = [25, 50, 100, 250, 500];
+  const presetAmounts = [
+    { value: 25, label: 'Friend', impact: 'Supports local cultural programs & updates.' },
+    { value: 50, label: 'Supporter', impact: 'Provides music classes & training supplies.' },
+    { value: 100, label: 'Advocate', impact: 'Sponsors community music workshop events.' },
+    { value: 250, label: 'Champion', impact: 'Empowers seasonal cultural community festivals.' },
+    { value: 500, label: 'Patron', impact: 'Creates permanent youth music education impact.' }
+  ];
 
   const donationTiers = [
     {
@@ -339,8 +343,8 @@ const DonationPage = () => {
       amount: 25,
       benefits: [
         "Event updates and notifications",
-        "Recognition on our website",
-        "Thank you message from our team"
+        "Recognition on our website contributors list",
+        "Personalized thank you email from the team"
       ]
     },
     {
@@ -348,9 +352,9 @@ const DonationPage = () => {
       amount: 50,
       benefits: [
         "All Community Supporter benefits",
-        "Early access to event tickets",
-        "Exclusive behind-the-scenes content",
-        "Invitation to special events"
+        "Early access to seasonal event tickets",
+        "Exclusive behind-the-scenes content & videos",
+        "VIP invitations to our donor networking circles"
       ]
     },
     {
@@ -358,9 +362,9 @@ const DonationPage = () => {
       amount: 100,
       benefits: [
         "All Music Advocate benefits",
-        "Invitation to donor appreciation events",
-        "Personal thank you from our founders",
-        "Behind-the-scenes event access"
+        "Invitation to annual donor appreciation dinners",
+        "Personal call of thanks from our founders",
+        "Reserved seating at community event stages"
       ]
     },
     {
@@ -368,9 +372,9 @@ const DonationPage = () => {
       amount: 250,
       benefits: [
         "All Cultural Champion benefits",
-        "Naming opportunity at events",
-        "Annual impact report",
-        "VIP access to all events"
+        "Corporate/Personal logo placing at events",
+        "Annual detailed community impact report",
+        "Complimentary VIP passes to all festivals"
       ]
     }
   ];
@@ -387,129 +391,205 @@ const DonationPage = () => {
       </Helmet>
 
       <HeroSection
-        title={<><span>Support Our</span><br /><span>Mission</span></>}
-        description="Your donation helps us create inclusive spaces, provide music education and bring communities together through the power of music."
+        title={<><span>Support Our</span><br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400">Mission & Vision</span></>}
+        description="Your generous donation helps us build inclusive community spaces, support music education, and bring neighborhoods together through the transcendent power of rhythm."
         logoUrl={logoUrl}
         showLogo={true}
+        className="bg-gradient-to-br from-slate-900 via-purple-950 to-orange-950"
         floatingElements={[
-          { icon: Heart, position: 'top-12 left-16', animation: 'animate-spin-slow' },
-          { icon: Music, position: 'top-24 right-24', animation: 'animate-pulse' },
-          { icon: Users, position: 'bottom-20 left-1/4', animation: 'animate-bounce' },
-          { icon: Star, position: 'bottom-12 right-16', animation: 'animate-pulse' }
+          { icon: Heart, position: 'top-12 left-16', animation: 'animate-spin-slow text-red-500/20' },
+          { icon: Music, position: 'top-24 right-24', animation: 'animate-pulse text-yellow-500/20' },
+          { icon: Users, position: 'bottom-20 left-1/4', animation: 'animate-bounce text-blue-500/20' },
+          { icon: Star, position: 'bottom-12 right-16', animation: 'animate-pulse text-yellow-500/20' }
         ]}
       />
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-24 bg-gradient-to-b from-gray-50 via-slate-50 to-white relative overflow-hidden">
+        {/* Background visual accents */}
+        <div className="absolute top-1/4 left-0 w-96 h-96 bg-primary-100/30 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange-100/30 rounded-full blur-3xl -z-10"></div>
+
         <div className="container-custom px-4 sm:px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            {/* Donation Form */}
-            <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 sm:p-10 border border-gray-100">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {logoUrl ? <img src={logoUrl} alt="BOW" className="w-full h-full object-cover" /> : <Heart className="w-8 h-8 text-primary-600" />}
+          <div className="grid lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Donation Form Wrapper (Glassmorphism card) */}
+            <div className="lg:col-span-7 bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-8 sm:p-12 border border-white/50 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-orange-500/10 rounded-full blur-2xl"></div>
+              
+              <div className="flex items-center gap-5 mb-10 relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-100 overflow-hidden flex-shrink-0">
+                  {logoUrl ? <img src={logoUrl} alt="BOW" className="w-full h-full object-cover" /> : <Heart className="w-8 h-8 text-white" />}
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">Make a Donation</h2>
-                  <p className="text-gray-500">Every contribution matters</p>
+                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">Make a Difference</h2>
+                  <p className="text-gray-500 text-sm">Empower our community through music</p>
                 </div>
               </div>
 
-              {/* Amount Selection */}
-              <div className="mb-10">
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Select Amount</label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
-                  {presetAmounts.map((amount) => (
+              {/* Amount Selection Block */}
+              <div className="mb-10 relative z-10">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Select Donation Amount</label>
+                
+                {/* Preset cards grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-4">
+                  {presetAmounts.map((preset) => (
                     <button
-                      key={amount}
-                      onClick={() => { setSelectedAmount(amount); setCustomAmount(''); }}
-                      className={`py-4 rounded-2xl border-2 font-bold transition-all duration-300 ${
-                        selectedAmount === amount && !customAmount
-                          ? 'border-primary-600 bg-primary-600 text-white shadow-lg shadow-primary-100 scale-105'
-                          : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-primary-200'
+                      key={preset.value}
+                      type="button"
+                      onClick={() => { setSelectedAmount(preset.value); setCustomAmount(''); }}
+                      className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col justify-between items-center text-center ${
+                        selectedAmount === preset.value && !customAmount
+                          ? 'border-primary-600 bg-gradient-to-br from-primary-600 to-orange-600 text-white shadow-xl shadow-orange-200 scale-[1.03]'
+                          : 'border-gray-100 bg-gray-50/50 hover:bg-gray-50 text-gray-600 hover:border-primary-200'
                       }`}
                     >
-                      ${amount}
+                      <span className="text-lg font-black">${preset.value}</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 ${
+                        selectedAmount === preset.value && !customAmount ? 'text-orange-200' : 'text-gray-400'
+                      }`}>
+                        {preset.label}
+                      </span>
                     </button>
                   ))}
                 </div>
-                <div className="relative">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</div>
+
+                {/* Show impact snippet dynamically based on selected preset */}
+                {selectedAmount > 0 && !customAmount && (
+                  <div className="bg-primary-50/50 border border-primary-100/50 rounded-2xl px-5 py-3 text-xs text-primary-800 font-semibold mb-4 transition-all duration-300 animate-fade-in flex items-center gap-2">
+                    <Award className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                    <span>Impact: {presetAmounts.find(p => p.value === selectedAmount)?.impact}</span>
+                  </div>
+                )}
+
+                {/* Custom Amount Box */}
+                <div className="relative group">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold group-focus-within:text-primary-600 transition-colors">$</div>
                   <input
                     type="number"
-                    placeholder="Other Amount"
+                    placeholder="Enter Other Amount"
                     value={customAmount}
                     onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(0); }}
-                    className="w-full pl-10 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500 font-bold"
+                    className="w-full pl-10 pr-5 py-4 bg-gray-50/50 hover:bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:bg-white focus:ring-0 font-bold transition-all duration-300 text-gray-800"
                   />
                 </div>
               </div>
 
-              {/* Donor Info */}
-              <div className="space-y-6 mb-10">
+              {/* Donor Info block */}
+              <div className="space-y-6 mb-10 relative z-10">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest -mb-2 ml-1">Your Information</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
-                    <input
-                      type="text"
-                      value={donorName}
-                      onChange={(e) => setDonorName(e.target.value)}
-                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500"
-                      placeholder="Your Name"
-                    />
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-600 transition-colors">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="text"
+                        value={donorName}
+                        onChange={(e) => setDonorName(e.target.value)}
+                        className="w-full pl-12 pr-5 py-4 bg-gray-50/50 hover:bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:bg-white focus:ring-0 transition-all duration-300 text-gray-800"
+                        placeholder="Your Full Name"
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
-                    <input
-                      type="email"
-                      value={donorEmail}
-                      onChange={(e) => setDonorEmail(e.target.value)}
-                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-500"
-                      placeholder="email@example.com"
-                    />
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-600 transition-colors">
+                        <Mail className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="email"
+                        value={donorEmail}
+                        onChange={(e) => setDonorEmail(e.target.value)}
+                        className="w-full pl-12 pr-5 py-4 bg-gray-50/50 hover:bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:bg-white focus:ring-0 transition-all duration-300 text-gray-800"
+                        placeholder="Your Email Address"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <SquareDonationForm amount={getAmount()} donorEmail={donorEmail} donorName={donorName} logoUrl={logoUrl} />
+              {/* Square Payment Form Component */}
+              <div className="relative z-10">
+                <SquareDonationForm amount={getAmount()} donorEmail={donorEmail} donorName={donorName} logoUrl={logoUrl} />
+              </div>
             </div>
 
-            {/* Impact Content */}
-            <div className="space-y-8">
-              <div className="bg-gradient-to-br from-primary-600 to-orange-500 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+            {/* Impact Panel (Sophisticated dark dashboard card) */}
+            <div className="lg:col-span-5 space-y-8">
+              
+              {/* Premium Impact Card */}
+              <div className="bg-gradient-to-br from-slate-900 via-purple-950 to-orange-950 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl"></div>
+                
                 <div className="relative z-10">
-                  <h2 className="text-3xl font-black mb-4">Your Impact</h2>
-                  <p className="text-white/80 text-lg leading-relaxed mb-8">
-                    Your generous support enables us to create meaningful programs and events 
-                    that bring communities together through music.
+                  <span className="inline-block bg-white/10 backdrop-blur-md text-orange-400 text-[10px] font-bold px-4 py-2 rounded-full tracking-widest uppercase mb-6 border border-white/10">
+                    Beats of Washington
+                  </span>
+                  <h2 className="text-3xl font-black mb-4 tracking-tight leading-tight">Your Direct Impact</h2>
+                  <p className="text-gray-300 text-sm leading-relaxed mb-8">
+                    Beats of Washington is a non-profit dedicated to cultural amplification. Every contribution directly funds program delivery, instrument storage, and public performances.
                   </p>
+                  
+                  {/* Glowing Counter Block */}
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20">
-                      <div className="text-3xl font-black mb-1">5k+</div>
-                      <div className="text-xs font-bold uppercase tracking-wider text-white/60">Lives Impacted</div>
+                    <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10 group hover:bg-white/10 transition-all duration-300">
+                      <div className="text-3xl font-black mb-1 bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">5k+</div>
+                      <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">People Impacted</div>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20">
-                      <div className="text-3xl font-black mb-1">100+</div>
-                      <div className="text-xs font-bold uppercase tracking-wider text-white/60">Annual Events</div>
+                    <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10 group hover:bg-white/10 transition-all duration-300">
+                      <div className="text-3xl font-black mb-1 bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">100%</div>
+                      <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Directly Invested</div>
                     </div>
                   </div>
                 </div>
+                
                 <Heart className="absolute -bottom-10 -right-10 w-64 h-64 text-white/5 rotate-12" />
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              {/* Tiers List (Premium Membership cards) */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Donation Tiers & Benefits</h3>
+                
                 {donationTiers.map((tier, idx) => (
-                  <div key={idx} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6 group hover:shadow-md transition-all">
-                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-2xl text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all">
+                  <div 
+                    key={idx} 
+                    className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex gap-6 group hover:shadow-md hover:border-gray-200 transition-all duration-300 cursor-pointer"
+                    onClick={() => { setSelectedAmount(tier.amount); setCustomAmount(''); }}
+                  >
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0 transition-all duration-300 ${
+                      selectedAmount === tier.amount && !customAmount
+                        ? 'bg-gradient-to-br from-primary-600 to-orange-600 text-white shadow-lg shadow-orange-100 scale-105'
+                        : 'bg-slate-50 text-slate-700 group-hover:bg-primary-50 group-hover:text-primary-600'
+                    }`}>
                       ${tier.amount}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-gray-900">{tier.name}</h4>
-                      <p className="text-sm text-gray-500">{tier.benefits[0]}</p>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{tier.name}</h4>
+                        {selectedAmount === tier.amount && !customAmount && (
+                          <span className="text-[9px] bg-orange-100 text-orange-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
+                        )}
+                      </div>
+                      
+                      {/* Show benefits dropdown/subtext */}
+                      <ul className="mt-2 space-y-1">
+                        {tier.benefits.slice(0, 2).map((benefit, bIdx) => (
+                          <li key={bIdx} className="text-xs text-gray-500 flex items-center gap-2">
+                            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                            <span className="line-clamp-1">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+            
           </div>
         </div>
       </section>
