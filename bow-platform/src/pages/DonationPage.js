@@ -431,13 +431,13 @@ const DonationPage = () => {
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Select Donation Amount</label>
                 
                 {/* Preset cards grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-4">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
                   {presetAmounts.map((preset) => (
                     <button
                       key={preset.value}
                       type="button"
                       onClick={() => { setSelectedAmount(preset.value); setCustomAmount(''); }}
-                      className={`p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col justify-between items-center text-center ${
+                      className={`p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col justify-between items-center text-center ${
                         selectedAmount === preset.value && !customAmount
                           ? 'border-primary-600 bg-gradient-to-br from-primary-600 to-orange-600 text-white shadow-xl shadow-orange-200 scale-[1.03]'
                           : 'border-gray-100 bg-gray-50/50 hover:bg-gray-50 text-gray-600 hover:border-primary-200'
