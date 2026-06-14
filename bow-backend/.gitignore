@@ -59,3 +59,6 @@ typings/
 
 # next.js build output
 .next
+
+# scratch directory for local scripts/testing
+scratch/
