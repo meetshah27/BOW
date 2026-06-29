@@ -141,38 +141,48 @@ const StoriesManagement = () => {
         // Show uploading state
         toast.loading(`Uploading ${storiesMedia.mediaType} to S3...`);
         
-        // Create FormData for upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', 'stories');
+        // 1. Get S3 presigned URL
+        const presignedResponse = await api.post('/upload/presigned', {
+          fileName: file.name,
+          fileType: file.type,
+          folder: 'stories'
+        });
         
-        // Upload to S3
-        const response = await api.upload('/upload/single', formData);
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          if (result.success) {
-            // Get the permanent S3 URL
-            const fileUrl = result.data.fileUrl;
-            
-            setStoriesMedia(prev => ({
-              ...prev,
-              mediaUrl: fileUrl,
-              // Clear thumbnail if switching from video to image
-              thumbnailUrl: prev.mediaType === 'video' ? prev.thumbnailUrl : ''
-            }));
-            
-            setPreviewUrl(fileUrl);
-            setUploadedFiles(files);
-            toast.dismiss();
-            toast.success(`${storiesMedia.mediaType.charAt(0).toUpperCase() + storiesMedia.mediaType.slice(1)} uploaded successfully!`);
-          } else {
-            throw new Error(result.error || 'Upload failed');
-          }
-        } else {
-          throw new Error('Upload request failed');
+        if (!presignedResponse.ok) {
+          throw new Error('Failed to get upload URL');
         }
+        
+        const presignedResult = await presignedResponse.json();
+        if (!presignedResult.success) {
+          throw new Error(presignedResult.error || 'Failed to get upload URL');
+        }
+        
+        const { uploadUrl, fileUrl } = presignedResult.data;
+        
+        // 2. Upload directly to S3 via PUT (using vanilla fetch to avoid automatic Authorization headers)
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type
+          }
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload file to S3');
+        }
+        
+        setStoriesMedia(prev => ({
+          ...prev,
+          mediaUrl: fileUrl,
+          // Clear thumbnail if switching from video to image
+          thumbnailUrl: prev.mediaType === 'video' ? prev.thumbnailUrl : ''
+        }));
+        
+        setPreviewUrl(fileUrl);
+        setUploadedFiles(files);
+        toast.dismiss();
+        toast.success(`${storiesMedia.mediaType.charAt(0).toUpperCase() + storiesMedia.mediaType.slice(1)} uploaded successfully!`);
       } catch (error) {
         console.error('Upload error:', error);
         toast.dismiss();
@@ -213,31 +223,44 @@ const StoriesManagement = () => {
       try {
         toast.loading('Uploading thumbnail to S3...');
         
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', 'stories');
+        // 1. Get S3 presigned URL
+        const presignedResponse = await api.post('/upload/presigned', {
+          fileName: file.name,
+          fileType: file.type,
+          folder: 'stories'
+        });
         
-        const response = await api.upload('/upload/single', formData);
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          if (result.success) {
-            const thumbnailUrl = result.data.fileUrl;
-            
-            setStoriesMedia(prev => ({
-              ...prev,
-              thumbnailUrl: thumbnailUrl
-            }));
-            
-            toast.dismiss();
-            toast.success('Thumbnail uploaded successfully!');
-          } else {
-            throw new Error(result.error || 'Thumbnail upload failed');
-          }
-        } else {
-          throw new Error('Thumbnail upload request failed');
+        if (!presignedResponse.ok) {
+          throw new Error('Failed to get thumbnail upload URL');
         }
+        
+        const presignedResult = await presignedResponse.json();
+        if (!presignedResult.success) {
+          throw new Error(presignedResult.error || 'Failed to get thumbnail upload URL');
+        }
+        
+        const { uploadUrl, fileUrl } = presignedResult.data;
+        
+        // 2. Upload directly to S3 via PUT (using vanilla fetch to avoid automatic Authorization headers)
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type
+          }
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload thumbnail to S3');
+        }
+        
+        setStoriesMedia(prev => ({
+          ...prev,
+          thumbnailUrl: fileUrl
+        }));
+        
+        toast.dismiss();
+        toast.success('Thumbnail uploaded successfully!');
       } catch (error) {
         console.error('Thumbnail upload error:', error);
         toast.dismiss();

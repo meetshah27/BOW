@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { upload, uploadToS3, deleteFromS3, S3_CONFIG } = require('../config/s3');
+const { upload, uploadToS3, deleteFromS3, S3_CONFIG, generatePresignedUrl, generateFileName } = require('../config/s3');
 
 // Upload single file
 router.post('/single', upload.single('file'), async (req, res) => {
@@ -374,6 +374,46 @@ router.delete('/:fileName', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Delete failed'
+    });
+  }
+});
+
+// Generate presigned URL for direct S3 upload
+router.post('/presigned', async (req, res) => {
+  try {
+    const { fileName, fileType, folder } = req.body;
+    
+    if (!fileName || !fileType) {
+      return res.status(400).json({ error: 'fileName and fileType are required' });
+    }
+    
+    const targetFolder = folder || 'general';
+    const key = generateFileName(fileName, targetFolder);
+    console.log(`📝 Generating S3 presigned URL for key: ${key}, type: ${fileType}`);
+    
+    const presignedUrl = await generatePresignedUrl(key, fileType);
+    
+    const fileUrl = `https://${S3_CONFIG.BUCKET_NAME}.s3.${S3_CONFIG.REGION}.amazonaws.com/${key}`;
+    const cdnDomain = process.env.CDN_DOMAIN || '';
+    const publicUrl = cdnDomain
+      ? `${cdnDomain.replace(/\/$/, '')}/${key}`
+      : fileUrl;
+      
+    res.json({
+      success: true,
+      data: {
+        uploadUrl: presignedUrl,
+        fileUrl: publicUrl,
+        fileName: key,
+        originalName: fileName,
+        mimetype: fileType
+      }
+    });
+  } catch (error) {
+    console.error('Error generating presigned URL:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to generate presigned URL'
     });
   }
 });
